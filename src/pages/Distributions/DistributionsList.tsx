@@ -8,19 +8,21 @@ import { Distribution } from '../../types';
 import { DistributionDetails } from './DistributionDetails';
 import { deleteDistribution } from '../../services/distributions';
 import { toast } from '../Individuals/Toast';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 export function DistributionsList() {
+  const { t } = useLanguage();
   const { distributions, isLoading, refreshDistributions } = useDistributions();
   const [selectedDistribution, setSelectedDistribution] = useState<Distribution | null>(null);
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this distribution?')) {
+    if (window.confirm(t('confirmDelete'))) {
       try {
         await deleteDistribution(id);
-        toast.success('Distribution deleted successfully');
+        toast.success(t('successDelete'));
         refreshDistributions();
       } catch (error) {
-        toast.error('Failed to delete distribution');
+        toast.error(t('error'));
       }
     }
   };
@@ -28,16 +30,16 @@ export function DistributionsList() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">Aid Distribution</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t('distributions')}</h1>
         <div className="flex space-x-4">
           <Link to="/distributions/history">
             <Button variant="outline" icon={History}>
-              View History
+              {t('viewHistory')}
             </Button>
           </Link>
           <Link to="/distributions/create">
             <Button icon={Package}>
-              Create Distribution
+              {t('createDistribution')}
             </Button>
           </Link>
         </div>
@@ -54,22 +56,22 @@ export function DistributionsList() {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Date
+                    {t('date')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Aid Type
+                    {t('aidType')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Description
+                    {t('description')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Recipients
+                    {t('recipients')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Total Value
+                    {t('totalValue')}
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
+                    {t('actions')}
                   </th>
                 </tr>
               </thead>
@@ -81,14 +83,14 @@ export function DistributionsList() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                        {distribution.aid_type}
+                        {t(distribution.aid_type)}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-900">
                       {distribution.description}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {distribution.recipients.length} recipients
+                      {distribution.recipients.length} {t('recipients')}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {formatCurrency(distribution.value)}
@@ -101,7 +103,7 @@ export function DistributionsList() {
                           icon={Eye}
                           onClick={() => setSelectedDistribution(distribution)}
                         >
-                          View
+                          {t('view')}
                         </Button>
                         <Link to={`/distributions/edit/${distribution.id}`}>
                           <Button
@@ -109,7 +111,7 @@ export function DistributionsList() {
                             size="sm"
                             icon={Pencil}
                           >
-                            Edit
+                            {t('edit')}
                           </Button>
                         </Link>
                         <Button
@@ -119,7 +121,7 @@ export function DistributionsList() {
                           onClick={() => handleDelete(distribution.id)}
                           className="text-red-600 hover:text-red-700"
                         >
-                          Delete
+                          {t('delete')}
                         </Button>
                       </div>
                     </td>

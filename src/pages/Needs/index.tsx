@@ -2,8 +2,10 @@ import React from 'react';
 import { NeedsList } from './NeedsList';
 import { SearchFilters } from './SearchFilters';
 import { useNeeds } from '../../hooks/useNeeds';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 export function Needs() {
+  const { t } = useLanguage();
   const { 
     needs, 
     isLoading, 
@@ -14,9 +16,9 @@ export function Needs() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">Needs</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t('needs')}</h1>
         <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-          Add Need
+          {t('addNeed')}
         </button>
       </div>
 

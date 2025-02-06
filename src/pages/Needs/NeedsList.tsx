@@ -2,6 +2,7 @@ import React from 'react';
 import { Need } from '../../types';
 import { formatDate } from '../../utils/formatters';
 import { NeedsBadge } from '../../components/NeedsBadge';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface NeedsListProps {
   needs: Need[];
@@ -21,31 +22,33 @@ const priorityColors = {
 };
 
 export function NeedsList({ needs }: NeedsListProps) {
+  const { t } = useLanguage();
+
   return (
     <div className="bg-white shadow-md rounded-lg overflow-hidden">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Individual
+              {t('individuals')}
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Category
+              {t('category')}
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Description
+              {t('description')}
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Status
+              {t('status')}
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Priority
+              {t('priority')}
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Created
+              {t('created')}
             </th>
             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Actions
+              {t('actions')}
             </th>
           </tr>
         </thead>
@@ -63,12 +66,12 @@ export function NeedsList({ needs }: NeedsListProps) {
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[need.status]}`}>
-                  {need.status.replace('_', ' ')}
+                  {t(need.status)}
                 </span>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${priorityColors[need.priority]}`}>
-                  {need.priority}
+                  {t(need.priority)}
                 </span>
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -76,7 +79,7 @@ export function NeedsList({ needs }: NeedsListProps) {
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <button className="text-blue-600 hover:text-blue-900">
-                  Edit
+                  {t('edit')}
                 </button>
               </td>
             </tr>

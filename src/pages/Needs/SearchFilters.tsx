@@ -1,5 +1,6 @@
 import React from 'react';
 import { NeedCategory } from '../../types';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface FiltersState {
   search: string;
@@ -14,12 +15,14 @@ interface SearchFiltersProps {
 }
 
 export function SearchFilters({ filters, onFilterChange }: SearchFiltersProps) {
+  const { t } = useLanguage();
+
   return (
     <div className="bg-white p-4 rounded-lg shadow-sm space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div>
           <label htmlFor="search" className="block text-sm font-medium text-gray-700">
-            Search
+            {t('search')}
           </label>
           <input
             type="text"
@@ -27,13 +30,13 @@ export function SearchFilters({ filters, onFilterChange }: SearchFiltersProps) {
             value={filters.search}
             onChange={(e) => onFilterChange({ ...filters, search: e.target.value })}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-            placeholder="Search by description..."
+            placeholder={t('searchPlaceholder')}
           />
         </div>
 
         <div>
           <label htmlFor="category" className="block text-sm font-medium text-gray-700">
-            Category
+            {t('category')}
           </label>
           <select
             id="category"
@@ -41,22 +44,22 @@ export function SearchFilters({ filters, onFilterChange }: SearchFiltersProps) {
             onChange={(e) => onFilterChange({ ...filters, category: e.target.value as NeedCategory | '' })}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
           >
-            <option value="">All Categories</option>
-            <option value="medical">Medical</option>
-            <option value="financial">Financial</option>
-            <option value="food">Food</option>
-            <option value="shelter">Shelter</option>
-            <option value="clothing">Clothing</option>
-            <option value="education">Education</option>
-            <option value="employment">Employment</option>
-            <option value="transportation">Transportation</option>
-            <option value="other">Other</option>
+            <option value="">{t('allCategories')}</option>
+            <option value="medical">{t('medical')}</option>
+            <option value="financial">{t('financial')}</option>
+            <option value="food">{t('food')}</option>
+            <option value="shelter">{t('shelter')}</option>
+            <option value="clothing">{t('clothing')}</option>
+            <option value="education">{t('education')}</option>
+            <option value="employment">{t('employment')}</option>
+            <option value="transportation">{t('transportation')}</option>
+            <option value="other">{t('other')}</option>
           </select>
         </div>
 
         <div>
           <label htmlFor="status" className="block text-sm font-medium text-gray-700">
-            Status
+            {t('status')}
           </label>
           <select
             id="status"
@@ -64,16 +67,16 @@ export function SearchFilters({ filters, onFilterChange }: SearchFiltersProps) {
             onChange={(e) => onFilterChange({ ...filters, status: e.target.value as 'pending' | 'in_progress' | 'completed' | '' })}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
           >
-            <option value="">All Statuses</option>
-            <option value="pending">Pending</option>
-            <option value="in_progress">In Progress</option>
-            <option value="completed">Completed</option>
+            <option value="">{t('allStatuses')}</option>
+            <option value="pending">{t('pending')}</option>
+            <option value="in_progress">{t('inProgress')}</option>
+            <option value="completed">{t('completed')}</option>
           </select>
         </div>
 
         <div>
           <label htmlFor="priority" className="block text-sm font-medium text-gray-700">
-            Priority
+            {t('priority')}
           </label>
           <select
             id="priority"
@@ -81,11 +84,11 @@ export function SearchFilters({ filters, onFilterChange }: SearchFiltersProps) {
             onChange={(e) => onFilterChange({ ...filters, priority: e.target.value as 'low' | 'medium' | 'high' | 'urgent' | '' })}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
           >
-            <option value="">All Priorities</option>
-            <option value="low">Low</option>
-            <option value="medium">Medium</option>
-            <option value="high">High</option>
-            <option value="urgent">Urgent</option>
+            <option value="">{t('allPriorities')}</option>
+            <option value="low">{t('low')}</option>
+            <option value="medium">{t('medium')}</option>
+            <option value="high">{t('high')}</option>
+            <option value="urgent">{t('urgent')}</option>
           </select>
         </div>
       </div>

@@ -4,8 +4,11 @@ import { DistributionsList } from './DistributionsList';
 import { CreateDistribution } from './CreateDistribution';
 import { EditDistribution } from './EditDistribution';
 import { DistributionHistory } from './DistributionHistory';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 export function Distributions() {
+  const { t } = useLanguage();
+  
   return (
     <Routes>
       <Route index element={<DistributionsList />} />

@@ -37,6 +37,8 @@
       needs: Need[];
       distributions: Distribution[];
       list_status: 'whitelist' | 'blacklist' | 'waitinglist';
+      additional_members: AdditionalMember[];
+      children: Child[];
     }
     
     // Need types
@@ -127,3 +129,29 @@
         last_name: string;
       };
     }
+
+export interface Child {
+  id: string;
+  first_name: string;
+  last_name: string;
+  date_of_birth: string;
+  gender: 'boy' | 'girl';
+  school_stage?: 'kindergarten' | 'primary' | 'preparatory' | 'secondary';
+  description?: string;
+  parent_id: string;
+  family_id: string;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AdditionalMember {
+  id: string;
+  name: string;
+  date_of_birth: string;
+  gender: 'male' | 'female';
+  role: 'spouse' | 'sibling' | 'grandparent' | 'other';
+  job_title?: string;
+  phone_number?: string;
+  relation: string;
+}

@@ -12,19 +12,22 @@ import {
   X
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
+import { useLanguage } from '../contexts/LanguageContext';
+import { LanguageSwitcher } from './LanguageSwitcher';
 
 export function Layout() {
   const location = useLocation();
   const { signOut, user } = useAuthStore();
+  const { t } = useLanguage();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
   const navigation = [
-    { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-    { name: 'Individuals', href: '/individuals', icon: Users },
-    { name: 'Families', href: '/families', icon: Home },
-    { name: 'Needs', href: '/needs', icon: HeartHandshake },
-    { name: 'Aid Distribution', href: '/distributions', icon: Package },
-    { name: 'Reports', href: '/reports', icon: BarChart3 },
+    { name: t('dashboard'), href: '/', icon: LayoutDashboard },
+    { name: t('individuals'), href: '/individuals', icon: Users },
+    { name: t('families'), href: '/families', icon: Home },
+    { name: t('needs'), href: '/needs', icon: HeartHandshake },
+    { name: t('distributions'), href: '/distributions', icon: Package },
+    { name: t('reports'), href: '/reports', icon: BarChart3 },
   ];
 
   const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -51,8 +54,9 @@ export function Layout() {
           lg:relative lg:translate-x-0
         `}>
           <div className="flex flex-col h-full">
-            <div className="flex items-center justify-center h-16 px-4 border-b">
-              <h1 className="text-xl font-bold text-gray-800">Social Services</h1>
+            <div className="flex items-center justify-between h-16 px-4 border-b">
+              <h1 className="text-xl font-bold text-gray-800">{t('dashboard')}</h1>
+              <LanguageSwitcher />
             </div>
             <nav className="flex-1 px-2 py-4 space-y-1">
               {navigation.map((item) => {
@@ -86,6 +90,7 @@ export function Layout() {
                 <button
                   onClick={() => signOut()}
                   className="p-2 text-gray-400 hover:text-gray-500"
+                  title={t('signOut')}
                 >
                   <LogOut className="w-5 h-5" />
                 </button>

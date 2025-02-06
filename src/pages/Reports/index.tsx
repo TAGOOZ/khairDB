@@ -16,8 +16,10 @@ import {
 import { DateRangePicker } from './DateRangePicker';
 import { StatsGrid } from './StatsGrid';
 import { useReports } from '../../hooks/useReports';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 export function Reports() {
+  const { t } = useLanguage();
   const [dateRange, setDateRange] = useState({
     start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
     end: new Date(),
@@ -36,7 +38,7 @@ export function Reports() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">Reports & Analytics</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t('reports')}</h1>
         <DateRangePicker value={dateRange} onChange={setDateRange} />
       </div>
 
@@ -45,7 +47,7 @@ export function Reports() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Needs by Category */}
         <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-lg font-semibold mb-4">Needs by Category</h2>
+          <h2 className="text-lg font-semibold mb-4">{t('needs')}</h2>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data.needsByCategory}>
@@ -61,7 +63,7 @@ export function Reports() {
 
         {/* Needs Status Distribution */}
         <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-lg font-semibold mb-4">Needs Status Distribution</h2>
+          <h2 className="text-lg font-semibold mb-4">{t('status')}</h2>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -86,7 +88,7 @@ export function Reports() {
 
         {/* Needs Trend */}
         <div className="bg-white p-6 rounded-lg shadow lg:col-span-2">
-          <h2 className="text-lg font-semibold mb-4">Needs Trend Over Time</h2>
+          <h2 className="text-lg font-semibold mb-4">{t('needs')}</h2>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={data.needsTrend}>

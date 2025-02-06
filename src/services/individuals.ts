@@ -1,188 +1,179 @@
 import { supabase } from '../lib/supabase';
-    import { IndividualFormData } from '../schemas/individualSchema';
-    import { IndividualError } from '../types/errors';
-    
-    export class IndividualError extends Error {
-      code: string;
-      originalError?: any;
-    
-      constructor(code: string, message: string, originalError?: any) {
-        super(message);
-        this.name = 'IndividualError';
-        this.code = code;
-        this.originalError = originalError;
-    
-        // Maintain proper stack trace (only for V8 environments like Node.js)
-        if (Error.captureStackTrace) {
-          Error.captureStackTrace(this, this.constructor);
-        }
+import { IndividualFormData } from '../schemas/individualSchema';
+import { IndividualError } from '../types/errors';
+
+export class IndividualError extends Error {
+  code: string;
+  originalError?: any;
+
+  constructor(code: string, message: string, originalError?: any) {
+    super(message);
+    this.name = 'IndividualError';
+    this.code = code;
+    this.originalError = originalError;
+
+    // Maintain proper stack trace
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, this.constructor);
+    }
+  }
+}
+
+export async function createIndividual(data: IndividualFormData) {
+  try {
+    // Check if ID number exists
+    const { data: existingIndividual } = await supabase
+      .from('individuals')
+      .select('id')
+      .eq('id_number', data.id_number)
+      .single();
+
+    if (existingIndividual) {
+      throw new IndividualError('duplicate-id', 'An individual with this ID number already exists');
+    }
+
+    const { data: { user } } = await supabase.auth.getUser();
+
+    const { data: individual, error } = await supabase
+      .from('individuals')
+      .insert([{
+        first_name: data.first_name,
+        last_name: data.last_name,
+        id_number: data.id_number,
+        date_of_birth: data.date_of_birth,
+        gender: data.gender,
+        marital_status: data.marital_status,
+        phone: data.phone,
+        address: data.address,
+        family_id: data.family_id === '' ? null : data.family_id,
+        district: data.district,
+        description: data.description,
+        job: data.job,
+        employment_status: data.employment_status,
+        salary: data.salary,
+        created_by: user?.id,
+        list_status: data.list_status
+      }])
+      .select()
+      .single();
+
+    if (error) {
+      throw new IndividualError('creation-failed', error.message, error);
+    }
+
+    if (data.needs && data.needs.length > 0) {
+      const needsInserts = data.needs.map(need => ({
+        individual_id: individual.id,
+        category: need.category,
+        priority: need.priority,
+        description: need.description,
+        status: 'pending'
+      }));
+
+      const { error: needsError } = await supabase
+        .from('needs')
+        .insert(needsInserts);
+
+      if (needsError) {
+        throw new IndividualError('creation-failed', 'Failed to insert needs', needsError);
       }
     }
-    
-    export async function createIndividual(data: IndividualFormData) {
-      try {
-        // Check if ID number exists
-        const { data: existingIndividual } = await supabase
-          .from('individuals')
-          .select('id')
-          .eq('id_number', data.id_number)
-          .single();
-    
-        if (existingIndividual) {
-          throw new IndividualError('duplicate-id', 'An individual with this ID number already exists');
-        }
-    
-        const { data: { user } } = await supabase.auth.getUser();
-    
-        const { data: individual, error } = await supabase
-          .from('individuals')
-          .insert([
-            {
-              first_name: data.first_name,
-              last_name: data.last_name,
-              id_number: data.id_number,
-              date_of_birth: data.date_of_birth,
-              gender: data.gender,
-              marital_status: data.marital_status,
-              phone: data.phone,
-              address: data.address,
-              family_id: data.family_id === '' ? null : data.family_id,
-              district: data.district,
-              description: data.description,
-              job: data.job,
-              employment_status: data.employment_status,
-              salary: data.salary,
-              created_by: user?.id,
-              list_status: data.list_status
-            }
-          ])
-          .select()
-          .single();
-    
-        if (error) {
-          throw new IndividualError('creation-failed', error.message, error);
-        }
-    
-        const needsInserts = (data.needs || []).map((need) => ({
-          individual_id: individual.id,
-          category: need.category,
-          priority: need.priority,
-          description: need.description,
-          status: 'pending'
-        }));
-    
-        // Insert needs if any
-        if (needsInserts.length > 0) {
-          const { error: needsError } = await supabase
-            .from('needs')
-            .insert(needsInserts);
-    
-          if (needsError) {
-            throw new IndividualError(
-              'creation-failed',
-              needsError.message || 'Failed to insert needs after creation',
-              needsError
-            );
-          }
-        }
-    
-        return individual;
-      } catch (error) {
-        if (error instanceof IndividualError) {
-          throw error;
-        }
-        console.error('Unexpected error during individual creation:', error);
-        throw new IndividualError('unexpected', 'An unexpected error occurred', error);
-      }
+
+    return individual;
+  } catch (error) {
+    if (error instanceof IndividualError) throw error;
+    throw new IndividualError('unexpected', 'An unexpected error occurred', error);
+  }
+}
+
+export async function updateIndividual(id: string, data: IndividualFormData) {
+  try {
+    // Check for duplicate ID number
+    const { data: existingIndividuals, error: checkError } = await supabase
+      .from('individuals')
+      .select('id')
+      .eq('id_number', data.id_number)
+      .neq('id', id);
+
+    if (!checkError && existingIndividuals && existingIndividuals.length > 0) {
+      throw new IndividualError('duplicate-id', 'An individual with this ID number already exists');
     }
-    
-    export async function updateIndividual(id: string, data: IndividualFormData) {
-      try {
-        // Check if ID number exists for other individuals
-        const { data: existingIndividual } = await supabase
-          .from('individuals')
-          .select('id')
-          .eq('id_number', data.id_number)
-          .neq('id', id)
-          .single();
-    
-        if (existingIndividual) {
-          throw new IndividualError('duplicate-id', 'An individual with this ID number already exists');
-        }
-    
-        // Remove needs from the data object to prevent it from being included in the update
-        const { needs, ...updateData } = data;
-    
-        const { data: individual, error } = await supabase
-          .from('individuals')
-          .update(updateData)
-          .eq('id', id)
-          .select()
-          .single();
-    
-        if (error) {
-          throw new IndividualError('update-failed', error.message, error);
-        }
-    
-        // Delete existing needs
-        await supabase
-          .from('needs')
-          .delete()
-          .eq('individual_id', id);
-    
-        // Insert new needs
-        const needsInserts = (data.needs || []).map((need) => ({
+
+    // First update the individual's basic information
+    const { needs, ...updateData } = data;
+    const { data: individual, error: updateError } = await supabase
+      .from('individuals')
+      .update({
+        ...updateData,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (updateError) {
+      throw new IndividualError('update-failed', 'Failed to update individual', updateError);
+    }
+
+    // Then handle needs separately
+    try {
+      // First delete existing needs
+      const { error: deleteError } = await supabase
+        .from('needs')
+        .delete()
+        .eq('individual_id', id);
+
+      if (deleteError) {
+        throw new IndividualError('update-failed', 'Failed to delete existing needs', deleteError);
+      }
+
+      // Then insert new needs if any
+      if (needs && needs.length > 0) {
+        const needsInserts = needs.map(need => ({
           individual_id: id,
           category: need.category,
           priority: need.priority,
           description: need.description,
-          status: 'pending'
+          status: need.status || 'pending'
         }));
-    
-        if (needsInserts.length > 0) {
-          const { error: needsError } = await supabase
-            .from('needs')
-            .insert(needsInserts);
-    
-          if (needsError) {
-            throw new IndividualError(
-              'update-failed',
-              needsError.message || 'Failed to insert needs after update',
-              needsError
-            );
-          }
+
+        const { error: insertError } = await supabase
+          .from('needs')
+          .insert(needsInserts);
+
+        if (insertError) {
+          throw new IndividualError('update-failed', 'Failed to insert new needs', insertError);
         }
-    
-        return individual;
-      } catch (error) {
-        if (error instanceof IndividualError) {
-          throw error;
-        }
-        console.error('Unexpected error during individual update:', error);
-        throw new IndividualError('unexpected', 'An unexpected error occurred', error);
       }
+    } catch (needsError) {
+      throw new IndividualError('update-failed', 'Failed to update needs', needsError);
     }
-    
-    export async function checkIdNumberExists(idNumber: string): Promise<boolean> {
-      try {
-        if (!idNumber || idNumber.length !== 14) {
-          return false;
-        }
-    
-        const { data, error } = await supabase
-          .from('individuals')
-          .select('id')
-          .eq('id_number', idNumber)
-          .single();
-    
-        if (error && error.code !== 'PGRST116') {
-          console.error('Database error checking ID:', error);
-          throw new IndividualError('id-check-failed', 'Failed to check ID number');
-        }
-    
-        return !!data;
-      } catch (error) {
-        console.error('Error checking ID number:', error);
-        throw new IndividualError('id-check-failed', 'Failed to check ID number', error);
-      }
+
+    return individual;
+  } catch (error) {
+    if (error instanceof IndividualError) throw error;
+    throw new IndividualError('unexpected', 'An unexpected error occurred', error);
+  }
+}
+
+export async function checkIdNumberExists(idNumber: string): Promise<boolean> {
+  try {
+    if (!idNumber || idNumber.length !== 14) {
+      return false;
     }
+
+    const { data, error } = await supabase
+      .from('individuals')
+      .select('id')
+      .eq('id_number', idNumber);
+
+    if (error) {
+      throw new IndividualError('id-check-failed', 'Failed to check ID number', error);
+    }
+
+    return data && data.length > 0;
+  } catch (error) {
+    console.error('Error checking ID number:', error);
+    throw new IndividualError('id-check-failed', 'Failed to check ID number', error);
+  }
+}

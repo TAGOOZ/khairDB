@@ -1,5 +1,6 @@
 import React from 'react';
 import { Need } from '../types';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface NeedsBadgeProps {
   need: Need;
@@ -18,9 +19,11 @@ const colors = {
 };
 
 export function NeedsBadge({ need }: NeedsBadgeProps) {
+  const { t } = useLanguage();
+  
   return (
     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colors[need.category]}`}>
-      {need.category}
+      {t(need.category)}
     </span>
   );
 }
