@@ -21,23 +21,38 @@ export async function createFamily(data: FamilyFormData): Promise<Family> {
       throw new FamilyError('invalid-members', 'At least one parent is required');
     }
 
-    // Start a Supabase transaction
-    const { data: family, error: familyError } = await supabase.rpc(
-      'create_family_with_members',
-      {
-        p_family_data: {
-          name: data.name,
-          status: data.status,
-          district: data.district,
-          phone: data.phone,
-          address: data.address
-        },
-        p_member_data: data.members
-      }
-    );
+    // Start a transaction
+    const { data: family, error: familyError } = await supabase
+      .from('families')
+      .insert([{
+        name: data.name,
+        status: data.status,
+        district: data.district,
+        phone: data.phone,
+        address: data.address
+      }])
+      .select()
+      .single();
 
     if (familyError) {
       throw new FamilyError('creation-failed', 'Failed to create family', familyError);
+    }
+
+    // Add members to family_members table
+    const memberInserts = data.members.map(member => ({
+      family_id: family.id,
+      individual_id: member.id,
+      role: member.role
+    }));
+
+    const { error: membersError } = await supabase
+      .from('family_members')
+      .insert(memberInserts);
+
+    if (membersError) {
+      // Rollback family creation if member insertion fails
+      await supabase.from('families').delete().eq('id', family.id);
+      throw new FamilyError('member-creation-failed', 'Failed to add family members', membersError);
     }
 
     // Fetch the complete family with members
@@ -78,28 +93,49 @@ export async function updateFamily(id: string, data: FamilyFormData): Promise<Fa
       throw new FamilyError('invalid-members', 'At least one parent is required');
     }
 
-    // Update using stored procedure
-    const { data: family, error: updateError } = await supabase.rpc(
-      'update_family_with_members',
-      {
-        p_family_id: id,
-        p_family_data: {
-          name: data.name,
-          status: data.status,
-          district: data.district,
-          phone: data.phone,
-          address: data.address
-        },
-        p_member_data: data.members
-      }
-    );
+    // Update family
+    const { error: updateError } = await supabase
+      .from('families')
+      .update({
+        name: data.name,
+        status: data.status,
+        district: data.district,
+        phone: data.phone,
+        address: data.address
+      })
+      .eq('id', id);
 
     if (updateError) {
       throw new FamilyError('update-failed', 'Failed to update family', updateError);
     }
 
-    // Fetch the complete updated family
-    const { data: completeFamily, error: fetchError } = await supabase
+    // Delete existing members
+    const { error: deleteError } = await supabase
+      .from('family_members')
+      .delete()
+      .eq('family_id', id);
+
+    if (deleteError) {
+      throw new FamilyError('member-deletion-failed', 'Failed to update family members', deleteError);
+    }
+
+    // Add new members
+    const memberInserts = data.members.map(member => ({
+      family_id: id,
+      individual_id: member.id,
+      role: member.role
+    }));
+
+    const { error: membersError } = await supabase
+      .from('family_members')
+      .insert(memberInserts);
+
+    if (membersError) {
+      throw new FamilyError('member-update-failed', 'Failed to update family members', membersError);
+    }
+
+    // Fetch updated family
+    const { data: updatedFamily, error: fetchError } = await supabase
       .from('families')
       .select(`
         *,
@@ -116,8 +152,8 @@ export async function updateFamily(id: string, data: FamilyFormData): Promise<Fa
     }
 
     return {
-      ...completeFamily,
-      members: completeFamily.members.map((m: any) => ({
+      ...updatedFamily,
+      members: updatedFamily.members.map((m: any) => ({
         ...m.individual,
         family_role: m.role
       }))

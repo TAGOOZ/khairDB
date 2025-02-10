@@ -291,5 +291,22 @@ export const translations = {
   underAge: 'يجب أن يكون العمر أقل من 18 سنة',
   invalidPhoneNumber: 'رقم هاتف غير صالح',
   memberAdded: 'تمت إضافة الفرد بنجاح',
-  memberAddedError: 'حدث خطأ أثناء إضافة الفرد'
+  memberAddedError: 'حدث خطأ أثناء إضافة الفرد',
+
+  // Family Options
+  familyOption: 'خيار العائلة',
+  chooseExistingFamily: 'اختيار عائلة موجودة',
+  createNewFamily: 'إنشاء عائلة جديدة',
+  newFamilyName: 'اسم العائلة الجديدة',
+  enterFamilyName: 'أدخل اسم العائلة الجديدة...',
+  familyCreated: 'تم إنشاء العائلة بنجاح',
+  familyRequired: 'يجب اختيار عائلة أو إنشاء عائلة جديدة عند إضافة أطفال',
+
+  // Family Modal
+  addNewFamily: 'إضافة عائلة جديدة',
+  updateFamilyInfo: 'تحديث معلومات العائلة',
+  searchMembers: 'البحث عن الأعضاء...',
+  green: 'أخضر',
+  yellow: 'أصفر',
+  red: 'أحمر'
 };

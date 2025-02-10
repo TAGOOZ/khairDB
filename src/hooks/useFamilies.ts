@@ -22,7 +22,7 @@ export function useFamilies() {
           *,
           members:family_members!inner(
             role,
-            individual:individuals(*)
+            individual:individuals!inner(*)
           )
         `);
 
@@ -32,7 +32,10 @@ export function useFamilies() {
 
       const { data, error } = await query;
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching families:', error);
+        throw error;
+      }
       
       // Transform the data to match our expected format
       const transformedFamilies = (data || []).map(family => ({
@@ -46,6 +49,7 @@ export function useFamilies() {
       setFamilies(transformedFamilies);
     } catch (error) {
       console.error('Error fetching families:', error);
+      setFamilies([]);
     } finally {
       setIsLoading(false);
     }

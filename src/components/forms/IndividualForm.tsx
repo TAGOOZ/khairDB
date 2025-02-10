@@ -11,6 +11,7 @@ import { Select } from '../ui/Select';
 import { TextArea } from '../ui/TextArea';
 import { Plus, Trash2 } from 'lucide-react';
 import { AddMemberButton } from './individual/AddMemberButton';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface IndividualFormProps {
   onSubmit: (data: IndividualFormData) => Promise<void>;
@@ -20,6 +21,7 @@ interface IndividualFormProps {
 }
 
 export function IndividualForm({ onSubmit, isLoading, families, initialData }: IndividualFormProps) {
+  const { t } = useLanguage();
   const {
     register,
     handleSubmit,
@@ -33,8 +35,10 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
     defaultValues: initialData || {
       first_name: '',
       last_name: '',
+      id_number: '',
       date_of_birth: '',
       gender: 'male',
+      marital_status: 'single',
       phone: '',
       district: '',
       family_id: null,
@@ -43,112 +47,285 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
       job: '',
       employment_status: 'no_salary',
       salary: null,
-      needs: []
+      needs: [],
+      additional_members: [],
+      children: []
     }
   });
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields: needFields, append: appendNeed, remove: removeNeed } = useFieldArray({
     control,
     name: 'needs'
   });
 
+  const { fields: memberFields, append: appendMember, remove: removeMember } = useFieldArray({
+    control,
+    name: 'additional_members'
+  });
+
+  const { fields: childFields, append: appendChild, remove: removeChild } = useFieldArray({
+    control,
+    name: 'children'
+  });
+
   const handleFormSubmit = async (data: IndividualFormData) => {
-    await onSubmit(data);
-    reset();
+    try {
+      await onSubmit({
+        ...data,
+        children: data.children || [],
+        additional_members: data.additional_members || [],
+        needs: data.needs || []
+      });
+      reset();
+    } catch (error) {
+      console.error('Error submitting form:', error);
+    }
   };
 
   const handleAddMember = (memberData: any) => {
-    // Handle the new member data
-    console.log('New member data:', memberData);
-    // You can add logic here to update the form with the new member data
+    if (memberData.gender === 'boy' || memberData.gender === 'girl') {
+      appendChild({
+        first_name: memberData.first_name,
+        last_name: memberData.last_name,
+        date_of_birth: memberData.date_of_birth,
+        gender: memberData.gender === 'boy' ? 'male' : 'female',
+        school_stage: memberData.school_stage,
+        description: memberData.description
+      });
+    } else {
+      appendMember({
+        name: memberData.name,
+        date_of_birth: memberData.date_of_birth,
+        gender: memberData.gender,
+        role: memberData.role,
+        job_title: memberData.job_title,
+        phone_number: memberData.phone_number,
+        relation: memberData.relation
+      });
+    }
   };
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
       <PersonalInfoFields register={register} errors={errors} />
-      <ContactFields register={register} errors={errors} families={families} />
+      <ContactFields register={register} errors={errors} families={families} setValue={setValue} />
       <EmploymentFields register={register} errors={errors} control={control} />
 
-      {/* Add Member Button */}
+      {/* Family Members Section */}
       <div className="space-y-4">
         <div className="flex justify-between items-center">
-          <h3 className="text-lg font-medium text-gray-900">Family Members</h3>
-          <AddMemberButton onAddMember={handleAddMember} />
+          <h3 className="text-lg font-medium text-gray-900">{t('familyMembers')}</h3>
+          <div onClick={(e) => e.preventDefault()}>
+            <AddMemberButton onAddMember={handleAddMember} />
+          </div>
         </div>
+
+        {/* Display Additional Members */}
+        {memberFields.length > 0 && (
+          <div className="space-y-4">
+            <h4 className="text-md font-medium text-gray-800">{t('additionalMembers')}</h4>
+            {memberFields.map((field, index) => (
+              <div key={field.id} className="bg-gray-50 p-4 rounded-lg space-y-4">
+                <div className="flex justify-between items-start">
+                  <h5 className="text-sm font-medium text-gray-900">
+                    {watch(`additional_members.${index}.name`)} - {watch(`additional_members.${index}.relation`)}
+                  </h5>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    icon={Trash2}
+                    onClick={() => removeMember(index)}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    {t('remove')}
+                  </Button>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <input
+                    type="text"
+                    {...register(`additional_members.${index}.name`)}
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                    placeholder={t('name')}
+                  />
+                  <input
+                    type="date"
+                    {...register(`additional_members.${index}.date_of_birth`)}
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  />
+                  <Select
+                    {...register(`additional_members.${index}.role`)}
+                    options={[
+                      { value: 'spouse', label: t('spouse') },
+                      { value: 'sibling', label: t('sibling') },
+                      { value: 'grandparent', label: t('grandparent') },
+                      { value: 'other', label: t('other') }
+                    ]}
+                  />
+                  <input
+                    type="text"
+                    {...register(`additional_members.${index}.job_title`)}
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                    placeholder={t('jobTitle')}
+                  />
+                  <input
+                    type="tel"
+                    {...register(`additional_members.${index}.phone_number`)}
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                    placeholder={t('phoneNumber')}
+                  />
+                  <Select
+                    {...register(`additional_members.${index}.relation`)}
+                    options={[
+                      { value: 'wife', label: t('wife') },
+                      { value: 'husband', label: t('husband') },
+                      { value: 'sister', label: t('sister') },
+                      { value: 'brother', label: t('brother') },
+                      { value: 'mother', label: t('mother') },
+                      { value: 'father', label: t('father') },
+                      { value: 'mother_in_law', label: t('motherInLaw') },
+                      { value: 'father_in_law', label: t('fatherInLaw') }
+                    ]}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Display Children */}
+        {childFields.length > 0 && (
+          <div className="space-y-4">
+            <h4 className="text-md font-medium text-gray-800">{t('children')}</h4>
+            {childFields.map((field, index) => (
+              <div key={field.id} className="bg-gray-50 p-4 rounded-lg space-y-4">
+                <div className="flex justify-between items-start">
+                  <h5 className="text-sm font-medium text-gray-900">
+                    {watch(`children.${index}.first_name`)} {watch(`children.${index}.last_name`)}
+                  </h5>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    icon={Trash2}
+                    onClick={() => removeChild(index)}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    {t('remove')}
+                  </Button>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <input
+                    type="text"
+                    {...register(`children.${index}.first_name`)}
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                    placeholder={t('firstName')}
+                  />
+                  <input
+                    type="text"
+                    {...register(`children.${index}.last_name`)}
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                    placeholder={t('lastName')}
+                  />
+                  <input
+                    type="date"
+                    {...register(`children.${index}.date_of_birth`)}
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                  />
+                  <Select
+                    {...register(`children.${index}.school_stage`)}
+                    options={[
+                      { value: 'kindergarten', label: t('kindergarten') },
+                      { value: 'primary', label: t('primary') },
+                      { value: 'preparatory', label: t('preparatory') },
+                      { value: 'secondary', label: t('secondary') }
+                    ]}
+                  />
+                  <div className="md:col-span-2">
+                    <TextArea
+                      {...register(`children.${index}.description`)}
+                      placeholder={t('description')}
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Needs Section */}
       <div className="space-y-4">
         <div className="flex justify-between items-center">
-          <h3 className="text-lg font-medium text-gray-900">Needs</h3>
+          <h3 className="text-lg font-medium text-gray-900">{t('needs')}</h3>
           <Button
             type="button"
             variant="outline"
             size="sm"
             icon={Plus}
-            onClick={() => append({
+            onClick={() => appendNeed({
               category: 'medical',
               priority: 'medium',
               description: '',
               status: 'pending'
             })}
           >
-            Add Need
+            {t('addNeed')}
           </Button>
         </div>
 
-        {fields.map((field, index) => (
+        {needFields.map((field, index) => (
           <div key={field.id} className="bg-gray-50 p-4 rounded-lg space-y-4">
             <div className="flex justify-between items-start">
-              <h4 className="text-sm font-medium text-gray-900">Need {index + 1}</h4>
+              <h4 className="text-sm font-medium text-gray-900">{t('need')} {index + 1}</h4>
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
                 icon={Trash2}
-                onClick={() => remove(index)}
+                onClick={() => removeNeed(index)}
                 className="text-red-600 hover:text-red-700"
               >
-                Remove
+                {t('remove')}
               </Button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Select
-                label="Category"
+                label={t('category')}
                 {...register(`needs.${index}.category`)}
                 error={errors.needs?.[index]?.category?.message}
                 options={[
-                  { value: 'medical', label: 'Medical' },
-                  { value: 'financial', label: 'Financial' },
-                  { value: 'food', label: 'Food' },
-                  { value: 'shelter', label: 'Shelter' },
-                  { value: 'clothing', label: 'Clothing' },
-                  { value: 'education', label: 'Education' },
-                  { value: 'employment', label: 'Employment' },
-                  { value: 'transportation', label: 'Transportation' },
-                  { value: 'other', label: 'Other' }
+                  { value: 'medical', label: t('medical') },
+                  { value: 'financial', label: t('financial') },
+                  { value: 'food', label: t('food') },
+                  { value: 'shelter', label: t('shelter') },
+                  { value: 'clothing', label: t('clothing') },
+                  { value: 'education', label: t('education') },
+                  { value: 'employment', label: t('employment') },
+                  { value: 'transportation', label: t('transportation') },
+                  { value: 'other', label: t('other') }
                 ]}
               />
 
               <Select
-                label="Priority"
+                label={t('priority')}
                 {...register(`needs.${index}.priority`)}
                 error={errors.needs?.[index]?.priority?.message}
                 options={[
-                  { value: 'low', label: 'Low' },
-                  { value: 'medium', label: 'Medium' },
-                  { value: 'high', label: 'High' },
-                  { value: 'urgent', label: 'Urgent' }
+                  { value: 'low', label: t('low') },
+                  { value: 'medium', label: t('medium') },
+                  { value: 'high', label: t('high') },
+                  { value: 'urgent', label: t('urgent') }
                 ]}
               />
 
               <div className="md:col-span-2">
                 <TextArea
-                  label="Description"
+                  label={t('description')}
                   {...register(`needs.${index}.description`)}
                   error={errors.needs?.[index]?.description?.message}
-                  placeholder="Describe the need..."
+                  placeholder={t('describeNeed')}
                 />
               </div>
             </div>
@@ -163,13 +340,13 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
           onClick={() => reset()}
           disabled={isLoading}
         >
-          Reset
+          {t('reset')}
         </Button>
         <Button
           type="submit"
           isLoading={isLoading}
         >
-          Save Individual
+          {t('saveIndividual')}
         </Button>
       </div>
     </form>

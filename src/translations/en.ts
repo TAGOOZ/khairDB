@@ -88,6 +88,23 @@ export const translations = {
   createFamily: 'Create Family',
   updateFamily: 'Update Family',
   
+  // Family Options
+  familyOption: 'Family Option',
+  chooseExistingFamily: 'Choose Existing Family',
+  createNewFamily: 'Create New Family',
+  newFamilyName: 'New Family Name',
+  enterFamilyName: 'Enter new family name...',
+  familyCreated: 'Family created successfully',
+  familyRequired: 'A family must be selected or created when adding children',
+  
+  // Family Modal
+  addNewFamily: 'Add a new family',
+  updateFamilyInfo: 'Update family information',
+  searchMembers: 'Search members...',
+  green: 'Green',
+  yellow: 'Yellow',
+  red: 'Red',
+  
   // Needs
   needs: 'Needs',
   addNeed: 'Add Need',

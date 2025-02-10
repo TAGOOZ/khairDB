@@ -3,7 +3,8 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   Users, 
-  Home, 
+  Home,
+  Baby,
   HeartHandshake,
   BarChart3,
   Package,
@@ -25,6 +26,7 @@ export function Layout() {
     { name: t('dashboard'), href: '/', icon: LayoutDashboard },
     { name: t('individuals'), href: '/individuals', icon: Users },
     { name: t('families'), href: '/families', icon: Home },
+    { name: t('children'), href: '/children', icon: Baby },
     { name: t('needs'), href: '/needs', icon: HeartHandshake },
     { name: t('distributions'), href: '/distributions', icon: Package },
     { name: t('reports'), href: '/reports', icon: BarChart3 },

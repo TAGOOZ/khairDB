@@ -1,108 +1,196 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from '../../ui/Button';
-import { AddChildModal } from './AddChildModal';
-import { AddElseModal } from './AddElseModal';
+import { Select } from '../../ui/Select';
+import { Input } from '../../ui/Input';
+import { TextArea } from '../../ui/TextArea';
 import { useLanguage } from '../../../contexts/LanguageContext';
-import { addChild } from '../../../services/children';
-import { addAdditionalMember } from '../../../services/additionalMembers';
-import { toast } from '../../../pages/Individuals/Toast';
 
 interface AddMemberButtonProps {
-  individualId: string;
-  onSuccess: () => void;
+  onAddMember: (data: any) => void;
 }
 
-export function AddMemberButton({ individualId, onSuccess }: AddMemberButtonProps) {
+export function AddMemberButton({ onAddMember }: AddMemberButtonProps) {
   const { t } = useLanguage();
-  const [isOptionsOpen, setIsOptionsOpen] = useState(false);
-  const [isChildModalOpen, setIsChildModalOpen] = useState(false);
-  const [isElseModalOpen, setIsElseModalOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showForm, setShowForm] = React.useState(false);
+  const [memberType, setMemberType] = React.useState<'child' | 'else'>('child');
+  const formRef = React.useRef<HTMLDivElement>(null);
 
-  const handleAddChild = async (data: any) => {
-    try {
-      setIsSubmitting(true);
-      await addChild(individualId, data);
-      toast.success(t('memberAdded'));
-      setIsChildModalOpen(false);
-      onSuccess();
-    } catch (error) {
-      console.error('Error adding child:', error);
-      toast.error(t('memberAddedError'));
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const handleSubmit = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!formRef.current) return;
 
-  const handleAddElse = async (data: any) => {
-    try {
-      setIsSubmitting(true);
-      await addAdditionalMember(individualId, {
-        ...data,
-        id: crypto.randomUUID()
-      });
-      toast.success(t('memberAdded'));
-      setIsElseModalOpen(false);
-      onSuccess();
-    } catch (error) {
-      console.error('Error adding member:', error);
-      toast.error(t('memberAddedError'));
-    } finally {
-      setIsSubmitting(false);
-    }
+    const formData = new FormData();
+    const inputs = formRef.current.querySelectorAll('input, select, textarea');
+    inputs.forEach((input: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement) => {
+      if (input.name) {
+        formData.append(input.name, input.value);
+      }
+    });
+
+    const data = Object.fromEntries(formData.entries());
+    onAddMember(data);
+    setShowForm(false);
+    
+    // Reset form values
+    inputs.forEach((input: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement) => {
+      input.value = '';
+    });
   };
 
   return (
-    <>
-      <div className="relative">
+    <div className="space-y-4">
+      {!showForm ? (
         <Button
           variant="outline"
           icon={Plus}
-          onClick={() => setIsOptionsOpen(!isOptionsOpen)}
+          onClick={() => setShowForm(true)}
         >
           {t('addMember')}
         </Button>
+      ) : (
+        <div className="bg-gray-50 p-4 rounded-lg space-y-4">
+          <div className="flex justify-between items-center">
+            <h4 className="text-sm font-medium text-gray-900">{t('addMember')}</h4>
+            <Select
+              value={memberType}
+              onChange={(e) => setMemberType(e.target.value as 'child' | 'else')}
+              options={[
+                { value: 'child', label: t('addChild') },
+                { value: 'else', label: t('addElse') }
+              ]}
+              className="w-40"
+            />
+          </div>
 
-        {isOptionsOpen && (
-          <div className="absolute z-10 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
-            <div className="py-1" role="menu">
-              <button
-                className="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                onClick={() => {
-                  setIsOptionsOpen(false);
-                  setIsChildModalOpen(true);
-                }}
+          <div ref={formRef} className="space-y-4">
+            {memberType === 'child' ? (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Input
+                    name="first_name"
+                    label={t('childName')}
+                    required
+                  />
+                  <Input
+                    name="last_name"
+                    label={t('lastName')}
+                    required
+                  />
+                  <Input
+                    type="date"
+                    name="date_of_birth"
+                    label={t('dateOfBirth')}
+                    required
+                    max={new Date().toISOString().split('T')[0]}
+                  />
+                  <Select
+                    name="gender"
+                    label={t('gender')}
+                    required
+                    options={[
+                      { value: 'boy', label: t('boy') },
+                      { value: 'girl', label: t('girl') }
+                    ]}
+                  />
+                  <Select
+                    name="school_stage"
+                    label={t('schoolStage')}
+                    options={[
+                      { value: 'kindergarten', label: t('kindergarten') },
+                      { value: 'primary', label: t('primary') },
+                      { value: 'preparatory', label: t('preparatory') },
+                      { value: 'secondary', label: t('secondary') }
+                    ]}
+                  />
+                </div>
+                <TextArea
+                  name="description"
+                  label={t('description')}
+                />
+              </>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Input
+                    name="name"
+                    label={t('name')}
+                    required
+                  />
+                  <Input
+                    type="date"
+                    name="date_of_birth"
+                    label={t('dateOfBirth')}
+                    required
+                    max={new Date().toISOString().split('T')[0]}
+                  />
+                  <Select
+                    name="gender"
+                    label={t('gender')}
+                    required
+                    options={[
+                      { value: 'male', label: t('male') },
+                      { value: 'female', label: t('female') }
+                    ]}
+                  />
+                  <Select
+                    name="role"
+                    label={t('role')}
+                    required
+                    options={[
+                      { value: 'spouse', label: t('spouse') },
+                      { value: 'sibling', label: t('sibling') },
+                      { value: 'grandparent', label: t('grandparent') },
+                      { value: 'other', label: t('other') }
+                    ]}
+                  />
+                  <Input
+                    name="job_title"
+                    label={t('jobTitle')}
+                  />
+                  <Input
+                    name="phone_number"
+                    label={t('phoneNumber')}
+                  />
+                  <Select
+                    name="relation"
+                    label={t('relation')}
+                    required
+                    options={[
+                      { value: 'wife', label: t('wife') },
+                      { value: 'husband', label: t('husband') },
+                      { value: 'sister', label: t('sister') },
+                      { value: 'brother', label: t('brother') },
+                      { value: 'mother', label: t('mother') },
+                      { value: 'father', label: t('father') },
+                      { value: 'mother_in_law', label: t('motherInLaw') },
+                      { value: 'father_in_law', label: t('fatherInLaw') },
+                      { value: 'daughters_husband', label: t('daughtersHusband') },
+                      { value: 'sons_wife', label: t('sonsWife') }
+                    ]}
+                  />
+                </div>
+              </>
+            )}
+
+            <div className="flex justify-end space-x-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowForm(false)}
               >
-                {t('addChild')}
-              </button>
-              <button
-                className="w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                onClick={() => {
-                  setIsOptionsOpen(false);
-                  setIsElseModalOpen(true);
-                }}
+                {t('cancel')}
+              </Button>
+              <Button
+                type="button"
+                onClick={handleSubmit}
               >
-                {t('addElse')}
-              </button>
+                {t('add')}
+              </Button>
             </div>
           </div>
-        )}
-      </div>
-
-      <AddChildModal
-        isOpen={isChildModalOpen}
-        onClose={() => setIsChildModalOpen(false)}
-        onSubmit={handleAddChild}
-        isLoading={isSubmitting}
-      />
-
-      <AddElseModal
-        isOpen={isElseModalOpen}
-        onClose={() => setIsElseModalOpen(false)}
-        onSubmit={handleAddElse}
-        isLoading={isSubmitting}
-      />
-    </>
+        </div>
+      )}
+    </div>
   );
 }

@@ -7,6 +7,7 @@ import { Families } from './pages/Families';
 import { Needs } from './pages/Needs';
 import { Reports } from './pages/Reports';
 import { Distributions } from './pages/Distributions';
+import { Children } from './pages/Children';
 import { Login } from './pages/Login';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { useAuthStore } from './store/authStore';
@@ -35,6 +36,7 @@ export default function App() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/individuals" element={<Individuals />} />
             <Route path="/families" element={<Families />} />
+            <Route path="/children" element={<Children />} />
             <Route path="/needs" element={<Needs />} />
             <Route path="/distributions/*" element={<Distributions />} />
             <Route path="/reports" element={<Reports />} />
