@@ -93,6 +93,7 @@ export interface Need {
   description: string;
   created_at: string;
   updated_at: string;
+  needTag: NeedTag;
 }
 
 // Family types
@@ -156,3 +157,12 @@ export interface PendingRequest {
     last_name: string;
   };
 }
+export type NeedTag = 
+  | 'ramadan'
+  | 'school_supplies'
+  | 'clothes'
+  | 'adha'
+  | 'blankets'
+  | 'monthly_sponsorship'
+  | 'zakat'
+  | 'eid';

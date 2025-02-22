@@ -27,6 +27,42 @@ const additionalMemberSchema = z.object({
   relation: z.string().min(1, 'Relation is required')
 });
 
+export interface MedicalNeed {
+  examination?: boolean;
+  examination_description?: string;
+  tests?: boolean;
+  tests_description?: string;
+  xray?: boolean;
+  xray_description?: string;
+  operations?: boolean;
+  operations_description?: string;
+  chronic_disease: 'yes' | 'no';
+  treatment_frequency: 'monthly' | 'irregular';
+  treatment_affordability: 'capable' | 'incapable' | 'partially';
+  health_insurance: 'yes' | 'no';
+}
+
+export interface FoodNeed {
+  type: 'ready' | 'not_ready' | 'none';
+  has_supply_card: boolean;
+}
+
+export interface MarriageNeed {
+  status: 'katb_ketab' | 'not_yet' | 'none';
+  wedding_date?: string;
+  requirements?: string;
+}
+
+export type NeedTag = 
+  | 'ramadan'
+  | 'school_supplies'
+  | 'clothes'
+  | 'adha'
+  | 'blankets'
+  | 'monthly_sponsorship'
+  | 'zakat'
+  | 'eid';
+
 export const individualSchema = z.object({
   first_name: z.string().min(1, 'First name is required'),
   last_name: z.string().min(1, 'Last name is required'),
@@ -56,7 +92,31 @@ export const individualSchema = z.object({
     required_error: 'Please select list status'
   }).default('whitelist'),
   children: z.array(childSchema).optional().default([]),
-  additional_members: z.array(additionalMemberSchema).optional().default([])
+  additional_members: z.array(additionalMemberSchema).optional().default([]),
+  medical_need: z.object({
+    examination: z.boolean().optional(),
+    examination_description: z.string().optional(),
+    tests: z.boolean().optional(),
+    tests_description: z.string().optional(),
+    xray: z.boolean().optional(),
+    xray_description: z.string().optional(),
+    operations: z.boolean().optional(),
+    operations_description: z.string().optional(),
+    chronic_disease: z.enum(['yes', 'no']).optional(),
+    treatment_frequency: z.enum(['monthly', 'irregular']).optional(),
+    treatment_affordability: z.enum(['capable', 'incapable', 'partially']).optional(),
+    health_insurance: z.enum(['yes', 'no']).optional(),
+  }).optional(),
+  food_need: z.object({
+    type: z.enum(['ready', 'not_ready', 'none']).optional(),
+    has_supply_card: z.boolean().optional(),
+  }).optional(),
+  marriage_need: z.object({
+    status: z.enum(['katb_ketab', 'not_yet', 'none']).optional(),
+    wedding_date: z.string().optional(),
+    requirements: z.string().optional(),
+  }).optional(),
+  need_tags: z.array(z.enum(['ramadan', 'school_supplies', 'clothes', 'adha', 'blankets', 'monthly_sponsorship', 'zakat', 'eid'])).optional(),
 }).refine(data => {
   // If there are children, either family_id or new_family_name must be provided
   if (data.children && data.children.length > 0) {

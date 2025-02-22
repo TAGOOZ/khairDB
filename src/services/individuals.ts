@@ -127,16 +127,18 @@ export async function createIndividual(data: IndividualFormData) {
     if (data.children && data.children.length > 0 && familyId) {
       const childPromises = data.children.map(async (child) => {
         const { data: newChild, error: childError } = await supabase
-          .from('children')
+          .from('individuals')
           .insert([{
             first_name: child.first_name,
             last_name: child.last_name,
             date_of_birth: child.date_of_birth,
-            gender: child.gender === 'male' ? 'boy' : 'girl',
-            school_stage: child.school_stage,
+            gender: child.gender,
             description: child.description || null,
-            parent_id: newIndividual.id,
-            family_id: familyId
+            family_id: familyId,
+            district: data.district,
+            created_by: user.id,
+            list_status: 'whitelist',
+            role: 'child'
           }])
           .select()
           .single();
@@ -165,7 +167,7 @@ export async function createIndividual(data: IndividualFormData) {
         await Promise.all(childPromises);
       } catch (error) {
         // Clean up on child creation failure
-        await supabase.from('children').delete().eq('parent_id', newIndividual.id);
+        await supabase.from('individuals').delete().eq('id', newIndividual.id);
         await supabase.from('family_members').delete().eq('individual_id', newIndividual.id);
         await supabase.from('individuals').delete().eq('id', newIndividual.id);
         if (!data.family_id) {
@@ -281,52 +283,87 @@ export async function updateIndividual(id: string, data: IndividualFormData) {
 
     // Update children
     if (data.children && data.children.length > 0 && familyId) {
-      // First delete existing children
-      await supabase
-        .from('children')
-        .delete()
-        .eq('parent_id', id);
+      // Get existing children
+      const { data: existingChildren } = await supabase
+        .from('family_members')
+        .select('individual_id')
+        .eq('family_id', familyId)
+        .eq('role', 'child');
+
+      // Delete existing children from family_members and individuals
+      if (existingChildren && existingChildren.length > 0) {
+        const childIds = existingChildren.map(child => child.individual_id);
+        
+        // First delete from family_members
+        await supabase
+          .from('family_members')
+          .delete()
+          .in('individual_id', childIds);
+        
+        // Then delete from individuals
+        await supabase
+          .from('individuals')
+          .delete()
+          .in('id', childIds);
+      }
 
       // Then insert new children
       const childPromises = data.children.map(async (child) => {
-        const { data: newChild, error: childError } = await supabase
-          .from('children')
-          .insert([{
-            first_name: child.first_name,
-            last_name: child.last_name,
-            date_of_birth: child.date_of_birth,
-            gender: child.gender === 'male' ? 'boy' : 'girl',
-            school_stage: child.school_stage,
-            description: child.description || null,
-            parent_id: id,
-            family_id: familyId
-          }])
-          .select()
-          .single();
+        try {
+          // First create the individual record
+          const { data: newChild, error: childError } = await supabase
+            .from('individuals')
+            .insert([{
+              first_name: child.first_name,
+              last_name: child.last_name,
+              date_of_birth: child.date_of_birth,
+              gender: child.gender,
+              description: child.description || null,
+              family_id: familyId,
+              district: data.district,
+              list_status: 'whitelist',
+              role: 'child'
+            }])
+            .select()
+            .single();
 
-        if (childError) {
-          throw new IndividualError('child-update-failed', 'Failed to update child', childError);
+          if (childError) {
+            throw new IndividualError('child-update-failed', `Failed to update child: ${childError.message}`, childError);
+          }
+
+          if (!newChild) {
+            throw new IndividualError('child-update-failed', 'No child data returned after creation');
+          }
+
+          // Then create the family_members record
+          const { error: childMemberError } = await supabase
+            .from('family_members')
+            .insert([{
+              family_id: familyId,
+              individual_id: newChild.id,
+              role: 'child'
+            }]);
+
+          if (childMemberError) {
+            // Clean up the individual if family_members insertion fails
+            await supabase.from('individuals').delete().eq('id', newChild.id);
+            throw new IndividualError('child-member-update-failed', `Failed to update child family membership: ${childMemberError.message}`, childMemberError);
+          }
+
+          return newChild;
+        } catch (error) {
+          // Make sure to clean up if anything fails
+          if (error instanceof IndividualError) {
+            throw error;
+          }
+          throw new IndividualError('child-update-failed', 'Failed to update child', error);
         }
-
-        // Add child to family_members
-        const { error: childMemberError } = await supabase
-          .from('family_members')
-          .insert([{
-            family_id: familyId,
-            individual_id: newChild.id,
-            role: 'child'
-          }]);
-
-        if (childMemberError) {
-          throw new IndividualError('child-member-update-failed', 'Failed to update child family membership', childMemberError);
-        }
-
-        return newChild;
       });
 
       try {
         await Promise.all(childPromises);
       } catch (error) {
+        // Let the error bubble up to be handled by the main try-catch
         throw error;
       }
     }

@@ -3,7 +3,7 @@ import { UseFormRegister, FieldErrors, UseFormSetValue } from 'react-hook-form';
 import { IndividualFormData } from '../../../schemas/individualSchema';
 import { Input } from '../../ui/Input';
 import { Select } from '../../ui/Select';
-import { TextArea } from '../../ui/TextArea';
+import { Textarea } from '../../ui/Textarea';
 import { Family } from '../../../types';
 import { useLanguage } from '../../../contexts/LanguageContext';
 
@@ -131,11 +131,10 @@ export function ContactFields({ register, errors, families, setValue }: ContactF
         />
       </div>
 
-      <TextArea
+      <Textarea
         label={t('description')}
         {...register('description')}
         error={errors.description?.message}
-        placeholder={t('enterDescription')}
       />
     </div>
   );
