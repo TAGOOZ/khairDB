@@ -70,18 +70,44 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
 
   const handleFormSubmit = async (data: IndividualFormData) => {
     try {
-      await onSubmit({
+      // Transform the data to include role information
+      const formattedData = {
         ...data,
-        children: data.children || [],
+        role: 'parent',
+        children: data.children?.map(child => ({
+          first_name: child.first_name,
+          last_name: child.last_name,
+          date_of_birth: child.date_of_birth,
+          gender: child.gender || 'male',
+          marital_status: 'single',
+          employment_status: 'no_salary',
+          salary: null,
+          role: 'child',
+          family_id: data.family_id,
+          description: child.description || '',
+          school_stage: child.school_stage || null,
+          // Add any other required fields with default values
+          phone: '',
+          district: '',
+          address: '',
+          job: '',
+          id_number: ''
+        })) || [],
         additional_members: data.additional_members || [],
         needs: data.needs || []
-      });
+      };
+    
+      // Log the data being sent
+      console.log('Submitting data:', formattedData);
+      
+      await onSubmit(formattedData);
       reset();
     } catch (error) {
       console.error('Error submitting form:', error);
     }
   };
 
+  // Update the appendChild function to include necessary fields
   const handleAddMember = (memberData: any) => {
     if (memberData.gender === 'boy' || memberData.gender === 'girl') {
       appendChild({
@@ -90,7 +116,8 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
         date_of_birth: memberData.date_of_birth,
         gender: memberData.gender === 'boy' ? 'male' : 'female',
         school_stage: memberData.school_stage,
-        description: memberData.description
+        description: memberData.description,
+        role: 'child' // Add role field
       });
     } else {
       appendMember({

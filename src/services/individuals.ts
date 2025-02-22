@@ -127,16 +127,19 @@ export async function createIndividual(data: IndividualFormData) {
     if (data.children && data.children.length > 0 && familyId) {
       const childPromises = data.children.map(async (child) => {
         const { data: newChild, error: childError } = await supabase
-          .from('children')
+          .from('individuals')
           .insert([{
             first_name: child.first_name,
             last_name: child.last_name,
             date_of_birth: child.date_of_birth,
-            gender: child.gender === 'male' ? 'boy' : 'girl',
-            school_stage: child.school_stage,
+            gender: child.gender,
+            marital_status: 'single',
+            employment_status: 'no_salary',
+            salary: null,
+            family_id: familyId,
             description: child.description || null,
-            parent_id: newIndividual.id,
-            family_id: familyId
+            district: data.district,
+            created_by: user.id
           }])
           .select()
           .single();
@@ -165,9 +168,8 @@ export async function createIndividual(data: IndividualFormData) {
         await Promise.all(childPromises);
       } catch (error) {
         // Clean up on child creation failure
-        await supabase.from('children').delete().eq('parent_id', newIndividual.id);
-        await supabase.from('family_members').delete().eq('individual_id', newIndividual.id);
-        await supabase.from('individuals').delete().eq('id', newIndividual.id);
+        await supabase.from('individuals').delete().eq('family_id', familyId);
+        await supabase.from('family_members').delete().eq('family_id', familyId);
         if (!data.family_id) {
           await supabase.from('families').delete().eq('id', familyId);
         }
@@ -283,23 +285,27 @@ export async function updateIndividual(id: string, data: IndividualFormData) {
     if (data.children && data.children.length > 0 && familyId) {
       // First delete existing children
       await supabase
-        .from('children')
+        .from('individuals')
         .delete()
-        .eq('parent_id', id);
+        .eq('family_id', familyId)
+        .in('id', (await supabase.from('children').select('individual_id').eq('parent_id', id)).data.map(c => c.individual_id));
 
       // Then insert new children
       const childPromises = data.children.map(async (child) => {
         const { data: newChild, error: childError } = await supabase
-          .from('children')
+          .from('individuals')
           .insert([{
             first_name: child.first_name,
             last_name: child.last_name,
             date_of_birth: child.date_of_birth,
-            gender: child.gender === 'male' ? 'boy' : 'girl',
-            school_stage: child.school_stage,
+            gender: child.gender,
+            marital_status: 'single',
+            employment_status: 'no_salary',
+            salary: null,
+            family_id: familyId,
             description: child.description || null,
-            parent_id: id,
-            family_id: familyId
+            district: data.district,
+            created_by: user.id
           }])
           .select()
           .single();
