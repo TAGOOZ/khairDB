@@ -6,7 +6,7 @@ import React, { useState, useEffect } from 'react';
     import { Button } from '../../components/ui/Button';
     import { Input } from '../../components/ui/Input';
     import { Select } from '../../components/ui/Select';
-    import { Textarea } from '../../components/ui/Textarea';
+    import { TextArea } from '../../components/ui/TextArea';
     import { useIndividuals } from '../../hooks/useIndividuals';
     import { useFamilies } from '../../hooks/useFamilies';
     import { createDistribution } from '../../services/distributions';
@@ -209,10 +209,11 @@ import React, { useState, useEffect } from 'react';
                 />
     
                 <div className="md:col-span-2">
-                  <Textarea
-                    label={t('description')}
+                  <TextArea
+                    label="Description"
                     {...register('description')}
                     error={errors.description?.message}
+                    placeholder="Describe the aid distribution..."
                   />
                 </div>
               </div>

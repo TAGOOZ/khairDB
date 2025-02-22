@@ -14,10 +14,6 @@ import { submitIndividualRequest, PendingRequestError } from '../../services/pen
 import { Button } from '../../components/ui/Button';
 import { createIndividual, updateIndividual, IndividualError } from '../../services/individuals';
 import { useNavigate } from 'react-router-dom';
-import { AddNeedsModal } from '../../components/modals/AddNeedsModal';
-import { useLanguage } from '../../contexts/LanguageContext';
-import { createNeeds } from '../../services/needs';
-import { NeedsFormData } from '../../types/needs';
 
 export function Individuals() {
   const { 
@@ -38,8 +34,6 @@ export function Individuals() {
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
   const [selectedForDistribution, setSelectedForDistribution] = useState<string[]>([]);
   const navigate = useNavigate();
-  const { t } = useLanguage();
-  const [isAddNeedsModalOpen, setIsAddNeedsModalOpen] = useState(false);
 
   const handleSubmit = async (data: IndividualFormData, individualId?: string) => {
     try {
@@ -125,22 +119,6 @@ export function Individuals() {
     navigate('/distributions/create', { state: { selectedIndividuals: selectedForDistribution } });
   };
 
-  const handleNeedsSubmit = async (data: NeedsFormData) => {
-    if (!selectedIndividual?.id) {
-      toast.error('No individual selected');
-      return;
-    }
-
-    try {
-      await createNeeds(selectedIndividual.id, data);
-      toast.success('Needs added successfully');
-      setIsAddNeedsModalOpen(false);
-    } catch (error) {
-      console.error('Error adding needs:', error);
-      toast.error('Failed to add needs. Please try again.');
-    }
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -203,22 +181,6 @@ export function Individuals() {
           individual={selectedIndividual}
         />
       )}
-      
-      {/* Remove these sections */}
-      {/* <Button
-        variant="default"
-        onClick={() => setIsAddNeedsModalOpen(true)}
-        icon={Plus}
-      >
-        {t('addNeeds')}
-      </Button>
-
-      <AddNeedsModal
-        isOpen={isAddNeedsModalOpen}
-        onClose={() => setIsAddNeedsModalOpen(false)}
-        onSubmit={handleNeedsSubmit}
-        individualId={selectedIndividual?.id}
-      /> */}
     </div>
   );
 }

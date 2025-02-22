@@ -3,7 +3,7 @@ import { Plus } from 'lucide-react';
 import { Button } from '../../ui/Button';
 import { Select } from '../../ui/Select';
 import { Input } from '../../ui/Input';
-import { Textarea } from '../../ui/Textarea';
+import { TextArea } from '../../ui/TextArea';
 import { useLanguage } from '../../../contexts/LanguageContext';
 
 interface AddMemberButtonProps {
@@ -104,10 +104,9 @@ export function AddMemberButton({ onAddMember }: AddMemberButtonProps) {
                     ]}
                   />
                 </div>
-                <Textarea
+                <TextArea
+                  name="description"
                   label={t('description')}
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 />
               </>
             ) : (

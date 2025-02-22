@@ -1,41 +1,55 @@
 import { supabase } from '../lib/supabase';
-import { NeedsFormData } from '../types/needs';
+import { Need } from '../types';
+import { NeedFormData } from '../schemas/needSchema';
 
-export class NeedsError extends Error {
-  code: string;
-  originalError?: any;
-
-  constructor(code: string, message: string, originalError?: any) {
+export class NeedError extends Error {
+  constructor(
+    public code: string,
+    message: string,
+    public details?: unknown
+  ) {
     super(message);
-    this.name = 'NeedsError';
-    this.code = code;
-    this.originalError = originalError;
+    this.name = 'NeedError';
   }
 }
 
-export async function createNeeds(individualId: string, data: NeedsFormData) {
+export async function createNeed(individualId: string, data: NeedFormData): Promise<Need> {
   try {
-    const { error } = await supabase
+    const { data: need, error } = await supabase
       .from('needs')
       .insert([{
+        ...data,
         individual_id: individualId,
-        medical_checks: data.medicalChecks,
-        medical_descriptions: data.medicalDescriptions,
-        chronic_disease: data.chronicDisease,
-        treatment_frequency: data.treatmentFrequency,
-        treatment_ability: data.treatmentAbility,
-        has_health_insurance: data.hasHealthInsurance,
-        feeding_status: data.feedingStatus,
-        has_supply_card: data.hasSupplyCard,
-        marriage_stage: data.marriageStage,
-        wedding_date: data.weddingDate,
-        marriage_needs: data.marriageNeeds,
-        tags: data.selectedTags
-      }]);
+      }])
+      .select()
+      .single();
 
-    if (error) throw new NeedsError('creation-failed', 'Failed to create needs', error);
+    if (error) {
+      throw new NeedError(
+        'creation-failed',
+        'Failed to create need',
+        error
+      );
+    }
+
+    if (!need) {
+      throw new NeedError(
+        'no-data',
+        'No data returned after creating need'
+      );
+    }
+
+    return need;
   } catch (error) {
-    if (error instanceof NeedsError) throw error;
-    throw new NeedsError('unexpected', 'An unexpected error occurred', error);
+    if (error instanceof NeedError) {
+      throw error;
+    }
+    
+    console.error('Error creating need:', error);
+    throw new NeedError(
+      'unexpected',
+      'An unexpected error occurred while creating the need',
+      error
+    );
   }
 }

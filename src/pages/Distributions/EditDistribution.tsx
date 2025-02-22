@@ -6,7 +6,7 @@ import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
-import { Textarea } from '../../components/ui/Textarea';
+import { TextArea } from '../../components/ui/TextArea';
 import { useIndividuals } from '../../hooks/useIndividuals';
 import { useFamilies } from '../../hooks/useFamilies';
 import { useDistributions } from '../../hooks/useDistributions';
@@ -158,10 +158,11 @@ export function EditDistribution() {
             />
 
             <div className="md:col-span-2">
-              <Textarea
+              <TextArea
                 label="Description"
                 {...register('description')}
                 error={errors.description?.message}
+                placeholder="Describe the aid distribution..."
               />
             </div>
           </div>
