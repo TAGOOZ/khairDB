@@ -5,6 +5,8 @@ import { IndividualFormData } from '../../schemas/individualSchema';
 import { Family, Individual } from '../../types';
 import { Button } from '../ui/Button';
 import { toast } from '../../pages/Individuals/Toast';
+import { Dialog } from '../ui/Dialog';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface AddIndividualModalProps {
   isOpen: boolean;
