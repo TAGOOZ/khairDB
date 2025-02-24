@@ -19,12 +19,14 @@ export function Children() {
     queryKey: ['children', filters],
     queryFn: async () => {
       let query = supabase
-        .from('children')
+        .from('individuals')
         .select(`
           *,
-          parent:individuals(first_name, last_name),
-          family:families(name)
-        `);
+          parent:individuals!family_members!inner(first_name, last_name),
+          family:families(name),
+          family_members!inner(role)
+        `)
+        .eq('family_members.role', 'child');
 
       if (filters.search) {
         query = query.or(
@@ -121,12 +123,12 @@ export function Children() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">
-                      {child.parent.first_name} {child.parent.last_name}
+                      {child.parent?.first_name} {child.parent?.last_name}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-500">
-                      {child.family.name}
+                      {child.family?.name}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

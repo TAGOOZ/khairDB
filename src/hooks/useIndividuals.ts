@@ -47,8 +47,10 @@ export function useIndividuals() {
             description,
             created_at,
             updated_at
-          )
-        `);
+          ),
+          family_members!inner(role)
+        `)
+        .eq('family_members.role', 'parent');
 
       if (filters.search) {
         query = query.or(

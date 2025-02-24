@@ -21,44 +21,64 @@ export function Dashboard() {
   const [whitelistCount, setWhitelistCount] = useState(0);
   const [blacklistCount, setBlacklistCount] = useState(0);
   const [waitinglistCount, setWaitinglistCount] = useState(0);
+  const [childrenCount, setChildrenCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchCounts() {
-      setIsLoading(true);
-      try {
-        const [
-          { count: whitelist },
-          { count: blacklist },
-          { count: waitinglist },
-        ] = await Promise.all([
-          supabase
-            .from('individuals')
-            .select('*', { count: 'exact', head: true })
-            .eq('list_status', 'whitelist'),
-          supabase
-            .from('individuals')
-            .select('*', { count: 'exact', head: true })
-            .eq('list_status', 'blacklist'),
-          supabase
-            .from('individuals')
-            .select('*', { count: 'exact', head: true })
-            .eq('list_status', 'waitinglist'),
-        ]);
+  async function fetchCounts() {
+    setIsLoading(true);
+    try {
+      // Fetch counts for parents by list status
+      const [
+        { count: whitelist },
+        { count: blacklist },
+        { count: waitinglist },
+        { count: children },
+      ] = await Promise.all([
+        // Count whitelisted parents
+        supabase
+          .from('individuals')
+          .select('*', { count: 'exact', head: true })
+          .eq('role', 'parent')
+          .eq('list_status', 'whitelist'),
+        // Count blacklisted parents
+        supabase
+          .from('individuals')
+          .select('*', { count: 'exact', head: true })
+          .eq('role', 'parent')
+          .eq('list_status', 'blacklist'),
+        // Count waitinglist parents
+        supabase
+          .from('individuals')
+          .select('*', { count: 'exact', head: true })
+          .eq('role', 'parent')
+          .eq('list_status', 'waitinglist'),
+        // Count children
+        supabase
+          .from('individuals')
+          .select('*', { count: 'exact', head: true })
+          .eq('role', 'child'),
+      ]);
 
-        setWhitelistCount(whitelist || 0);
-        setBlacklistCount(blacklist || 0);
-        setWaitinglistCount(waitinglist || 0);
-      } catch (error) {
-        console.error('Error fetching counts:', error);
-      } finally {
-        setIsLoading(false);
-      }
+      // Update state with the fetched counts
+      setWhitelistCount(whitelist || 0);
+      setBlacklistCount(blacklist || 0);
+      setWaitinglistCount(waitinglist || 0);
+      setChildrenCount(children || 0);
+
+      console.log('Whitelist Count:', whitelist);
+      console.log('Blacklist Count:', blacklist);
+      console.log('Waitinglist Count:', waitinglist);
+      console.log('Children Count:', children);
+    } catch (error) {
+      console.error('Error fetching counts:', error);
+    } finally {
+      setIsLoading(false);
     }
+  }
 
-    fetchCounts();
-  }, []);
-
+  fetchCounts();
+}, []);
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-gray-900">{t('dashboard')}</h1>
@@ -84,10 +104,16 @@ export function Dashboard() {
           color="orange"
         />
         <StatCard
+          title={t('children')}
+          value={childrenCount.toString()}
+          icon={Users}
+          color="green"
+        />
+        <StatCard
           title={t('totalFamilies')}
           value={families.length.toString()}
           icon={Home}
-          color="green"
+          color="purple"
         />
         <StatCard
           title={t('urgentNeeds')}
