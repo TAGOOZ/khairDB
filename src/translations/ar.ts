@@ -308,5 +308,76 @@ export const translations = {
   searchMembers: 'البحث عن الأعضاء...',
   green: 'أخضر',
   yellow: 'أصفر',
-  red: 'أحمر'
+  red: 'أحمر',
+
+  // Medical Assistance
+  medicalAssistance: 'المساعدة الطبية',
+  typeOfMedicalAssistance: 'نوع المساعدة الطبية',
+  medicationFrequency: 'تكرار الأدوية',
+  estimatedCostAbility: 'القدرة على تحمل التكاليف',
+  hasHealthInsurance: 'لديه تأمين صحي',
+  additionalDetails: 'تفاصيل إضافية',
+  medicalCheckup: 'فحص طبي',
+  labTests: 'تحاليل مخبرية',
+  xrays: 'أشعة/فحوصات',
+  surgeries: 'عمليات جراحية',
+  monthly: 'شهري',
+  intermittent: 'متقطع',
+  able: 'قادر',
+  unable: 'غير قادر',
+  partially: 'جزئياً',
+
+  // Food Assistance
+  foodAssistance: 'المساعدة الغذائية',
+  typeOfFoodAssistance: 'نوع المساعدة الغذائية',
+  readyMadeMeals: 'وجبات جاهزة',
+  nonReadyMeals: 'مواد غذائية غير جاهزة',
+  hasSupplyCard: 'لديه بطاقة تموين',
+
+  // Marriage Assistance
+  marriageAssistance: 'مساعدة الزواج',
+  needsMarriageAssistance: 'يحتاج مساعدة زواج',
+  marriageContractSigned: 'تم توقيع عقد الزواج',
+  weddingDate: 'تاريخ الزفاف',
+  specificNeeds: 'احتياجات محددة',
+
+  // Debt Assistance
+  debtAssistance: 'مساعدة الديون',
+  hasDebt: 'لديه دين',
+  debtAmount: 'مبلغ الدين',
+  debtReason: 'سبب الدين',
+  hasOfficialDocuments: 'لديه مستندات رسمية',
+
+  // Education Assistance
+  educationAssistance: 'المساعدة التعليمية',
+  educationLevel: 'المستوى التعليمي',
+  desireForEducation: 'الرغبة في التعليم',
+  childrenEducationalNeeds: 'احتياجات الأطفال التعليمية',
+  higherEducation: 'تعليم عالي',
+  intermediateEducation: 'تعليم متوسط',
+  literate: 'يقرأ ويكتب',
+  illiterate: 'أمي',
+  tuitionFees: 'رسوم دراسية',
+  schoolUniforms: 'زي مدرسي',
+  books: 'كتب',
+  supplies: 'مستلزمات',
+  tutoring: 'دروس خصوصية',
+
+  // Shelter Assistance
+  shelterAssistance: 'المساعدة السكنية',
+  housingType: 'نوع السكن',
+  housingCondition: 'حالة السكن',
+  numberOfRooms: 'عدد الغرف',
+  householdAppliances: 'الأجهزة المنزلية',
+  owned: 'ملك',
+  newRental: 'إيجار جديد',
+  oldRental: 'إيجار قديم',
+  healthy: 'صحي',
+  moderate: 'متوسط',
+  unhealthy: 'غير صحي',
+  stove: 'موقد',
+  manualWashingMachine: 'غسالة يدوية',
+  automaticWashingMachine: 'غسالة أوتوماتيك',
+  refrigerator: 'ثلاجة',
+  fan: 'مروحة'
 };
