@@ -9,9 +9,10 @@ import { EmploymentFields } from './individual/EmploymentFields';
 import { Button } from '../ui/Button';
 import { Select } from '../ui/Select';
 import { TextArea } from '../ui/TextArea';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Heart, Home, GraduationCap, DollarSign, BellRing as Ring, Utensils } from 'lucide-react';
 import { AddMemberButton } from './individual/AddMemberButton';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { Card } from '../ui/Card';
 
 interface IndividualFormProps {
   onSubmit: (data: IndividualFormData) => Promise<void>;
@@ -70,7 +71,6 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
 
   const handleFormSubmit = async (data: IndividualFormData) => {
     try {
-      // Transform the data to include role information
       const formattedData = {
         ...data,
         role: 'parent',
@@ -86,7 +86,6 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
           family_id: data.family_id,
           description: child.description || '',
           school_stage: child.school_stage || null,
-          // Add any other required fields with default values
           phone: '',
           district: '',
           address: '',
@@ -96,9 +95,6 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
         additional_members: data.additional_members || [],
         needs: data.needs || []
       };
-    
-      // Log the data being sent
-      console.log('Submitting data:', formattedData);
       
       await onSubmit(formattedData);
       reset();
@@ -107,7 +103,6 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
     }
   };
 
-  // Update the appendChild function to include necessary fields
   const handleAddMember = (memberData: any) => {
     if (memberData.gender === 'boy' || memberData.gender === 'girl') {
       appendChild({
@@ -117,7 +112,7 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
         gender: memberData.gender === 'boy' ? 'male' : 'female',
         school_stage: memberData.school_stage,
         description: memberData.description,
-        role: 'child' // Add role field
+        role: 'child'
       });
     } else {
       appendMember({
@@ -133,233 +128,337 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
   };
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
-      <PersonalInfoFields register={register} errors={errors} />
-      <ContactFields register={register} errors={errors} families={families} setValue={setValue} />
-      <EmploymentFields register={register} errors={errors} control={control} />
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-8">
+      {/* Basic Information */}
+      <Card>
+        <div className="p-6 space-y-6">
+          <PersonalInfoFields register={register} errors={errors} />
+          <ContactFields register={register} errors={errors} families={families} setValue={setValue} />
+          <EmploymentFields register={register} errors={errors} control={control} />
+        </div>
+      </Card>
 
-      {/* Family Members Section */}
-      <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <h3 className="text-lg font-medium text-gray-900">{t('familyMembers')}</h3>
-          <div onClick={(e) => e.preventDefault()}>
-            <AddMemberButton onAddMember={handleAddMember} />
+      {/* Medical Assistance */}
+      <Card>
+        <div className="p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Heart className="w-5 h-5 text-red-500" />
+            <h2 className="text-lg font-semibold">{t('medicalAssistance')}</h2>
+          </div>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t('typeOfMedicalAssistance')}
+                </label>
+                <div className="space-y-2">
+                  {['Medical Checkup', 'Lab Tests', 'X-rays/Scans', 'Surgeries'].map(type => (
+                    <label key={type} className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        {...register('medical_help.type_of_medical_assistance_needed')}
+                        value={type}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700">{t(type.toLowerCase())}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <Select
+                  label={t('medicationFrequency')}
+                  {...register('medical_help.medication_distribution_frequency')}
+                  options={[
+                    { value: 'Monthly', label: t('monthly') },
+                    { value: 'Intermittent', label: t('intermittent') }
+                  ]}
+                />
+              </div>
+            </div>
+            <TextArea
+              label={t('additionalDetails')}
+              {...register('medical_help.additional_details')}
+            />
           </div>
         </div>
+      </Card>
 
-        {/* Display Additional Members */}
-        {memberFields.length > 0 && (
+      {/* Food Assistance */}
+      <Card>
+        <div className="p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Utensils className="w-5 h-5 text-orange-500" />
+            <h2 className="text-lg font-semibold">{t('foodAssistance')}</h2>
+          </div>
           <div className="space-y-4">
-            <h4 className="text-md font-medium text-gray-800">{t('additionalMembers')}</h4>
-            {memberFields.map((field, index) => (
-              <div key={field.id} className="bg-gray-50 p-4 rounded-lg space-y-4">
-                <div className="flex justify-between items-start">
-                  <h5 className="text-sm font-medium text-gray-900">
-                    {watch(`additional_members.${index}.name`)} - {watch(`additional_members.${index}.relation`)}
-                  </h5>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t('typeOfFoodAssistance')}
+                </label>
+                <div className="space-y-2">
+                  {['Ready-made meals', 'Non-ready meals'].map(type => (
+                    <label key={type} className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        {...register('food_assistance.type_of_food_assistance_needed')}
+                        value={type}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700">{t(type.toLowerCase())}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    {...register('food_assistance.food_supply_card')}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">{t('hasSupplyCard')}</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      {/* Family Members */}
+      <Card>
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-lg font-semibold">{t('familyMembers')}</h2>
+            <div onClick={(e) => e.preventDefault()}>
+              <AddMemberButton onAddMember={handleAddMember} />
+            </div>
+          </div>
+
+          {/* Additional Members */}
+          {memberFields.length > 0 && (
+            <div className="space-y-4 mb-6">
+              <h3 className="text-md font-medium text-gray-800">{t('additionalMembers')}</h3>
+              <div className="space-y-4">
+                {memberFields.map((field, index) => (
+                  <div key={field.id} className="bg-gray-50 p-4 rounded-lg">
+                    <div className="flex justify-between items-start mb-4">
+                      <h4 className="text-sm font-medium text-gray-900">
+                        {watch(`additional_members.${index}.name`)} - {watch(`additional_members.${index}.relation`)}
+                      </h4>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        icon={Trash2}
+                        onClick={() => removeMember(index)}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        {t('remove')}
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <input
+                        type="text"
+                        {...register(`additional_members.${index}.name`)}
+                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                        placeholder={t('name')}
+                      />
+                      <input
+                        type="date"
+                        {...register(`additional_members.${index}.date_of_birth`)}
+                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                      />
+                      <Select
+                        {...register(`additional_members.${index}.role`)}
+                        options={[
+                          { value: 'spouse', label: t('spouse') },
+                          { value: 'sibling', label: t('sibling') },
+                          { value: 'grandparent', label: t('grandparent') },
+                          { value: 'other', label: t('other') }
+                        ]}
+                      />
+                      <input
+                        type="text"
+                        {...register(`additional_members.${index}.job_title`)}
+                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                        placeholder={t('jobTitle')}
+                      />
+                      <input
+                        type="tel"
+                        {...register(`additional_members.${index}.phone_number`)}
+                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                        placeholder={t('phoneNumber')}
+                      />
+                      <Select
+                        {...register(`additional_members.${index}.relation`)}
+                        options={[
+                          { value: 'wife', label: t('wife') },
+                          { value: 'husband', label: t('husband') },
+                          { value: 'sister', label: t('sister') },
+                          { value: 'brother', label: t('brother') },
+                          { value: 'mother', label: t('mother') },
+                          { value: 'father', label: t('father') },
+                          { value: 'mother_in_law', label: t('motherInLaw') },
+                          { value: 'father_in_law', label: t('fatherInLaw') }
+                        ]}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Children */}
+          {childFields.length > 0 && (
+            <div className="space-y-4">
+              <h3 className="text-md font-medium text-gray-800">{t('children')}</h3>
+              <div className="space-y-4">
+                {childFields.map((field, index) => (
+                  <div key={field.id} className="bg-gray-50 p-4 rounded-lg">
+                    <div className="flex justify-between items-start mb-4">
+                      <h4 className="text-sm font-medium text-gray-900">
+                        {watch(`children.${index}.first_name`)} {watch(`children.${index}.last_name`)}
+                      </h4>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        icon={Trash2}
+                        onClick={() => removeChild(index)}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        {t('remove')}
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <input
+                        type="text"
+                        {...register(`children.${index}.first_name`)}
+                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                        placeholder={t('firstName')}
+                      />
+                      <input
+                        type="text"
+                        {...register(`children.${index}.last_name`)}
+                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                        placeholder={t('lastName')}
+                      />
+                      <input
+                        type="date"
+                        {...register(`children.${index}.date_of_birth`)}
+                        className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                      />
+                      <Select
+                        {...register(`children.${index}.school_stage`)}
+                        options={[
+                          { value: 'kindergarten', label: t('kindergarten') },
+                          { value: 'primary', label: t('primary') },
+                          { value: 'preparatory', label: t('preparatory') },
+                          { value: 'secondary', label: t('secondary') }
+                        ]}
+                      />
+                      <div className="md:col-span-2">
+                        <TextArea
+                          {...register(`children.${index}.description`)}
+                          placeholder={t('description')}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </Card>
+
+      {/* Needs */}
+      <Card>
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-lg font-semibold">{t('needs')}</h2>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              icon={Plus}
+              onClick={() => appendNeed({
+                category: 'medical',
+                priority: 'medium',
+                description: '',
+                status: 'pending'
+              })}
+            >
+              {t('addNeed')}
+            </Button>
+          </div>
+
+          <div className="space-y-4">
+            {needFields.map((field, index) => (
+              <div key={field.id} className="bg-gray-50 p-4 rounded-lg">
+                <div className="flex justify-between items-start mb-4">
+                  <h3 className="text-sm font-medium text-gray-900">{t('need')} {index + 1}</h3>
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
                     icon={Trash2}
-                    onClick={() => removeMember(index)}
+                    onClick={() => removeNeed(index)}
                     className="text-red-600 hover:text-red-700"
                   >
                     {t('remove')}
                   </Button>
                 </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <input
-                    type="text"
-                    {...register(`additional_members.${index}.name`)}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                    placeholder={t('name')}
-                  />
-                  <input
-                    type="date"
-                    {...register(`additional_members.${index}.date_of_birth`)}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                  />
                   <Select
-                    {...register(`additional_members.${index}.role`)}
+                    label={t('category')}
+                    {...register(`needs.${index}.category`)}
+                    error={errors.needs?.[index]?.category?.message}
                     options={[
-                      { value: 'spouse', label: t('spouse') },
-                      { value: 'sibling', label: t('sibling') },
-                      { value: 'grandparent', label: t('grandparent') },
+                      { value: 'medical', label: t('medical') },
+                      { value: 'financial', label: t('financial') },
+                      { value: 'food', label: t('food') },
+                      { value: 'shelter', label: t('shelter') },
+                      { value: 'clothing', label: t('clothing') },
+                      { value: 'education', label: t('education') },
+                      { value: 'employment', label: t('employment') },
+                      { value: 'transportation', label: t('transportation') },
                       { value: 'other', label: t('other') }
                     ]}
                   />
-                  <input
-                    type="text"
-                    {...register(`additional_members.${index}.job_title`)}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                    placeholder={t('jobTitle')}
-                  />
-                  <input
-                    type="tel"
-                    {...register(`additional_members.${index}.phone_number`)}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                    placeholder={t('phoneNumber')}
-                  />
-                  <Select
-                    {...register(`additional_members.${index}.relation`)}
-                    options={[
-                      { value: 'wife', label: t('wife') },
-                      { value: 'husband', label: t('husband') },
-                      { value: 'sister', label: t('sister') },
-                      { value: 'brother', label: t('brother') },
-                      { value: 'mother', label: t('mother') },
-                      { value: 'father', label: t('father') },
-                      { value: 'mother_in_law', label: t('motherInLaw') },
-                      { value: 'father_in_law', label: t('fatherInLaw') }
-                    ]}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
 
-        {/* Display Children */}
-        {childFields.length > 0 && (
-          <div className="space-y-4">
-            <h4 className="text-md font-medium text-gray-800">{t('children')}</h4>
-            {childFields.map((field, index) => (
-              <div key={field.id} className="bg-gray-50 p-4 rounded-lg space-y-4">
-                <div className="flex justify-between items-start">
-                  <h5 className="text-sm font-medium text-gray-900">
-                    {watch(`children.${index}.first_name`)} {watch(`children.${index}.last_name`)}
-                  </h5>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    icon={Trash2}
-                    onClick={() => removeChild(index)}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    {t('remove')}
-                  </Button>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <input
-                    type="text"
-                    {...register(`children.${index}.first_name`)}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                    placeholder={t('firstName')}
-                  />
-                  <input
-                    type="text"
-                    {...register(`children.${index}.last_name`)}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                    placeholder={t('lastName')}
-                  />
-                  <input
-                    type="date"
-                    {...register(`children.${index}.date_of_birth`)}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                  />
                   <Select
-                    {...register(`children.${index}.school_stage`)}
+                    label={t('priority')}
+                    {...register(`needs.${index}.priority`)}
+                    error={errors.needs?.[index]?.priority?.message}
                     options={[
-                      { value: 'kindergarten', label: t('kindergarten') },
-                      { value: 'primary', label: t('primary') },
-                      { value: 'preparatory', label: t('preparatory') },
-                      { value: 'secondary', label: t('secondary') }
+                      { value: 'low', label: t('low') },
+                      { value: 'medium', label: t('medium') },
+                      { value: 'high', label: t('high') },
+                      { value: 'urgent', label: t('urgent') }
                     ]}
                   />
+
                   <div className="md:col-span-2">
                     <TextArea
-                      {...register(`children.${index}.description`)}
-                      placeholder={t('description')}
+                      label={t('description')}
+                      {...register(`needs.${index}.description`)}
+                      error={errors.needs?.[index]?.description?.message}
+                      placeholder={t('describeNeed')}
                     />
                   </div>
                 </div>
               </div>
             ))}
           </div>
-        )}
-      </div>
-
-      {/* Needs Section */}
-      <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <h3 className="text-lg font-medium text-gray-900">{t('needs')}</h3>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            icon={Plus}
-            onClick={() => appendNeed({
-              category: 'medical',
-              priority: 'medium',
-              description: '',
-              status: 'pending'
-            })}
-          >
-            {t('addNeed')}
-          </Button>
         </div>
+      </Card>
 
-        {needFields.map((field, index) => (
-          <div key={field.id} className="bg-gray-50 p-4 rounded-lg space-y-4">
-            <div className="flex justify-between items-start">
-              <h4 className="text-sm font-medium text-gray-900">{t('need')} {index + 1}</h4>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                icon={Trash2}
-                onClick={() => removeNeed(index)}
-                className="text-red-600 hover:text-red-700"
-              >
-                {t('remove')}
-              </Button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Select
-                label={t('category')}
-                {...register(`needs.${index}.category`)}
-                error={errors.needs?.[index]?.category?.message}
-                options={[
-                  { value: 'medical', label: t('medical') },
-                  { value: 'financial', label: t('financial') },
-                  { value: 'food', label: t('food') },
-                  { value: 'shelter', label: t('shelter') },
-                  { value: 'clothing', label: t('clothing') },
-                  { value: 'education', label: t('education') },
-                  { value: 'employment', label: t('employment') },
-                  { value: 'transportation', label: t('transportation') },
-                  { value: 'other', label: t('other') }
-                ]}
-              />
-
-              <Select
-                label={t('priority')}
-                {...register(`needs.${index}.priority`)}
-                error={errors.needs?.[index]?.priority?.message}
-                options={[
-                  { value: 'low', label: t('low') },
-                  { value: 'medium', label: t('medium') },
-                  { value: 'high', label: t('high') },
-                  { value: 'urgent', label: t('urgent') }
-                ]}
-              />
-
-              <div className="md:col-span-2">
-                <TextArea
-                  label={t('description')}
-                  {...register(`needs.${index}.description`)}
-                  error={errors.needs?.[index]?.description?.message}
-                  placeholder={t('describeNeed')}
-                />
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
+      {/* Form Actions */}
       <div className="flex justify-end space-x-3">
         <Button
           type="button"
