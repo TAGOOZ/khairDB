@@ -53,6 +53,34 @@
   .pr-2 { padding-left: 0.5rem; padding-right: 0; }
   .pr-3 { padding-left: 0.75rem; padding-right: 0; }
   .pr-4 { padding-left: 1rem; padding-right: 0; }
+
+  /* Fix RTL icons */
+  .lucide {
+    &[dir="rtl"] {
+      transform: scaleX(-1);
+    }
+  }
+}
+
+/* Forms RTL */
+[dir="rtl"] {
+  input,
+  textarea,
+  select {
+    text-align: right;
+  }
+
+  .form-checkbox,
+  .form-radio {
+    margin-left: 0.5rem;
+    margin-right: 0;
+  }
+
+  .form-select {
+    background-position: left 0.5rem center;
+    padding-right: 0.75rem;
+    padding-left: 2rem;
+  }
 }
 
 /* Transitions */
