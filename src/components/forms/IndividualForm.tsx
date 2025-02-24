@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { individualSchema, IndividualFormData } from '../../schemas/individualSchema';
@@ -9,6 +9,7 @@ import { EmploymentFields } from './individual/EmploymentFields';
 import { Button } from '../ui/Button';
 import { Select } from '../ui/Select';
 import { TextArea } from '../ui/TextArea';
+import { Input } from '../ui/Input';
 import { Plus, Trash2, Heart, Home, GraduationCap, DollarSign, BellRing as Ring, Utensils } from 'lucide-react';
 import { AddMemberButton } from './individual/AddMemberButton';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -50,13 +51,42 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
       salary: null,
       needs: [],
       additional_members: [],
-      children: []
+      children: [],
+      medical_help: {
+        type_of_medical_assistance_needed: [],
+        medication_distribution_frequency: '',
+        estimated_cost_ability: '',
+        has_health_insurance: false,
+        additional_details: ''
+      },
+      food_assistance: {
+        type_of_food_assistance_needed: [],
+        food_supply_card: false
+      },
+      marriage_assistance: {
+        needs_marriage_assistance: false,
+        marriage_contract_signed: false,
+        wedding_date: '',
+        specific_needs: ''
+      },
+      debt_assistance: {
+        has_debt: false,
+        debt_reason: '',
+        debt_amount: '',
+        has_official_documents: false
+      },
+      education_assistance: {
+        education_level: '',
+        desire_for_education: '',
+        children_educational_needs: []
+      },
+      shelter_assistance: {
+        housing_type: '',
+        housing_condition: '',
+        number_of_rooms: '',
+        household_appliances: []
+      }
     }
-  });
-
-  const { fields: needFields, append: appendNeed, remove: removeNeed } = useFieldArray({
-    control,
-    name: 'needs'
   });
 
   const { fields: memberFields, append: appendMember, remove: removeMember } = useFieldArray({
@@ -71,32 +101,7 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
 
   const handleFormSubmit = async (data: IndividualFormData) => {
     try {
-      const formattedData = {
-        ...data,
-        role: 'parent',
-        children: data.children?.map(child => ({
-          first_name: child.first_name,
-          last_name: child.last_name,
-          date_of_birth: child.date_of_birth,
-          gender: child.gender || 'male',
-          marital_status: 'single',
-          employment_status: 'no_salary',
-          salary: null,
-          role: 'child',
-          family_id: data.family_id,
-          description: child.description || '',
-          school_stage: child.school_stage || null,
-          phone: '',
-          district: '',
-          address: '',
-          job: '',
-          id_number: ''
-        })) || [],
-        additional_members: data.additional_members || [],
-        needs: data.needs || []
-      };
-      
-      await onSubmit(formattedData);
+      await onSubmit(data);
       reset();
     } catch (error) {
       console.error('Error submitting form:', error);
@@ -174,6 +179,34 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
                     { value: 'Intermittent', label: t('intermittent') }
                   ]}
                 />
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('estimatedCostAbility')}
+                  </label>
+                  <div className="space-y-2">
+                    {['Able', 'Unable', 'Partially'].map(ability => (
+                      <label key={ability} className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          {...register('medical_help.estimated_cost_ability')}
+                          value={ability}
+                          className="rounded-full border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-700">{t(ability.toLowerCase())}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      {...register('medical_help.has_health_insurance')}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">{t('hasHealthInsurance')}</span>
+                  </label>
+                </div>
               </div>
             </div>
             <TextArea
@@ -220,6 +253,212 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
                   />
                   <span className="text-sm text-gray-700">{t('hasSupplyCard')}</span>
                 </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      {/* Marriage Assistance */}
+      <Card>
+        <div className="p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Ring className="w-5 h-5 text-pink-500" />
+            <h2 className="text-lg font-semibold">{t('marriageAssistance')}</h2>
+          </div>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    {...register('marriage_assistance.needs_marriage_assistance')}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">{t('needsMarriageAssistance')}</span>
+                </label>
+                <label className="flex items-center gap-2 mt-2">
+                  <input
+                    type="checkbox"
+                    {...register('marriage_assistance.marriage_contract_signed')}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">{t('marriageContractSigned')}</span>
+                </label>
+              </div>
+              <div>
+                <Input
+                  type="date"
+                  label={t('weddingDate')}
+                  {...register('marriage_assistance.wedding_date')}
+                />
+              </div>
+            </div>
+            <TextArea
+              label={t('specificNeeds')}
+              {...register('marriage_assistance.specific_needs')}
+            />
+          </div>
+        </div>
+      </Card>
+
+      {/* Debt Assistance */}
+      <Card>
+        <div className="p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <DollarSign className="w-5 h-5 text-green-500" />
+            <h2 className="text-lg font-semibold">{t('debtAssistance')}</h2>
+          </div>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    {...register('debt_assistance.has_debt')}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">{t('hasDebt')}</span>
+                </label>
+              </div>
+              <div>
+                <Input
+                  label={t('debtAmount')}
+                  {...register('debt_assistance.debt_amount')}
+                />
+              </div>
+            </div>
+            <TextArea
+              label={t('debtReason')}
+              {...register('debt_assistance.debt_reason')}
+            />
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                {...register('debt_assistance.has_official_documents')}
+                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <span className="text-sm text-gray-700">{t('hasOfficialDocuments')}</span>
+            </label>
+          </div>
+        </div>
+      </Card>
+
+      {/* Education Assistance */}
+      <Card>
+        <div className="p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <GraduationCap className="w-5 h-5 text-indigo-500" />
+            <h2 className="text-lg font-semibold">{t('educationAssistance')}</h2>
+          </div>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Select
+                label={t('educationLevel')}
+                {...register('education_assistance.education_level')}
+                options={[
+                  { value: 'higher', label: t('higherEducation') },
+                  { value: 'intermediate', label: t('intermediateEducation') },
+                  { value: 'literate', label: t('literate') },
+                  { value: 'illiterate', label: t('illiterate') }
+                ]}
+              />
+              {watch('education_assistance.education_level') === 'illiterate' && (
+                <Select
+                  label={t('desireForEducation')}
+                  {...register('education_assistance.desire_for_education')}
+                  options={[
+                    { value: 'high', label: t('high') },
+                    { value: 'medium', label: t('medium') },
+                    { value: 'low', label: t('low') }
+                  ]}
+                />
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t('childrenEducationalNeeds')}
+              </label>
+              <div className="space-y-2">
+                {[
+                  'Tuition Fees',
+                  'School Uniforms',
+                  'Books',
+                  'Supplies',
+                  'Tutoring'
+                ].map(need => (
+                  <label key={need} className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      {...register('education_assistance.children_educational_needs')}
+                      value={need}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">{t(need.toLowerCase())}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      {/* Shelter Assistance */}
+      <Card>
+        <div className="p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Home className="w-5 h-5 text-purple-500" />
+            <h2 className="text-lg font-semibold">{t('shelterAssistance')}</h2>
+          </div>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Select
+                label={t('housingType')}
+                {...register('shelter_assistance.housing_type')}
+                options={[
+                  { value: 'owned', label: t('owned') },
+                  { value: 'new_rental', label: t('newRental') },
+                  { value: 'old_rental', label: t('oldRental') }
+                ]}
+              />
+              <Select
+                label={t('housingCondition')}
+                {...register('shelter_assistance.housing_condition')}
+                options={[
+                  { value: 'healthy', label: t('healthy') },
+                  { value: 'moderate', label: t('moderate') },
+                  { value: 'unhealthy', label: t('unhealthy') }
+                ]}
+              />
+              <Input
+                label={t('numberOfRooms')}
+                type="number"
+                min="1"
+                {...register('shelter_assistance.number_of_rooms')}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t('householdAppliances')}
+              </label>
+              <div className="space-y-2">
+                {[
+                  'Stove',
+                  'Manual Washing Machine',
+                  'Automatic Washing Machine',
+                  'Refrigerator',
+                  'Fan'
+                ].map(appliance => (
+                  <label key={appliance} className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      {...register('shelter_assistance.household_appliances')}
+                      value={appliance}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">{t(appliance.toLowerCase())}</span>
+                  </label>
+                ))}
               </div>
             </div>
           </div>
@@ -372,89 +611,6 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
               </div>
             </div>
           )}
-        </div>
-      </Card>
-
-      {/* Needs */}
-      <Card>
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-lg font-semibold">{t('needs')}</h2>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              icon={Plus}
-              onClick={() => appendNeed({
-                category: 'medical',
-                priority: 'medium',
-                description: '',
-                status: 'pending'
-              })}
-            >
-              {t('addNeed')}
-            </Button>
-          </div>
-
-          <div className="space-y-4">
-            {needFields.map((field, index) => (
-              <div key={field.id} className="bg-gray-50 p-4 rounded-lg">
-                <div className="flex justify-between items-start mb-4">
-                  <h3 className="text-sm font-medium text-gray-900">{t('need')} {index + 1}</h3>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    icon={Trash2}
-                    onClick={() => removeNeed(index)}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    {t('remove')}
-                  </Button>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Select
-                    label={t('category')}
-                    {...register(`needs.${index}.category`)}
-                    error={errors.needs?.[index]?.category?.message}
-                    options={[
-                      { value: 'medical', label: t('medical') },
-                      { value: 'financial', label: t('financial') },
-                      { value: 'food', label: t('food') },
-                      { value: 'shelter', label: t('shelter') },
-                      { value: 'clothing', label: t('clothing') },
-                      { value: 'education', label: t('education') },
-                      { value: 'employment', label: t('employment') },
-                      { value: 'transportation', label: t('transportation') },
-                      { value: 'other', label: t('other') }
-                    ]}
-                  />
-
-                  <Select
-                    label={t('priority')}
-                    {...register(`needs.${index}.priority`)}
-                    error={errors.needs?.[index]?.priority?.message}
-                    options={[
-                      { value: 'low', label: t('low') },
-                      { value: 'medium', label: t('medium') },
-                      { value: 'high', label: t('high') },
-                      { value: 'urgent', label: t('urgent') }
-                    ]}
-                  />
-
-                  <div className="md:col-span-2">
-                    <TextArea
-                      label={t('description')}
-                      {...register(`needs.${index}.description`)}
-                      error={errors.needs?.[index]?.description?.message}
-                      placeholder={t('describeNeed')}
-                    />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
       </Card>
 
