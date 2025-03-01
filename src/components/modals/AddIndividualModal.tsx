@@ -5,6 +5,7 @@ import { IndividualFormData } from '../../schemas/individualSchema';
 import { Family, Individual } from '../../types';
 import { Button } from '../ui/Button';
 import { toast } from '../../pages/Individuals/Toast';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface AddIndividualModalProps {
   isOpen: boolean;
@@ -27,26 +28,28 @@ export function AddIndividualModal({
   mode = 'create',
   userRole = 'user'
 }: AddIndividualModalProps) {
+  const { t } = useLanguage();
+  
   if (!isOpen) return null;
 
   const title = mode === 'create' 
-    ? userRole === 'admin' ? 'Add New Individual' : 'Submit Individual Request'
-    : 'Edit Individual';
+    ? userRole === 'admin' ? t('addNewIndividual') : t('submitIndividualRequest')
+    : t('edit');
     
   const description = mode === 'create' 
     ? userRole === 'admin'
-      ? 'Add a new individual to the system'
-      : 'Submit a new individual for approval'
-    : 'Update the individual\'s information';
+      ? t('addNewIndividualDescription')
+      : t('submitIndividualRequestDescription')
+    : t('updateIndividualDescription');
 
   const handleSubmit = async (data: IndividualFormData) => {
     try {
       await onSubmit(data, individual?.id);
-      toast.success(mode === 'create' ? 'Individual created successfully' : 'Individual updated successfully');
+      toast.success(mode === 'create' ? t('individualCreatedSuccess') : t('individualUpdatedSuccess'));
       onClose(); // Close the modal after successful submission
     } catch (error) {
       console.error('Error submitting form:', error);
-      toast.error(error instanceof Error ? error.message : 'An error occurred while saving');
+      toast.error(error instanceof Error ? error.message : t('errorSaving'));
     }
   };
 
@@ -63,7 +66,7 @@ export function AddIndividualModal({
               icon={X}
               onClick={onClose}
             >
-              Close
+              {t('close')}
             </Button>
           </div>
 

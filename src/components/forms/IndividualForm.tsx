@@ -21,7 +21,8 @@ interface IndividualFormProps {
 }
 
 export function IndividualForm({ onSubmit, isLoading, families, initialData }: IndividualFormProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const isRTL = language === 'ar';
   const {
     register,
     handleSubmit,
@@ -49,7 +50,41 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
       salary: null,
       needs: [],
       additional_members: [],
-      children: []
+      children: [],
+      medical_help: {
+        type_of_medical_assistance_needed: [],
+        medication_distribution_frequency: '',
+        estimated_cost_of_treatment: '',
+        health_insurance_coverage: false,
+        additional_details: ''
+      },
+      food_assistance: {
+        type_of_food_assistance_needed: [],
+        food_supply_card: false
+      },
+      marriage_assistance: {
+        marriage_support_needed: false,
+        wedding_contract_signed: false,
+        wedding_date: '',
+        specific_needs: ''
+      },
+      debt_assistance: {
+        debt_status: false,
+        reason_for_debt: '',
+        debt_amount: 0,
+        official_debt_documents: null
+      },
+      education_assistance: {
+        family_education_level: '',
+        desire_for_education: '',
+        children_educational_needs: []
+      },
+      shelter_assistance: {
+        type_of_housing: '',
+        housing_condition: '',
+        number_of_rooms: 0,
+        household_appliances: []
+      }
     }
   });
 
@@ -97,7 +132,6 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
         needs: data.needs || []
       };
     
-      // Log the data being sent
       console.log('Submitting data:', formattedData);
       
       await onSubmit(formattedData);
@@ -107,7 +141,6 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
     }
   };
 
-  // Update the appendChild function to include necessary fields
   const handleAddMember = (memberData: any) => {
     if (memberData.gender === 'boy' || memberData.gender === 'girl') {
       appendChild({
@@ -116,8 +149,7 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
         date_of_birth: memberData.date_of_birth,
         gender: memberData.gender === 'boy' ? 'male' : 'female',
         school_stage: memberData.school_stage,
-        description: memberData.description,
-        role: 'child' // Add role field
+        description: memberData.description
       });
     } else {
       appendMember({
@@ -133,15 +165,453 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
   };
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+    <form 
+      onSubmit={handleSubmit(handleFormSubmit)} 
+      className={`space-y-6 max-w-4xl mx-auto ${isRTL ? 'rtl text-right' : 'ltr text-left'}`}
+      dir={isRTL ? 'rtl' : 'ltr'}
+    >
       <PersonalInfoFields register={register} errors={errors} />
       <ContactFields register={register} errors={errors} families={families} setValue={setValue} />
-      <EmploymentFields register={register} errors={errors} control={control} />
+      
+      {/* Employment Fields */}
+      <div className="bg-white p-6 rounded-lg shadow">
+        <h3 className="text-lg font-medium mb-4 pb-2 border-b">{t('employmentInformation')}</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">{t('job')}</label>
+            <input 
+              type="text" 
+              {...register('job')} 
+              className="w-full p-2 border rounded-md" 
+              placeholder={t('enterJobTitle')}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">{t('employmentStatus')}</label>
+            <select 
+              {...register('employment_status')} 
+              className="w-full p-2 border rounded-md"
+            >
+              <option value="no_salary">{t('noSalary')}</option>
+              <option value="with_salary">{t('hasSalary')}</option>
+              <option value="social_support">{t('socialSupport')}</option>
+            </select>
+          </div>
+        </div>
+        <EmploymentFields register={register} errors={errors} control={control} />
+      </div>
+
+      {/* Medical Help Section */}
+      <div className="bg-white p-6 rounded-lg shadow">
+        <h3 className="text-lg font-medium mb-4 pb-2 border-b">{t('medicalHelp')}</h3>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-2">{t('typeOfMedicalAssistance')}</label>
+            <div className="grid grid-cols-2 gap-2">
+              <label className="flex items-center space-x-2 rtl:space-x-reverse">
+                <input 
+                  type="checkbox" 
+                  {...register('medical_help.type_of_medical_assistance_needed')} 
+                  value="Medical Checkup" 
+                  className="mr-0"
+                />
+                <span>{t('medicalCheckup')}</span>
+              </label>
+              <label className="flex items-center">
+                <input 
+                  type="checkbox" 
+                  {...register('medical_help.type_of_medical_assistance_needed')} 
+                  value="Lab Tests" 
+                  className="mr-2"
+                />
+                <span>{t('labTests')}</span>
+              </label>
+              <label className="flex items-center">
+                <input 
+                  type="checkbox" 
+                  {...register('medical_help.type_of_medical_assistance_needed')} 
+                  value="X-rays/Scans" 
+                  className="mr-2"
+                />
+                <span>{t('xraysScans')}</span>
+              </label>
+              <label className="flex items-center">
+                <input 
+                  type="checkbox" 
+                  {...register('medical_help.type_of_medical_assistance_needed')} 
+                  value="Surgeries" 
+                  className="mr-2"
+                />
+                <span>{t('surgeries')}</span>
+              </label>
+            </div>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium mb-1">{t('additionalDetails')}</label>
+            <textarea 
+              {...register('medical_help.additional_details')} 
+              className="w-full p-2 border rounded-md" 
+              placeholder={t('additionalDetails')}
+              rows={3}
+            />
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">{t('medicationDistributionFrequency')}</label>
+              <select 
+                {...register('medical_help.medication_distribution_frequency')} 
+                className="w-full p-2 border rounded-md"
+              >
+                <option value="">{t('choose')}</option>
+                <option value="Monthly">{t('monthly')}</option>
+                <option value="Intermittent">{t('intermittent')}</option>
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-1">{t('estimatedCostOfTreatment')}</label>
+              <select 
+                {...register('medical_help.estimated_cost_of_treatment')} 
+                className="w-full p-2 border rounded-md"
+              >
+                <option value="">{t('choose')}</option>
+                <option value="Able">{t('ableToAfford')}</option>
+                <option value="Unable">{t('unableToAfford')}</option>
+                <option value="Partially">{t('partiallyAble')}</option>
+              </select>
+            </div>
+          </div>
+          
+          <div>
+            <label className="flex items-center">
+              <input 
+                type="checkbox" 
+                {...register('medical_help.health_insurance_coverage')} 
+                className="mr-2"
+              />
+              <span>{t('healthInsuranceCoverage')}</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      {/* Food Assistance Section */}
+      <div className="bg-white p-6 rounded-lg shadow">
+        <h3 className="text-lg font-medium mb-4 pb-2 border-b">{t('foodAssistance')}</h3>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-2">{t('typeOfFoodAssistance')}</label>
+            <div className="grid grid-cols-2 gap-2">
+              <label className="flex items-center">
+                <input 
+                  type="checkbox" 
+                  {...register('food_assistance.type_of_food_assistance_needed')} 
+                  value="Ready-made meals" 
+                  className="mr-2"
+                />
+                <span>{t('readyMadeMeals')}</span>
+              </label>
+              <label className="flex items-center">
+                <input 
+                  type="checkbox" 
+                  {...register('food_assistance.type_of_food_assistance_needed')} 
+                  value="Non-ready meals" 
+                  className="mr-2"
+                />
+                <span>{t('nonReadyMeals')}</span>
+              </label>
+            </div>
+          </div>
+          
+          <div>
+            <label className="flex items-center">
+              <input 
+                type="checkbox" 
+                {...register('food_assistance.food_supply_card')} 
+                className="mr-2"
+              />
+              <span>{t('foodSupplyCard')}</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      {/* Marriage Assistance Section */}
+      <div className="bg-white p-6 rounded-lg shadow">
+        <h3 className="text-lg font-medium mb-4 pb-2 border-b">{t('marriageAssistance')}</h3>
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="flex items-center">
+                <input 
+                  type="checkbox" 
+                  {...register('marriage_assistance.marriage_support_needed')} 
+                  className="mr-2"
+                />
+                <span>{t('marriageSupportNeeded')}</span>
+              </label>
+            </div>
+            <div>
+              <label className="flex items-center">
+                <input 
+                  type="checkbox" 
+                  {...register('marriage_assistance.wedding_contract_signed')} 
+                  className="mr-2"
+                />
+                <span>{t('weddingContractSigned')}</span>
+              </label>
+            </div>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium mb-1">{t('weddingDate')}</label>
+            <input 
+              type="date" 
+              {...register('marriage_assistance.wedding_date')} 
+              className="w-full p-2 border rounded-md"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium mb-1">{t('specificNeeds')}</label>
+            <textarea 
+              {...register('marriage_assistance.specific_needs')} 
+              className="w-full p-2 border rounded-md" 
+              placeholder={t('whatAreTheNeeds')}
+              rows={3}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Debt Assistance Section */}
+      <div className="bg-white p-6 rounded-lg shadow">
+        <h3 className="text-lg font-medium mb-4 pb-2 border-b">{t('debtAssistance')}</h3>
+        <div className="space-y-4">
+          <div>
+            <label className="flex items-center">
+              <input 
+                type="checkbox" 
+                {...register('debt_assistance.debt_status')} 
+                className="mr-2"
+              />
+              <span>{t('debtStatus')}</span>
+            </label>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium mb-1">{t('reasonForDebt')}</label>
+            <input 
+              type="text" 
+              {...register('debt_assistance.reason_for_debt')} 
+              className="w-full p-2 border rounded-md" 
+              placeholder={t('whatIsReasonForDebt')}
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium mb-1">{t('debtAmount')}</label>
+            <input 
+              type="number" 
+              {...register('debt_assistance.debt_amount')} 
+              className="w-full p-2 border rounded-md" 
+              placeholder="0"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium mb-1">{t('uploadOfficialDebtDocuments')}</label>
+            <input 
+              type="file" 
+              {...register('debt_assistance.official_debt_documents')} 
+              className="w-full p-2"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Education Assistance Section */}
+      <div className="bg-white p-6 rounded-lg shadow">
+        <h3 className="text-lg font-medium mb-4 pb-2 border-b">{t('educationAssistance')}</h3>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">{t('familyEducationLevel')}</label>
+            <select 
+              {...register('education_assistance.family_education_level')} 
+              className="w-full p-2 border rounded-md"
+            >
+              <option value="">{t('choose')}</option>
+              <option value="Higher Education">{t('higherEducation')}</option>
+              <option value="Intermediate Education">{t('intermediateEducation')}</option>
+              <option value="Literate">{t('literate')}</option>
+              <option value="Illiterate">{t('illiterate')}</option>
+            </select>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium mb-1">{t('desireForEducation')}</label>
+            <input 
+              type="text" 
+              {...register('education_assistance.desire_for_education')} 
+              className="w-full p-2 border rounded-md" 
+              placeholder={t('whatIsDesireForEducation')}
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium mb-2">{t('childrenEducationalNeeds')}</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <label className="flex items-center">
+                <input 
+                  type="checkbox" 
+                  {...register('education_assistance.children_educational_needs')} 
+                  value="Tuition Fees" 
+                  className="mr-2"
+                />
+                <span>{t('tuitionFees')}</span>
+              </label>
+              <label className="flex items-center">
+                <input 
+                  type="checkbox" 
+                  {...register('education_assistance.children_educational_needs')} 
+                  value="School Uniforms" 
+                  className="mr-2"
+                />
+                <span>{t('schoolUniforms')}</span>
+              </label>
+              <label className="flex items-center">
+                <input 
+                  type="checkbox" 
+                  {...register('education_assistance.children_educational_needs')} 
+                  value="Books" 
+                  className="mr-2"
+                />
+                <span>{t('books')}</span>
+              </label>
+              <label className="flex items-center">
+                <input 
+                  type="checkbox" 
+                  {...register('education_assistance.children_educational_needs')} 
+                  value="Supplies" 
+                  className="mr-2"
+                />
+                <span>{t('supplies')}</span>
+              </label>
+              <label className="flex items-center">
+                <input 
+                  type="checkbox" 
+                  {...register('education_assistance.children_educational_needs')} 
+                  value="Tutoring" 
+                  className="mr-2"
+                />
+                <span>{t('tutoring')}</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Shelter Assistance Section */}
+      <div className="bg-white p-6 rounded-lg shadow">
+        <h3 className="text-lg font-medium mb-4 pb-2 border-b">{t('shelterAssistance')}</h3>
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">{t('typeOfHousing')}</label>
+              <select 
+                {...register('shelter_assistance.type_of_housing')} 
+                className="w-full p-2 border rounded-md"
+              >
+                <option value="">{t('choose')}</option>
+                <option value="Owned">{t('owned')}</option>
+                <option value="New Rental">{t('newRental')}</option>
+                <option value="Old Rental">{t('oldRental')}</option>
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-1">{t('housingCondition')}</label>
+              <select 
+                {...register('shelter_assistance.housing_condition')} 
+                className="w-full p-2 border rounded-md"
+              >
+                <option value="">{t('choose')}</option>
+                <option value="Healthy">{t('healthy')}</option>
+                <option value="Moderate">{t('moderate')}</option>
+                <option value="Unhealthy">{t('unhealthy')}</option>
+              </select>
+            </div>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium mb-1">{t('numberOfRooms')}</label>
+            <input 
+              type="number" 
+              {...register('shelter_assistance.number_of_rooms')} 
+              className="w-full p-2 border rounded-md" 
+              placeholder="0"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium mb-2">{t('householdAppliances')}</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <label className="flex items-center">
+                <input 
+                  type="checkbox" 
+                  {...register('shelter_assistance.household_appliances')} 
+                  value="Stove" 
+                  className="mr-2"
+                />
+                <span>{t('stove')}</span>
+              </label>
+              <label className="flex items-center">
+                <input 
+                  type="checkbox" 
+                  {...register('shelter_assistance.household_appliances')} 
+                  value="Manual Washing Machine" 
+                  className="mr-2"
+                />
+                <span>{t('manualWashingMachine')}</span>
+              </label>
+              <label className="flex items-center">
+                <input 
+                  type="checkbox" 
+                  {...register('shelter_assistance.household_appliances')} 
+                  value="Automatic Washing Machine" 
+                  className="mr-2"
+                />
+                <span>{t('automaticWashingMachine')}</span>
+              </label>
+              <label className="flex items-center">
+                <input 
+                  type="checkbox" 
+                  {...register('shelter_assistance.household_appliances')} 
+                  value="Refrigerator" 
+                  className="mr-2"
+                />
+                <span>{t('refrigerator')}</span>
+              </label>
+              <label className="flex items-center">
+                <input 
+                  type="checkbox" 
+                  {...register('shelter_assistance.household_appliances')} 
+                  value="Fan" 
+                  className="mr-2"
+                />
+                <span>{t('fan')}</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Family Members Section */}
-      <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <h3 className="text-lg font-medium text-gray-900">{t('familyMembers')}</h3>
+      <div className="bg-white p-6 rounded-lg shadow">
+        <div className="flex justify-between items-center mb-4 pb-2 border-b">
+          <h3 className="text-lg font-medium">{t('familyMembers')}</h3>
           <div onClick={(e) => e.preventDefault()}>
             <AddMemberButton onAddMember={handleAddMember} />
           </div>
@@ -149,12 +619,12 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
 
         {/* Display Additional Members */}
         {memberFields.length > 0 && (
-          <div className="space-y-4">
+          <div className="space-y-4 mb-6">
             <h4 className="text-md font-medium text-gray-800">{t('additionalMembers')}</h4>
             {memberFields.map((field, index) => (
-              <div key={field.id} className="bg-gray-50 p-4 rounded-lg space-y-4">
+              <div key={field.id} className="bg-gray-50 p-4 rounded-lg border space-y-4">
                 <div className="flex justify-between items-start">
-                  <h5 className="text-sm font-medium text-gray-900">
+                  <h5 className="text-sm font-medium">
                     {watch(`additional_members.${index}.name`)} - {watch(`additional_members.${index}.relation`)}
                   </h5>
                   <Button
@@ -225,9 +695,9 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
           <div className="space-y-4">
             <h4 className="text-md font-medium text-gray-800">{t('children')}</h4>
             {childFields.map((field, index) => (
-              <div key={field.id} className="bg-gray-50 p-4 rounded-lg space-y-4">
+              <div key={field.id} className="bg-gray-50 p-4 rounded-lg border space-y-4">
                 <div className="flex justify-between items-start">
-                  <h5 className="text-sm font-medium text-gray-900">
+                  <h5 className="text-sm font-medium">
                     {watch(`children.${index}.first_name`)} {watch(`children.${index}.last_name`)}
                   </h5>
                   <Button
@@ -282,9 +752,9 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
       </div>
 
       {/* Needs Section */}
-      <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <h3 className="text-lg font-medium text-gray-900">{t('needs')}</h3>
+      <div className="bg-white p-6 rounded-lg shadow">
+        <div className="flex justify-between items-center mb-4 pb-2 border-b">
+          <h3 className="text-lg font-medium">{t('needs')}</h3>
           <Button
             type="button"
             variant="outline"
@@ -301,66 +771,69 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
           </Button>
         </div>
 
-        {needFields.map((field, index) => (
-          <div key={field.id} className="bg-gray-50 p-4 rounded-lg space-y-4">
-            <div className="flex justify-between items-start">
-              <h4 className="text-sm font-medium text-gray-900">{t('need')} {index + 1}</h4>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                icon={Trash2}
-                onClick={() => removeNeed(index)}
-                className="text-red-600 hover:text-red-700"
-              >
-                {t('remove')}
-              </Button>
-            </div>
+        <div className="space-y-4">
+          {needFields.map((field, index) => (
+            <div key={field.id} className="bg-gray-50 p-4 rounded-lg border space-y-4">
+              <div className="flex justify-between items-start">
+                <h4 className="text-sm font-medium text-gray-900">{t('need')} {index + 1}</h4>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  icon={Trash2}
+                  onClick={() => removeNeed(index)}
+                  className="text-red-600 hover:text-red-700"
+                >
+                  {t('remove')}
+                </Button>
+              </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Select
-                label={t('category')}
-                {...register(`needs.${index}.category`)}
-                error={errors.needs?.[index]?.category?.message}
-                options={[
-                  { value: 'medical', label: t('medical') },
-                  { value: 'financial', label: t('financial') },
-                  { value: 'food', label: t('food') },
-                  { value: 'shelter', label: t('shelter') },
-                  { value: 'clothing', label: t('clothing') },
-                  { value: 'education', label: t('education') },
-                  { value: 'employment', label: t('employment') },
-                  { value: 'transportation', label: t('transportation') },
-                  { value: 'other', label: t('other') }
-                ]}
-              />
-
-              <Select
-                label={t('priority')}
-                {...register(`needs.${index}.priority`)}
-                error={errors.needs?.[index]?.priority?.message}
-                options={[
-                  { value: 'low', label: t('low') },
-                  { value: 'medium', label: t('medium') },
-                  { value: 'high', label: t('high') },
-                  { value: 'urgent', label: t('urgent') }
-                ]}
-              />
-
-              <div className="md:col-span-2">
-                <TextArea
-                  label={t('description')}
-                  {...register(`needs.${index}.description`)}
-                  error={errors.needs?.[index]?.description?.message}
-                  placeholder={t('describeNeed')}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Select
+                  label={t('category')}
+                  {...register(`needs.${index}.category`)}
+                  error={errors.needs?.[index]?.category?.message}
+                  options={[
+                    { value: 'medical', label: t('medical') },
+                    { value: 'financial', label: t('financial') },
+                    { value: 'food', label: t('food') },
+                    { value: 'shelter', label: t('shelter') },
+                    { value: 'clothing', label: t('clothing') },
+                    { value: 'education', label: t('education') },
+                    { value: 'employment', label: t('employment') },
+                    { value: 'transportation', label: t('transportation') },
+                    { value: 'other', label: t('other') }
+                  ]}
                 />
+
+                <Select
+                  label={t('priority')}
+                  {...register(`needs.${index}.priority`)}
+                  error={errors.needs?.[index]?.priority?.message}
+                  options={[
+                    { value: 'low', label: t('low') },
+                    { value: 'medium', label: t('medium') },
+                    { value: 'high', label: t('high') },
+                    { value: 'urgent', label: t('urgent') }
+                  ]}
+                />
+
+                <div className="md:col-span-2">
+                  <TextArea
+                    label={t('description')}
+                    {...register(`needs.${index}.description`)}
+                    error={errors.needs?.[index]?.description?.message}
+                    placeholder={t('describeNeed')}
+                  />
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
-      <div className="flex justify-end space-x-3">
+      {/* Form Actions */}
+      <div className={`flex ${isRTL ? 'justify-start' : 'justify-end'} space-x-3 rtl:space-x-reverse pt-4`}>
         <Button
           type="button"
           variant="outline"

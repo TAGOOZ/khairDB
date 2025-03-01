@@ -106,7 +106,6 @@ export const translations = {
   red: 'Red',
   
   // Needs
-  needs: 'Needs',
   addNeed: 'Add Need',
   category: 'Category',
   priority: 'Priority',
@@ -132,12 +131,12 @@ export const translations = {
   completed: 'Completed',
   
   // Messages
-  confirmDelete: 'Are you sure you want to delete this?',
+  confirmDelete: 'Are you sure you want to delete?',
   successAdd: 'Successfully added',
-  successEdit: 'Successfully updated',
+  successEdit: 'Successfully edited',
   successDelete: 'Successfully deleted',
   error: 'An error occurred. Please try again.',
-  atLeastOneParent: 'At least one parent is required',
+  atLeastOneParent: 'At least one parent must be added',
   underAge: 'Must be under 18 years old',
   invalidPhoneNumber: 'Invalid phone number',
   memberAdded: 'Member added successfully',
@@ -170,7 +169,6 @@ export const translations = {
   selectPriority: 'Select Priority',
   allCategories: 'All Categories',
   allDistricts: 'All Districts',
-  district: 'District',
   
   // Form Actions
   reset: 'Reset',
@@ -232,7 +230,6 @@ export const translations = {
 
   // Additional translations
   name: 'Name',
-  contactInfo: 'Contact Info',
   addedBy: 'Added By',
   view: 'View',
   selectAll: 'Select All',
@@ -303,5 +300,109 @@ export const translations = {
   noStatus: 'No Status',
   noAssignee: 'No Assignee',
   noStartDate: 'No Start Date',
-  noEndDate: 'No End Date'
+  noEndDate: 'No End Date',
+
+  // Medical Help Section
+  medicalHelp: 'Medical Help',
+  typeOfMedicalAssistance: 'Type of Medical Assistance Needed',
+  medicalCheckup: 'Medical Checkup',
+  labTests: 'Lab Tests',
+  xraysScans: 'X-rays/Scans',
+  surgeries: 'Surgeries',
+  additionalDetails: 'Additional Details',
+  medicationDistributionFrequency: 'Medication Distribution Frequency',
+  monthly: 'Monthly',
+  intermittent: 'Intermittent',
+  estimatedCostOfTreatment: 'Estimated Cost of Treatment',
+  ableToAfford: 'Able to afford',
+  unableToAfford: 'Unable to afford',
+  partiallyAble: 'Partially able',
+  healthInsuranceCoverage: 'Does any family member have health insurance?',
+  
+  // Food Assistance Section
+  foodAssistance: 'Food Assistance',
+  typeOfFoodAssistance: 'Type of Food Assistance Needed',
+  readyMadeMeals: 'Ready-made meals',
+  nonReadyMeals: 'Non-ready meals',
+  foodSupplyCard: 'Do they have a food supply card?',
+  
+  // Marriage Assistance Section
+  marriageAssistance: 'Marriage Assistance',
+  marriageSupportNeeded: 'Do you need marriage assistance?',
+  weddingContractSigned: 'Has the marriage contract been signed?',
+  weddingDate: 'Wedding Date',
+  specificNeeds: 'Specific Needs',
+  whatAreTheNeeds: 'What are the needs?',
+  
+  // Debt Assistance Section
+  debtAssistance: 'Debt Assistance',
+  debtStatus: 'Are there any debts?',
+  reasonForDebt: 'Reason for Debt',
+  whatIsReasonForDebt: 'What is the reason for debt?',
+  debtAmount: 'Debt Amount',
+  whatIsDebtAmount: 'What is the debt amount?',
+  uploadOfficialDebtDocuments: 'Upload Official Debt Documents',
+  
+  // Education Assistance Section
+  educationAssistance: 'Education Assistance',
+  familyEducationLevel: 'Family Education Level',
+  higherEducation: 'Higher Education',
+  intermediateEducation: 'Intermediate Education',
+  literate: 'Literate',
+  illiterate: 'Illiterate',
+  desireForEducation: 'If Illiterate, what is the desire for education?',
+  whatIsDesireForEducation: 'What is the desire for education?',
+  childrenEducationalNeeds: 'Children\'s Educational Needs',
+  tuitionFees: 'Tuition Fees',
+  schoolUniforms: 'School Uniforms',
+  books: 'Books',
+  supplies: 'Supplies',
+  tutoring: 'Tutoring',
+  
+  // Shelter Assistance Section
+  shelterAssistance: 'Shelter Assistance',
+  typeOfHousing: 'Type of Housing',
+  owned: 'Owned',
+  newRental: 'New Rental',
+  oldRental: 'Old Rental',
+  housingCondition: 'Housing Condition',
+  healthy: 'Healthy',
+  moderate: 'Moderate',
+  unhealthy: 'Unhealthy',
+  numberOfRooms: 'Number of Rooms',
+  whatIsNumberOfRooms: 'How many rooms?',
+  householdAppliances: 'Household Appliances',
+  stove: 'Stove',
+  manualWashingMachine: 'Manual Washing Machine',
+  automaticWashingMachine: 'Automatic Washing Machine',
+  refrigerator: 'Refrigerator',
+  fan: 'Fan',
+  
+  // Form Sections
+  personalInformation: 'Personal Information',
+  contactInformation: 'Contact Information',
+  employmentInformation: 'Employment Information',
+  additionalMembers: 'Additional Members',
+  children: 'Children',
+  need: 'Need',
+  
+  // Form Actions
+  saveIndividual: 'Save Individual',
+  
+  // Placeholders
+  choose: '-- Choose --',
+
+  // Modal titles
+  addNewIndividual: 'Add New Individual',
+  addNewIndividualDescription: 'Add a new individual to the system',
+  submitIndividualRequest: 'Submit Individual Request',
+  submitIndividualRequestDescription: 'Submit a new individual for approval',
+  updateIndividualDescription: 'Update the individual\'s information',
+  
+  // Success messages
+  individualCreatedSuccess: 'Individual created successfully',
+  individualUpdatedSuccess: 'Individual updated successfully',
+  
+  // Error messages
+  errorSaving: 'An error occurred while saving',
 };
