@@ -10,7 +10,8 @@ import {
   Package,
   LogOut,
   Menu,
-  X
+  X,
+  FolderKanban
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -30,6 +31,7 @@ export function Layout() {
     { name: t('needs'), href: '/needs', icon: HeartHandshake },
     { name: t('distributions'), href: '/distributions', icon: Package },
     { name: t('reports'), href: '/reports', icon: BarChart3 },
+    { name: t('projects'), href: '/projects', icon: FolderKanban },
   ];
 
   const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);

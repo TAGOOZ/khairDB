@@ -9,6 +9,24 @@ export interface User {
   updated_at: string;
 }
 
+// Assistance Details types
+export type AssistanceType = 
+  | 'medical_help'
+  | 'food_assistance'
+  | 'marriage_assistance'
+  | 'debt_assistance'
+  | 'education_assistance'
+  | 'shelter_assistance';
+
+export interface AssistanceDetails {
+  id: string;
+  individual_id: string;
+  assistance_type: AssistanceType;
+  details: any; // Using any since each type has a different schema
+  created_at: string;
+  updated_at: string;
+}
+
 // Individual types
 export interface Individual {
   id: string;
@@ -38,6 +56,10 @@ export interface Individual {
   list_status: 'whitelist' | 'blacklist' | 'waitinglist';
   additional_members: AdditionalMember[];
   children: Child[];
+  assistance_details?: AssistanceDetails[]; // Added field for assistance details
+  id_card_image_url?: string | null; // URL for the ID card image
+  id_card_image_path?: string | null; // Storage path for the ID card image
+  hashtags?: string[]; // Added field for hashtags
 }
 
 // Child types

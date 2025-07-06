@@ -14,6 +14,7 @@ interface FiltersState {
   district: string;
   needs: NeedFilter[];
   status?: 'green' | 'yellow' | 'red' | '';
+  distributionStatus: 'all' | 'with' | 'without';
   listStatus: 'whitelist' | 'blacklist' | 'waitinglist' | '';
 }
 

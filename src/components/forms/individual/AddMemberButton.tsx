@@ -89,8 +89,8 @@ export function AddMemberButton({ onAddMember }: AddMemberButtonProps) {
                     label={t('gender')}
                     required
                     options={[
-                      { value: 'boy', label: t('boy') },
-                      { value: 'girl', label: t('girl') }
+                      { value: 'male', label: t('boy') },
+                      { value: 'female', label: t('girl') }
                     ]}
                   />
                   <Select

@@ -48,7 +48,14 @@ export function useIndividuals() {
             created_at,
             updated_at
           ),
-          family_members!inner(role)
+          family_members!inner(role),
+          assistance_details (
+            id,
+            assistance_type,
+            details,
+            created_at,
+            updated_at
+          )
         `)
         .eq('family_members.role', 'parent');
 

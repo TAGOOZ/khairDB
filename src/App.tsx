@@ -9,8 +9,11 @@ import { Reports } from './pages/Reports';
 import { Distributions } from './pages/Distributions';
 import { Children } from './pages/Children';
 import { Login } from './pages/Login';
+import { NotFound } from './pages/NotFound';
+import { Projects } from './pages/Projects';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { useAuthStore } from './store/authStore';
+import { TestMCPUpload } from './components/tests/TestMCPUpload';
 
 export default function App() {
   const { user, loading, initializeAuth } = useAuthStore();
@@ -31,6 +34,7 @@ export default function App() {
     <Router>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/test-upload" element={<TestMCPUpload />} />
         <Route element={<ProtectedRoute />}>
           <Route element={<Layout />}>
             <Route path="/" element={<Dashboard />} />
@@ -40,8 +44,10 @@ export default function App() {
             <Route path="/needs" element={<Needs />} />
             <Route path="/distributions/*" element={<Distributions />} />
             <Route path="/reports" element={<Reports />} />
+            <Route path="/projects" element={<Projects />} />
           </Route>
         </Route>
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>
   );

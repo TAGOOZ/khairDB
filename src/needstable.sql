@@ -23,8 +23,6 @@ create table public.needs (
           'education'::text,
           'employment'::text,
           'transportation'::text,
-          'marriage'::text,
-          'debt'::text,
           'other'::text
         ]
       )

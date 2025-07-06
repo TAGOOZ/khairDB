@@ -55,7 +55,7 @@ export async function createFamily(data: FamilyFormData): Promise<Family> {
       throw new FamilyError('member-creation-failed', 'Failed to add family members', membersError);
     }
 
-    // Fetch the complete family with members
+    // Fetch the complete family with members and children
     const { data: completeFamily, error: fetchError } = await supabase
       .from('families')
       .select(`
@@ -63,7 +63,8 @@ export async function createFamily(data: FamilyFormData): Promise<Family> {
         members:family_members(
           role,
           individual:individuals(*)
-        )
+        ),
+        children(*)
       `)
       .eq('id', family.id)
       .single();
@@ -74,10 +75,16 @@ export async function createFamily(data: FamilyFormData): Promise<Family> {
 
     return {
       ...completeFamily,
-      members: completeFamily.members.map((m: any) => ({
-        ...m.individual,
-        family_role: m.role
-      }))
+      members: [
+        ...completeFamily.members.map((m: any) => ({
+          ...m.individual,
+          family_role: m.role
+        })),
+        ...(completeFamily.children || []).map((child: any) => ({
+          ...child,
+          family_role: 'child'
+        }))
+      ]
     };
   } catch (error) {
     if (error instanceof FamilyError) throw error;
@@ -134,7 +141,7 @@ export async function updateFamily(id: string, data: FamilyFormData): Promise<Fa
       throw new FamilyError('member-update-failed', 'Failed to update family members', membersError);
     }
 
-    // Fetch updated family
+    // Fetch updated family with members and children
     const { data: updatedFamily, error: fetchError } = await supabase
       .from('families')
       .select(`
@@ -142,7 +149,8 @@ export async function updateFamily(id: string, data: FamilyFormData): Promise<Fa
         members:family_members(
           role,
           individual:individuals(*)
-        )
+        ),
+        children(*)
       `)
       .eq('id', id)
       .single();
@@ -153,10 +161,16 @@ export async function updateFamily(id: string, data: FamilyFormData): Promise<Fa
 
     return {
       ...updatedFamily,
-      members: updatedFamily.members.map((m: any) => ({
-        ...m.individual,
-        family_role: m.role
-      }))
+      members: [
+        ...updatedFamily.members.map((m: any) => ({
+          ...m.individual,
+          family_role: m.role
+        })),
+        ...(updatedFamily.children || []).map((child: any) => ({
+          ...child,
+          family_role: 'child'
+        }))
+      ]
     };
   } catch (error) {
     if (error instanceof FamilyError) throw error;
@@ -166,6 +180,17 @@ export async function updateFamily(id: string, data: FamilyFormData): Promise<Fa
 
 export async function deleteFamily(id: string): Promise<void> {
   try {
+    // Delete children first
+    const { error: childrenError } = await supabase
+      .from('children')
+      .delete()
+      .eq('family_id', id);
+
+    if (childrenError) {
+      throw new FamilyError('delete-failed', 'Failed to delete family children', childrenError);
+    }
+
+    // Then delete the family (this will cascade to family_members)
     const { error: deleteError } = await supabase
       .from('families')
       .delete()

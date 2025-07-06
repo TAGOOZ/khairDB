@@ -19,14 +19,19 @@ export function Children() {
     queryKey: ['children', filters],
     queryFn: async () => {
       let query = supabase
-        .from('individuals')
+        .from('children')
         .select(`
           *,
-          parent:individuals!family_members!inner(first_name, last_name),
-          family:families(name),
-          family_members!inner(role)
-        `)
-        .eq('family_members.role', 'child');
+          parent:individuals(
+            id, 
+            first_name, 
+            last_name
+          ),
+          family:families(
+            id,
+            name
+          )
+        `);
 
       if (filters.search) {
         query = query.or(
@@ -64,7 +69,7 @@ export function Children() {
             value={filters.schoolStage}
             onChange={(e) => setFilters(prev => ({ ...prev, schoolStage: e.target.value }))}
             options={[
-              { value: '', label: t('allStages') },
+              { value: '', label: t('all') },
               { value: 'kindergarten', label: t('kindergarten') },
               { value: 'primary', label: t('primary') },
               { value: 'preparatory', label: t('preparatory') },
@@ -93,10 +98,10 @@ export function Children() {
                   {t('schoolStage')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t('parent')}
+                  Parent
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {t('family')}
+                  Family
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   {t('actions')}

@@ -14,6 +14,8 @@ import { submitIndividualRequest, PendingRequestError } from '../../services/pen
 import { Button } from '../../components/ui/Button';
 import { createIndividual, updateIndividual, IndividualError } from '../../services/individuals';
 import { useNavigate } from 'react-router-dom';
+import { getIndividual } from '../../services/individuals';
+import { supabase } from '../../lib/supabase';
 
 export function Individuals() {
   const { 
@@ -29,6 +31,7 @@ export function Individuals() {
   const { families } = useFamilies();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isViewModalLoading, setIsViewModalLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedIndividual, setSelectedIndividual] = useState<Individual | null>(null);
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
@@ -82,9 +85,42 @@ export function Individuals() {
     }
   };
 
-  const handleView = (individual: Individual) => {
-    setSelectedIndividual(individual);
+  const handleView = async (individual: Individual) => {
     setIsViewModalOpen(true);
+    setIsViewModalLoading(true);
+    setSelectedIndividual(null);
+    try {
+      const completeIndividual = await getIndividual(individual.id);
+      
+      if (completeIndividual) {
+        // Fetch hashtags as they are not part of the getIndividual query by default
+        const { data: hashtagsData, error: hashtagsError } = await supabase
+          .from('individual_hashtags')
+          .select('hashtag:hashtags(name)')
+          .eq('individual_id', individual.id);
+        
+        if (hashtagsError) {
+          console.error('Error fetching hashtags for individual:', hashtagsError);
+        }
+
+        // Append hashtags to the completeIndividual object
+        const individualWithHashtags = {
+          ...completeIndividual,
+          hashtags: hashtagsData?.map((h: any) => h.hashtag?.name).filter(Boolean) || [],
+        };
+        setSelectedIndividual(individualWithHashtags);
+      } else {
+        console.warn('Individual not found when trying to view:', individual.id);
+        toast.error('Individual details not found.');
+        setIsViewModalOpen(false);
+      }
+    } catch (error) {
+      console.error('Error fetching individual for view modal:', error);
+      toast.error('Failed to load individual details.');
+      setIsViewModalOpen(false);
+    } finally {
+      setIsViewModalLoading(false);
+    }
   };
 
   const handleEdit = (individual: Individual) => {
@@ -119,6 +155,76 @@ export function Individuals() {
     navigate('/distributions/create', { state: { selectedIndividuals: selectedForDistribution } });
   };
 
+  // Function to get individual data ready for edit modal
+  const prepareIndividualForEdit = async (individual: Individual) => {
+    try {
+      // Get the complete individual data with all details
+      const completeIndividual = await getIndividual(individual.id);
+      
+      if (completeIndividual) {
+        // Get the individual's hashtags
+        const { data: hashtagsData } = await supabase
+          .from('individual_hashtags')
+          .select('hashtag:hashtags(name)')
+          .eq('individual_id', individual.id);
+          
+        // Extract hashtag names with proper typing
+        interface HashtagResponse {
+          hashtag: { name: string } | null;
+        }
+        
+        const hashtags = hashtagsData 
+          ? (hashtagsData as unknown as HashtagResponse[]).map(h => h.hashtag?.name).filter(Boolean) 
+          : [];
+        
+        // Prepare assistance details in the correct format for the form
+        const assistanceDetails = completeIndividual.assistance_details || [];
+        
+        // Define the assistance type interface
+        interface AssistanceDetail {
+          assistance_type: string;
+          details: any;
+        }
+        
+        const formattedIndividual = {
+          ...completeIndividual,
+          hashtags,
+          // Map assistance details to their respective form fields with proper typing
+          medical_help: assistanceDetails.find((a: AssistanceDetail) => a.assistance_type === 'medical_help')?.details || null,
+          food_assistance: assistanceDetails.find((a: AssistanceDetail) => a.assistance_type === 'food_assistance')?.details || null,
+          marriage_assistance: assistanceDetails.find((a: AssistanceDetail) => a.assistance_type === 'marriage_assistance')?.details || null,
+          debt_assistance: assistanceDetails.find((a: AssistanceDetail) => a.assistance_type === 'debt_assistance')?.details || null,
+          education_assistance: assistanceDetails.find((a: AssistanceDetail) => a.assistance_type === 'education_assistance')?.details || null,
+          shelter_assistance: assistanceDetails.find((a: AssistanceDetail) => a.assistance_type === 'shelter_assistance')?.details || null,
+        };
+        
+        setSelectedIndividual(formattedIndividual);
+        setModalMode('edit');
+        setIsModalOpen(true);
+      }
+    } catch (error) {
+      console.error('Error preparing individual for edit:', error);
+      toast.error('Could not load individual data for editing.');
+    }
+  };
+
+  const handleEditIndividual = (individual: Individual) => {
+    prepareIndividualForEdit(individual);
+  };
+
+  const handleDeleteIndividual = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this individual?')) {
+      try {
+        await deleteIndividual(id);
+        refreshIndividuals();
+        toast.success('Individual deleted successfully');
+      } catch (error) {
+        console.error('Error deleting individual:', error);
+        toast.error('Failed to delete individual');
+      }
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -139,7 +245,10 @@ export function Individuals() {
         </div>
       </div>
 
-      <IndividualsFilter filters={filters} onFilterChange={setFilters} />
+      <IndividualsFilter 
+        filters={filters} 
+        onFilterChange={setFilters} 
+      />
       
       {isLoading ? (
         <div className="flex justify-center py-8">
@@ -148,8 +257,8 @@ export function Individuals() {
       ) : (
         <IndividualsList 
           individuals={individuals} 
-          onEdit={handleEdit}
-          onDelete={handleDelete}
+          onEdit={handleEditIndividual}
+          onDelete={handleDeleteIndividual}
           onView={handleView}
           userRole={user?.role}
           selectedForDistribution={selectedForDistribution}
@@ -179,6 +288,7 @@ export function Individuals() {
             setSelectedIndividual(null);
           }}
           individual={selectedIndividual}
+          isLoading={isViewModalLoading}
         />
       )}
     </div>

@@ -6,6 +6,7 @@ export const translations = {
   needs: 'الاحتياجات',
   distributions: 'التوزيعات',
   reports: 'التقارير',
+  projects: 'المشاريع',
   
   // Common Actions
   add: 'إضافة',
@@ -154,6 +155,8 @@ export const translations = {
   submit: 'إرسال',
   update: 'تحديث',
   create: 'إنشاء',
+  saveIndividual: 'حفظ البيانات',
+  skipToReview: 'انتقل إلى المراجعة',
   
   // Status filters
   allStatuses: 'جميع الحالات',
@@ -366,9 +369,6 @@ export const translations = {
   children: 'الأطفال',
   need: 'احتياج',
   
-  // Form Actions
-  saveIndividual: 'حفظ البيانات',
-  
   // Placeholders
   choose: '-- اختر --',
 
@@ -385,4 +385,25 @@ export const translations = {
   
   // Error messages
   errorSaving: 'حدث خطأ أثناء الحفظ',
+  
+  // ID Card related
+  idCardImage: 'صورة البطاقة الشخصية',
+  uploadIdCard: 'تحميل البطاقة الشخصية',
+  idCardUploaded: 'تم تحميل البطاقة الشخصية بنجاح',
+  idCardUploadFailed: 'فشل في تحميل البطاقة الشخصية',
+  viewIdCard: 'عرض البطاقة الشخصية',
+  
+  // Family Assignment
+  familyAssignment: 'تعيين العائلة',
+  familyAssignmentTooltip: 'تعيين هذا الفرد لعائلة موجودة أو إنشاء عائلة جديدة',
+  newFamily: 'عائلة جديدة',
+  toggleNewFamily: 'تبديل إنشاء عائلة جديدة',
+  searchFamily: 'بحث عن عائلة',
+  searchFamilyPlaceholder: 'اكتب للبحث عن العائلات...',
+  noFamiliesFound: 'لم يتم العثور على عائلات',
+  startTypingToSearch: 'ابدأ الكتابة للبحث عن العائلات',
+  phoneTooltip: 'أدخل رقم هاتف صحيح',
+  phoneFormat: 'الصيغة: +20 123 456 7890',
+  familyNameRequired: 'اسم العائلة مطلوب',
+  districtRequired: 'المنطقة مطلوبة',
 };

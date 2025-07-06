@@ -23,7 +23,8 @@ export function useFamilies() {
           members:family_members!inner(
             role,
             individual:individuals!inner(*)
-          )
+          ),
+          children(*)
         `);
 
       if (filters.search) {
@@ -40,10 +41,16 @@ export function useFamilies() {
       // Transform the data to match our expected format
       const transformedFamilies = (data || []).map(family => ({
         ...family,
-        members: family.members.map((m: any) => ({
-          ...m.individual,
-          family_role: m.role
-        }))
+        members: [
+          ...family.members.map((m: any) => ({
+            ...m.individual,
+            family_role: m.role
+          })),
+          ...(family.children || []).map((child: any) => ({
+            ...child,
+            family_role: 'child'
+          }))
+        ]
       }));
 
       setFamilies(transformedFamilies);

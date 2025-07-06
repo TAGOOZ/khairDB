@@ -6,6 +6,7 @@ export const translations = {
   needs: 'Needs',
   distributions: 'Distributions',
   reports: 'Reports',
+  projects: 'Projects',
   
   // Common Actions
   add: 'Add',
@@ -175,6 +176,8 @@ export const translations = {
   submit: 'Submit',
   update: 'Update',
   create: 'Create',
+  saveIndividual: 'Save Individual',
+  skipToReview: 'Go to Review',
   
   // Status filters
   allStatuses: 'All Statuses',
@@ -386,9 +389,6 @@ export const translations = {
   children: 'Children',
   need: 'Need',
   
-  // Form Actions
-  saveIndividual: 'Save Individual',
-  
   // Placeholders
   choose: '-- Choose --',
 
@@ -405,4 +405,25 @@ export const translations = {
   
   // Error messages
   errorSaving: 'An error occurred while saving',
+  
+  // ID Card related
+  idCardImage: 'ID Card Image',
+  uploadIdCard: 'Upload ID Card',
+  idCardUploaded: 'ID Card uploaded successfully',
+  idCardUploadFailed: 'Failed to upload ID Card',
+  viewIdCard: 'View ID Card',
+
+  // Family Assignment
+  familyAssignment: 'Family Assignment',
+  familyAssignmentTooltip: 'Assign this individual to an existing family or create a new one',
+  newFamily: 'New Family',
+  toggleNewFamily: 'Toggle new family creation',
+  searchFamily: 'Search Family',
+  searchFamilyPlaceholder: 'Type to search families...',
+  noFamiliesFound: 'No families found',
+  startTypingToSearch: 'Start typing to search families',
+  phoneTooltip: 'Enter a valid phone number',
+  phoneFormat: 'Format: +20 123 456 7890',
+  familyNameRequired: 'Family name is required',
+  districtRequired: 'District is required',
 };
