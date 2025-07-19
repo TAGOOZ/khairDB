@@ -120,7 +120,7 @@ export const translations = {
   kindergarten: 'Kindergarten',
   primary: 'Primary',
   preparatory: 'Preparatory',
-  secondary: 'Secondary'
+  secondary: 'Secondary',
   
   // User Management
   users: 'Users',
