@@ -14,6 +14,7 @@ import { Projects } from './pages/Projects';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { useAuthStore } from './store/authStore';
 import { TestMCPUpload } from './components/tests/TestMCPUpload';
+import { SecurityAnalysis } from './pages/SecurityAnalysis';
 
 export default function App() {
   const { user, loading, initializeAuth } = useAuthStore();
@@ -35,6 +36,7 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/test-upload" element={<TestMCPUpload />} />
+        <Route path="/security-analysis" element={<SecurityAnalysis />} />
         <Route element={<ProtectedRoute />}>
           <Route element={<Layout />}>
             <Route path="/" element={<Dashboard />} />
