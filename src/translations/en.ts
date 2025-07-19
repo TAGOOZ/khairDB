@@ -112,5 +112,13 @@ export const translations = {
   value: 'Value',
   pending: 'Pending',
   inProgress: 'In Progress',
-  completed: 'Completed'
+  completed: 'Completed',
+  children: 'Children',
+  boy: 'Boy',
+  girl: 'Girl',
+  schoolStage: 'School Stage',
+  kindergarten: 'Kindergarten',
+  primary: 'Primary',
+  preparatory: 'Preparatory',
+  secondary: 'Secondary'
 };

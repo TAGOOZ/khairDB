@@ -69,6 +69,14 @@ export const translations = {
   inactive: 'غير نشط',
   failed: 'فشل',
   cancelled: 'ملغي',
+  children: 'الأطفال',
+  boy: 'ولد',
+  girl: 'بنت',
+  schoolStage: 'المرحلة الدراسية',
+  kindergarten: 'روضة',
+  primary: 'ابتدائي',
+  preparatory: 'إعدادي',
+  secondary: 'ثانوي',
 
   // Assistance Types
   medicalHelp: 'المساعدة الطبية',
