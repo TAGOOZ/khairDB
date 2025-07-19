@@ -481,10 +481,4 @@ import { supabase } from '../lib/supabase';
       }
     }
 
-        // Check if fetchedRequest is already approved
-        if (fetchedRequest.status === 'approved') {
-          throw new PendingRequestError(
-            'already-approved',
-            'This request has already been approved'
-          );
-        }
+       
