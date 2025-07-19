@@ -28,36 +28,32 @@ export function Dashboard() {
   async function fetchCounts() {
     setIsLoading(true);
     try {
-      // Fetch counts for parents by list status
+      // Fetch counts for individuals by list status and children separately
       const [
         { count: whitelist },
         { count: blacklist },
         { count: waitinglist },
         { count: children },
       ] = await Promise.all([
-        // Count whitelisted parents
+        // Count whitelisted individuals
         supabase
           .from('individuals')
           .select('*', { count: 'exact', head: true })
-          .eq('role', 'parent')
           .eq('list_status', 'whitelist'),
-        // Count blacklisted parents
+        // Count blacklisted individuals
         supabase
           .from('individuals')
           .select('*', { count: 'exact', head: true })
-          .eq('role', 'parent')
           .eq('list_status', 'blacklist'),
-        // Count waitinglist parents
+        // Count waitinglist individuals
         supabase
           .from('individuals')
           .select('*', { count: 'exact', head: true })
-          .eq('role', 'parent')
           .eq('list_status', 'waitinglist'),
         // Count children
         supabase
-          .from('individuals')
+          .from('children')
           .select('*', { count: 'exact', head: true })
-          .eq('role', 'child'),
       ]);
 
       // Update state with the fetched counts
