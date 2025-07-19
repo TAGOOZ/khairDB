@@ -278,7 +278,8 @@ import { supabase } from '../lib/supabase';
             .from('family_members')
             .insert([{
               family_id: familyId,
-              created_by: fetchedRequest.submitted_by_role: 'parent'
+              created_by: fetchedRequest.submitted,
+              by_role: 'parent'
             }]);
             
           if (memberError) {
