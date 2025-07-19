@@ -396,6 +396,35 @@ import { supabase } from '../lib/supabase';
             console.error('Error creating needs:', needsError);
           }
         }
+
+        // Create Google Drive folder for the approved individual
+        try {
+          const { createIndividualFolderAPI } = await import('../api/googleDrive');
+          const { folderId, folderUrl } = await createIndividualFolderAPI(
+            newIndividual.id,
+            newIndividual.first_name,
+            newIndividual.last_name
+          );
+
+          // Update individual with Google Drive info
+          const { error: updateError } = await supabase
+            .from('individuals')
+            .update({
+              google_drive_folder_id: folderId,
+              google_drive_folder_url: folderUrl
+            })
+            .eq('id', newIndividual.id);
+
+          if (updateError) {
+            console.error('Error updating individual with Google Drive info:', updateError);
+            // Don't throw here, as the individual was created successfully
+          } else {
+            console.log('Google Drive folder created successfully for approved individual');
+          }
+        } catch (driveError) {
+          console.error('Error creating Google Drive folder for approved individual:', driveError);
+          // Don't throw here, as the individual was created successfully
+        }
     
       } catch (error) {
         if (error instanceof PendingRequestError) {
