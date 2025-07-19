@@ -140,6 +140,7 @@ import { supabase } from '../lib/supabase';
     
     export async function approveRequest(id: string, comment?: string) {
       try {
+        let request: any;
         const { data: { user } } = await supabase.auth.getUser();
         
         if (!user?.id) {
@@ -149,7 +150,7 @@ import { supabase } from '../lib/supabase';
           );
         }
     
-        const { data: request, error: fetchError } = await supabase
+        const { data: fetchedRequest, error: fetchError } = await supabase
           .from('pending_requests')
           .select('*')
           .eq('id', id)
@@ -172,6 +173,8 @@ import { supabase } from '../lib/supabase';
           .select('id')
           .eq('id_number', individualData.id_number)
           .single();
+
+        request = fetchedRequest;
 
         if (existingIndividual) {
           // Individual already exists, just update the request status
