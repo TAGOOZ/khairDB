@@ -166,6 +166,36 @@ import { supabase } from '../lib/supabase';
         // Create the individual directly since we don't have the approve_request function
         const individualData = request.data;
         
+        // Check if individual already exists
+        const { data: existingIndividual } = await supabase
+          .from('individuals')
+          .select('id')
+          .eq('id_number', individualData.id_number)
+          .single();
+
+        if (existingIndividual) {
+          // Individual already exists, just update the request status
+          const { error: updateError } = await supabase
+            .from('pending_requests')
+            .update({
+              status: 'approved',
+              reviewed_by: user.id,
+              reviewed_at: new Date().toISOString(),
+              admin_comment: comment || null
+            })
+            .eq('id', id);
+
+          if (updateError) {
+            throw new PendingRequestError(
+              'approval-failed',
+              updateError.message || 'Failed to update request status',
+              updateError
+            );
+          }
+          
+          return;
+        }
+
         // Handle family creation if needed
         let familyId = individualData.family_id;
         
@@ -217,6 +247,31 @@ import { supabase } from '../lib/supabase';
           throw new PendingRequestError('approval-failed', 'Failed to create individual', individualError);
         }
         
+        // Update the request status immediately after creating the individual
+        const { error: updateError } = await supabase
+          .from('pending_requests')
+          .update({
+            status: 'approved',
+            reviewed_by: user.id,
+            reviewed_at: new Date().toISOString(),
+            admin_comment: comment || null
+          })
+          .eq('id', id);
+
+        if (updateError) {
+          // If updating the request fails, we should delete the created individual to maintain consistency
+          await supabase
+            .from('individuals')
+            .delete()
+            .eq('id', newIndividual.id);
+            
+          throw new PendingRequestError(
+            'approval-failed',
+            updateError.message || 'Failed to update request status',
+            updateError
+          );
+        }
+
         // Add to family_members if family exists
         if (familyId) {
           const { error: memberError } = await supabase
@@ -322,25 +377,6 @@ import { supabase } from '../lib/supabase';
           }
         }
         
-        // Update the request status
-        const { error: updateError } = await supabase
-          .from('pending_requests')
-          .update({
-            status: 'approved',
-            reviewed_by: user.id,
-            reviewed_at: new Date().toISOString(),
-            admin_comment: comment || null
-          })
-          .eq('id', requestId);
-    
-        if (updateError) {
-          throw new PendingRequestError(
-            'approval-failed',
-            updateError.message || 'Failed to update request status',
-            updateError
-          );
-        }
-    
         // Insert needs if any
         if (request?.data?.needs && Array.isArray(request.data.needs)) {
           const needsInserts = request.data.needs.map((need) => ({
@@ -444,3 +480,11 @@ import { supabase } from '../lib/supabase';
         );
       }
     }
+
+        // Check if request is already approved
+        if (request.status === 'approved') {
+          throw new PendingRequestError(
+            'already-approved',
+            'This request has already been approved'
+          );
+        }
