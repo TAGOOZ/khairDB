@@ -1,10 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Individual, NeedCategory, NeedPriority } from '../types';
+import { Individual, AssistanceType } from '../types';
 import { supabase } from '../lib/supabase';
 
+interface AssistanceDetails {
+  id: string;
+  assistance_type: AssistanceType;
+  details: Record<string, any>;
+}
+
 interface NeedFilter {
-  category: NeedCategory | '';
-  priority: NeedPriority | '';
+  category: AssistanceType | '';
 }
 
 interface FiltersState {
@@ -39,7 +44,14 @@ export function useIndividuals() {
             first_name,
             last_name
           ),
-          needs!needs_individual_id_fkey (
+          assistance_details (
+            id,
+            assistance_type,
+            details,
+            created_at,
+            updated_at
+          ),
+          needs (
             id,
             category,
             priority,
@@ -48,16 +60,10 @@ export function useIndividuals() {
             created_at,
             updated_at
           ),
-          family_members!inner(role),
-          assistance_details (
-            id,
-            assistance_type,
-            details,
-            created_at,
-            updated_at
-          )
+          family_members!inner(role)
         `)
-        .eq('family_members.role', 'parent');
+        .eq('family_members.role', 'parent')
+        .order('created_at', { ascending: false });
 
       if (filters.search) {
         query = query.or(
@@ -88,20 +94,29 @@ export function useIndividuals() {
         throw individualsError;
       }
 
-      // Filter individuals based on needs criteria
       let filteredData = individualsData || [];
-      
-      if (filters.needs && filters.needs.length > 0) {
+
+      // Only apply assistance details filtering if there are filters selected
+      if (filters.needs && filters.needs.length > 0 && filters.needs.some(need => need.category !== '')) {
+        // Get the active filter categories (non-empty ones)
+        const activeCategories = filters.needs
+          .filter(need => need.category !== '')
+          .map(need => need.category);
+
+        // Filter individuals who have ANY of the selected assistance types (OR logic)
         filteredData = filteredData.filter(individual => {
-          return filters.needs.every(needFilter => {
-            return individual.needs.some(need => {
-              const matchesCategory = !needFilter.category || need.category === needFilter.category;
-              const matchesPriority = !needFilter.priority || need.priority === needFilter.priority;
-              return matchesCategory && matchesPriority;
-            });
-          });
+          return individual.assistance_details?.some((detail: AssistanceDetails) => 
+            activeCategories.includes(detail.assistance_type)
+          );
         });
       }
+
+      // Ensure needs array is initialized
+      filteredData = filteredData.map(individual => ({
+        ...individual,
+        needs: individual.needs || [],
+        assistance_details: individual.assistance_details || []
+      }));
 
       // Fetch distributions for filtered individuals
       const individualsWithDistributions = await Promise.all(

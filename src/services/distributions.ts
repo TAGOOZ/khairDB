@@ -15,23 +15,17 @@ export class DistributionError extends Error {
 
 export async function createDistribution(data: DistributionFormData): Promise<Distribution> {
   try {
-    // Calculate total quantity of recipients to ensure it matches distribution quantity
-    const totalRecipientQuantity = data.recipients.reduce((sum, r) => sum + r.quantity_received, 0);
-    if (totalRecipientQuantity !== data.quantity) {
-      throw new DistributionError(
-        'invalid-quantities',
-        'Total recipient quantities must match the distribution quantity'
-      );
-    }
+    // Calculate total quantity from recipients
+    const totalQuantity = data.recipients.reduce((sum, r) => sum + r.quantity_received, 0);
 
-    // Create the distribution
+    // Create the distribution with calculated quantity
     const { data: distribution, error: distributionError } = await supabase
       .from('distributions')
       .insert([{
         date: data.date,
         aid_type: data.aid_type,
         description: data.description,
-        quantity: data.quantity,
+        quantity: totalQuantity, // Use calculated quantity
         value: data.value,
       }])
       .select()
@@ -40,7 +34,7 @@ export async function createDistribution(data: DistributionFormData): Promise<Di
     if (distributionError) throw distributionError;
 
     // Calculate value per unit
-    const valuePerUnit = data.value / data.quantity;
+    const valuePerUnit = data.value / totalQuantity;
 
     // Prepare recipient records with calculated value_received
     const recipientInserts = data.recipients.map(recipient => ({

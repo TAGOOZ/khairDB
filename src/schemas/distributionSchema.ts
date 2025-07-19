@@ -7,11 +7,11 @@ export const distributionSchema = z.object({
     required_error: 'Aid type is required',
   }),
   description: z.string().min(1, 'Description is required'),
-  quantity: z.number().min(0, 'Quantity must be 0 or greater'),
+  quantity: z.number().optional(), // Made optional since it will be calculated
   value: z.number().min(0, 'Value must be 0 or greater'),
   recipients: z.array(z.object({
     individual_id: z.string().uuid('Invalid individual ID'),
-    quantity_received: z.number().min(0, 'Quantity must be 0 or greater'),
+    quantity_received: z.number().min(1, 'Quantity must be at least 1'),
   })).min(1, 'At least one recipient is required'),
 });
 

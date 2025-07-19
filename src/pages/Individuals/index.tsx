@@ -152,7 +152,15 @@ export function Individuals() {
       toast.error('Please select at least one individual to create a distribution.');
       return;
     }
-    navigate('/distributions/create', { state: { selectedIndividuals: selectedForDistribution } });
+    
+    // Get the full individual objects for the selected IDs
+    const selectedIndividuals = individuals.filter(individual => 
+      selectedForDistribution.includes(individual.id)
+    );
+    
+    navigate('/distributions/create', { 
+      state: { selectedIndividuals }
+    });
   };
 
   // Function to get individual data ready for edit modal

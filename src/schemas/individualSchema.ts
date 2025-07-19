@@ -53,8 +53,6 @@ export const individualSchema = z.object({
   marital_status: z.enum(['single', 'married', 'widowed'], {
     required_error: 'Please select marital status',
   }),
-  id_card_image_path: z.string().optional().nullable(),
-  id_card_image_url: z.string().optional().nullable(),
   phone: z.string().optional().nullable(),
   address: z.string().optional().nullable(),
   family_id: z.string().optional().nullable(),

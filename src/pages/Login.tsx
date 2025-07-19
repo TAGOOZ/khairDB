@@ -51,7 +51,7 @@ export function Login() {
           />
 
           <div className="mt-6 bg-blue-50 rounded-lg p-4">
-            <h3 className="text-sm font-medium text-blue-800 mb-2">Use this Credentials</h3>
+            <h3 className="text-sm font-medium text-blue-800 mb-2">Example Credentials</h3>
             <div className="text-sm text-blue-700">
               <p>Email: admin@example.com</p>
               <p>Password: pass1234</p>

@@ -1,6 +1,7 @@
 import { supabase } from '../lib/supabase';
 import { IndividualFormData } from '../schemas/individualSchema';
 import { addHashtagToAll } from './hashtags';
+import { createIndividualFolderAPI } from '../api/googleDrive';
 
 interface AssistanceDetail {
   individual_id: string;
@@ -114,13 +115,24 @@ class AssistanceDetailsHandler {
 
     // Shelter Assistance
     if (data.shelter_assistance && hasNonEmptyValues(data.shelter_assistance)) {
+      // Validate housing condition
+      const validHousingConditions = ['excellent', 'good', 'fair', 'poor', 'critical'];
+      const housingCondition = data.shelter_assistance.housing_condition || '';
+      
+      // Validate housing type
+      const validHousingTypes = ['owned', 'rented', 'temporary', 'shelter', 'other'];
+      const housingType = data.shelter_assistance.type_of_housing || '';
+      
+      // Validate and normalize number of rooms
+      const numberOfRooms = Math.max(0, Number(data.shelter_assistance.number_of_rooms) || 0);
+      
       assistanceDetails.push({
         individual_id: '',
         assistance_type: 'shelter_assistance',
         details: {
-          type_of_housing: data.shelter_assistance.type_of_housing || null,
-          housing_condition: data.shelter_assistance.housing_condition || null,
-          number_of_rooms: Number(data.shelter_assistance.number_of_rooms) || 0,
+          type_of_housing: validHousingTypes.includes(housingType) ? housingType : null,
+          housing_condition: validHousingConditions.includes(housingCondition) ? housingCondition : null,
+          number_of_rooms: numberOfRooms,
           household_appliances: hasArrayValues(data.shelter_assistance.household_appliances)
             ? data.shelter_assistance.household_appliances
             : []
@@ -141,25 +153,31 @@ class AssistanceDetailsHandler {
     data: IndividualFormData
   ): Promise<void> {
     try {
-      // Start a transaction
-      const { error: beginError } = await supabase.rpc('begin_transaction');
-      if (beginError) throw beginError;
+      // Get existing assistance details for comparison
+      const { data: existingDetails, error: fetchError } = await supabase
+        .from('assistance_details')
+        .select('*')
+        .eq('individual_id', individualId);
 
-      try {
-        // Get existing assistance details for comparison
-        const { data: existingDetails, error: fetchError } = await supabase
+      if (fetchError) throw fetchError;
+
+      // Normalize new assistance details
+      const normalizedDetails = this.normalizeAssistanceDetails(data);
+      normalizedDetails.forEach(detail => detail.individual_id = individualId);
+
+      // If we have existing details and no new details, delete all
+      if (existingDetails?.length > 0 && normalizedDetails.length === 0) {
+        const { error: deleteError } = await supabase
           .from('assistance_details')
-          .select('*')
+          .delete()
           .eq('individual_id', individualId);
 
-        if (fetchError) throw fetchError;
-
-        // Normalize new assistance details
-        const normalizedDetails = this.normalizeAssistanceDetails(data);
-        normalizedDetails.forEach(detail => detail.individual_id = individualId);
-
-        // If we have existing details and no new details, delete all
-        if (existingDetails?.length > 0 && normalizedDetails.length === 0) {
+        if (deleteError) throw deleteError;
+      }
+      // If we have new details, replace all existing ones
+      else if (normalizedDetails.length > 0) {
+        // Delete existing
+        if (existingDetails?.length > 0) {
           const { error: deleteError } = await supabase
             .from('assistance_details')
             .delete()
@@ -167,37 +185,13 @@ class AssistanceDetailsHandler {
 
           if (deleteError) throw deleteError;
         }
-        // If we have new details, replace all existing ones
-        else if (normalizedDetails.length > 0) {
-          // Delete existing
-          if (existingDetails?.length > 0) {
-            const { error: deleteError } = await supabase
-              .from('assistance_details')
-              .delete()
-              .eq('individual_id', individualId);
 
-            if (deleteError) throw deleteError;
-          }
+        // Insert new
+        const { error: insertError } = await supabase
+          .from('assistance_details')
+          .insert(normalizedDetails);
 
-          // Insert new
-          const { error: insertError } = await supabase
-            .from('assistance_details')
-            .insert(normalizedDetails);
-
-          if (insertError) throw insertError;
-        }
-
-        // Commit the transaction
-        const { error: commitError } = await supabase.rpc('commit_transaction');
-        if (commitError) throw commitError;
-
-      } catch (error) {
-        // Rollback on any error
-        const { error: rollbackError } = await supabase.rpc('rollback_transaction');
-        if (rollbackError) {
-          console.error('Failed to rollback transaction:', rollbackError);
-        }
-        throw error;
+        if (insertError) throw insertError;
       }
     } catch (error) {
       console.error('Error updating assistance details:', error);
@@ -306,8 +300,6 @@ export async function createIndividual(data: IndividualFormData) {
       salary: data.salary || null,
       list_status: data.list_status,
       family_id: familyId,
-      id_card_image_path: data.id_card_image_path || null,
-      id_card_image_url: data.id_card_image_url || null,
       created_by: user.id
     };
 
@@ -411,6 +403,32 @@ export async function createIndividual(data: IndividualFormData) {
       }
     }
 
+    // Create Google Drive folder
+    try {
+      const { folderId, folderUrl } = await createIndividualFolderAPI(
+        newIndividual.id,
+        newIndividual.first_name,
+        newIndividual.last_name
+      );
+
+      // Update individual with Google Drive info
+      const { error: updateError } = await supabase
+        .from('individuals')
+        .update({
+          google_drive_folder_id: folderId,
+          google_drive_folder_url: folderUrl
+        })
+        .eq('id', newIndividual.id);
+
+      if (updateError) {
+        console.error('Error updating individual with Google Drive info:', updateError);
+        // Don't throw here, as the individual was created successfully
+      }
+    } catch (driveError) {
+      console.error('Error creating Google Drive folder:', driveError);
+      // Don't throw here, as the individual was created successfully
+    }
+
     return newIndividual;
   } catch (error) {
     console.error('Individual creation failed:', error);
@@ -467,9 +485,7 @@ export async function updateIndividual(id: string, data: IndividualFormData) {
       job: data.job || null,
       employment_status: data.employment_status,
       salary: data.salary || null,
-      list_status: data.list_status,
-      id_card_image_path: data.id_card_image_path || null,
-      id_card_image_url: data.id_card_image_url || null,
+      list_status: data.list_status
     };
 
     const { error } = await supabase
@@ -718,10 +734,12 @@ export async function updateIndividual(id: string, data: IndividualFormData) {
     }
 
     // Handle assistance details update
-    const hasAssistanceData = Object.keys(data).some(key => 
-      ['medical_help', 'food_assistance', 'marriage_assistance', 
-       'debt_assistance', 'education_assistance', 'shelter_assistance'].includes(key)
-    );
+    const hasAssistanceData = data.medical_help || 
+                            data.food_assistance || 
+                            data.marriage_assistance || 
+                            data.debt_assistance || 
+                            data.education_assistance || 
+                            data.shelter_assistance;
 
     if (hasAssistanceData) {
       await AssistanceDetailsHandler.updateAssistanceDetails(supabase, id, data);

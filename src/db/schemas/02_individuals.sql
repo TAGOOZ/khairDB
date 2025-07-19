@@ -18,7 +18,9 @@
         list_status TEXT NOT NULL CHECK (list_status IN ('whitelist', 'blacklist', 'waitinglist')) DEFAULT 'whitelist',
         created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-        created_by UUID REFERENCES auth.users(id)
+        created_by UUID REFERENCES auth.users(id),
+        google_drive_folder_id TEXT,
+        google_drive_folder_url TEXT
     );
     
     -- Indexes for faster lookups

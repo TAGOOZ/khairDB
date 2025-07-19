@@ -1,12 +1,11 @@
 import React from 'react';
-import { NeedCategory, NeedPriority } from '../../types';
+import { AssistanceType } from '../../types';
 import { SearchInput } from '../search/SearchInput';
 import { Select } from '../ui/Select';
 import { useLanguage } from '../../contexts/LanguageContext';
 
 interface NeedFilter {
-  category: NeedCategory | '';
-  priority: NeedPriority | '';
+  category: AssistanceType | '';
 }
 
 interface FiltersState {
@@ -43,47 +42,42 @@ export function IndividualsFilter({ filters, onFilterChange }: IndividualsFilter
     { value: 'قري', label: 'قري' }
   ];
 
-  const needCategories = [
+  const assistanceCategories = [
     { value: '', label: t('allCategories') },
-    { value: 'medical', label: t('medical') },
-    { value: 'financial', label: t('financial') },
-    { value: 'food', label: t('food') },
-    { value: 'shelter', label: t('shelter') },
-    { value: 'clothing', label: t('clothing') },
-    { value: 'education', label: t('education') },
-    { value: 'employment', label: t('employment') },
-    { value: 'transportation', label: t('transportation') },
-    { value: 'other', label: t('other') }
-  ];
-
-  const priorityOptions = [
-    { value: '', label: t('allPriorities') },
-    { value: 'low', label: t('low') },
-    { value: 'medium', label: t('medium') },
-    { value: 'high', label: t('high') },
-    { value: 'urgent', label: t('urgent') }
+    { value: 'medical_help', label: t('medicalHelp') },
+    { value: 'food_assistance', label: t('foodAssistance') },
+    { value: 'marriage_assistance', label: t('marriageAssistance') },
+    { value: 'debt_assistance', label: t('debtAssistance') },
+    { value: 'education_assistance', label: t('educationAssistance') },
+    { value: 'shelter_assistance', label: t('shelterAssistance') }
   ];
 
   const addNeedFilter = () => {
+    // Keep existing filters and add a new one
+    const existingFilters = filters.needs.filter(need => need.category !== '');
     onFilterChange({
       ...filters,
-      needs: [...filters.needs, { category: '', priority: '' }]
+      needs: [...existingFilters, { category: '' }]
     });
   };
 
   const removeNeedFilter = (index: number) => {
     const newNeeds = [...filters.needs];
     newNeeds.splice(index, 1);
-    onFilterChange({ ...filters, needs: newNeeds });
+    // Only keep filters that have a selected category
+    const validFilters = newNeeds.filter(need => need.category !== '');
+    onFilterChange({ ...filters, needs: validFilters });
   };
 
-  const updateNeedFilter = (index: number, field: keyof NeedFilter, value: string) => {
+  const updateNeedFilter = (index: number, field: keyof NeedFilter, value: AssistanceType | '') => {
     const newNeeds = [...filters.needs];
     newNeeds[index] = {
       ...newNeeds[index],
       [field]: value
     };
-    onFilterChange({ ...filters, needs: newNeeds });
+    // Only keep filters that have a selected category
+    const validFilters = newNeeds.filter(need => need.category !== '');
+    onFilterChange({ ...filters, needs: validFilters });
   };
 
   return (
@@ -121,13 +115,13 @@ export function IndividualsFilter({ filters, onFilterChange }: IndividualsFilter
 
       <div className="space-y-4">
         <div className="flex justify-between items-center">
-          <h3 className="text-sm font-medium text-gray-700">{t('needs')}</h3>
+          <h3 className="text-sm font-medium text-gray-700">{t('assistanceInformation')}</h3>
           <button
             type="button"
             onClick={addNeedFilter}
             className="px-3 py-1 text-sm text-blue-600 hover:text-blue-700 font-medium"
           >
-            + {t('addNeed')}
+            + {t('add')}
           </button>
         </div>
 
@@ -135,18 +129,10 @@ export function IndividualsFilter({ filters, onFilterChange }: IndividualsFilter
           <div key={index} className="flex gap-4 items-end bg-gray-50 p-3 rounded-lg">
             <div className="flex-1">
               <Select
-                label={t('category')}
+                label="Category"
                 value={need.category}
-                onChange={(e) => updateNeedFilter(index, 'category', e.target.value)}
-                options={needCategories}
-              />
-            </div>
-            <div className="flex-1">
-              <Select
-                label={t('priority')}
-                value={need.priority}
-                onChange={(e) => updateNeedFilter(index, 'priority', e.target.value)}
-                options={priorityOptions}
+                onChange={(e) => updateNeedFilter(index, 'category', e.target.value as AssistanceType | '')}
+                options={assistanceCategories}
               />
             </div>
             <button

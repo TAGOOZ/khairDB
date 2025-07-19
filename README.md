@@ -1,79 +1,67 @@
-# Fake Individual Data Generator
+# Charity Management System
 
-This Python script generates fake data for testing the individuals form in the application. It can create realistic test data with all fields populated randomly.
+## Google Drive Integration Setup
 
-## Setup
+To enable document storage for individuals using Google Drive:
 
-### Prerequisites
-- Python 3.6+
-- pip (Python package manager)
+1. Create a Google Cloud Project:
+   - Go to [Google Cloud Console](https://console.cloud.google.com)
+   - Create a new project or select an existing one
+   - Enable the Google Drive API
 
-### Installation
+2. Create a Service Account:
+   - Go to "IAM & Admin" > "Service Accounts"
+   - Click "Create Service Account"
+   - Fill in the details and grant necessary permissions
+   - Create and download the JSON credentials file
 
-1. Clone or download this repository
+3. Set up the Master Folder:
+   - Create a folder in Google Drive called "Individuals"
+   - Share this folder with the service account email
+   - Copy the folder ID from the URL (long string after /folders/)
 
-2. Install the required packages:
+4. Configure Environment Variables:
+   Copy the following variables to your `.env` file and fill in the values:
+   ```
+   GOOGLE_SERVICE_ACCOUNT_EMAIL=your-service-account@your-project.iam.gserviceaccount.com
+   GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nYour private key here\n-----END PRIVATE KEY-----"
+   GOOGLE_DRIVE_INDIVIDUALS_FOLDER_ID=your_master_folder_id
+   ```
+
+## Features
+
+- Automatic Google Drive folder creation for each individual
+- Secure document storage with proper permissions
+- Easy access to documents through shareable links
+- Integration with individual management system
+
+## Development
+
+1. Install dependencies:
 ```bash
-pip install faker requests
-```
+   npm install
+   ```
 
-## Usage
+2. Set up environment variables:
+   - Copy `.env.example` to `.env`
+   - Fill in the required values
 
-The script can be used in several ways:
-
-### Generate a single individual and display the data
+3. Run the development server:
 ```bash
-python generate_fake_individuals.py
-```
+   npm run dev
+   ```
 
-### Generate multiple individuals
-```bash
-python generate_fake_individuals.py -n 10
-```
+## Security Considerations
 
-### Save generated data to a file
-```bash
-python generate_fake_individuals.py -n 5 -o individuals.json
-```
+- Keep your service account credentials secure
+- Never commit the `.env` file to version control
+- Regularly audit folder permissions in Google Drive
+- Monitor API usage and quotas
 
-### Submit data directly to the API
-```bash
-python generate_fake_individuals.py -n 3 -s -u http://your-api-url/api/individuals
-```
+## Contributing
 
-### Submit with authentication
-```bash
-python generate_fake_individuals.py -s -t "your-jwt-token"
-```
-
-## Command Line Options
-
-- `-n, --number`: Number of individuals to generate (default: 1)
-- `-o, --output`: Output JSON file path to save generated data
-- `-s, --submit`: Submit the generated data to the API
-- `-u, --url`: API URL for submission (default: http://localhost:3000/api/individuals)
-- `-t, --token`: JWT token for authentication
-
-## Example Output
-
-The script generates data for all fields including:
-- Personal information (name, ID, DOB, gender, marital status)
-- Contact information
-- Employment details
-- Medical assistance needs
-- Food assistance
-- Marriage assistance
-- Debt assistance
-- Education assistance
-- Shelter assistance
-- Family members and children
-
-## Customization
-
-You can customize the data generation logic in the `generate_fake_individual()` function to match your specific requirements or to add new fields.
-
-## Notes
-
-- This script is for testing purposes only
-- The generated data uses randomized values from the Faker library
-- Make sure to update the API_URL constant at the top of the script if you're submitting to an API 
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a new Pull Request 

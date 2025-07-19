@@ -7,7 +7,7 @@ export const translations = {
   distributions: 'التوزيعات',
   reports: 'التقارير',
   projects: 'المشاريع',
-  
+
   // Common Actions
   add: 'إضافة',
   edit: 'تعديل',
@@ -19,13 +19,13 @@ export const translations = {
   actions: 'الإجراءات',
   close: 'إغلاق',
   remove: 'حذف',
-  
+
   // Auth
   signIn: 'تسجيل الدخول',
   signOut: 'تسجيل الخروج',
   email: 'البريد الإلكتروني',
   password: 'كلمة المرور',
-  
+
   // Form Labels
   firstName: 'الاسم الأول',
   lastName: 'اسم العائلة',
@@ -52,358 +52,96 @@ export const translations = {
   whitelist: 'القائمة البيضاء',
   blacklist: 'القائمة السوداء',
   waitinglist: 'قائمة الانتظار',
-  
-  // Family Form
-  familyName: 'اسم العائلة',
-  familyMembers: 'أفراد العائلة',
-  addMember: 'إضافة فرد',
-  addChild: 'إضافة طفل',
-  addElse: 'إضافة فرد آخر',
-  childName: 'اسم الطفل',
-  boy: 'ولد',
-  girl: 'بنت',
-  schoolStage: 'المرحلة الدراسية',
-  selectSchoolStage: 'اختر المرحلة الدراسية',
-  kindergarten: 'روضة',
-  primary: 'ابتدائي',
-  preparatory: 'إعدادي',
-  secondary: 'ثانوي',
-  jobTitle: 'المسمى الوظيفي',
-  phoneNumber: 'رقم الهاتف',
-  relation: 'صلة القرابة',
-  selectRelation: 'اختر صلة القرابة',
-  wife: 'زوجة',
-  husband: 'زوج',
-  sister: 'أخت',
-  brother: 'أخ',
-  mother: 'أم',
-  father: 'أب',
-  motherInLaw: 'حماة',
-  fatherInLaw: 'حمو',
-  daughtersHusband: 'زوج البنت',
-  sonsWife: 'زوجة الابن',
-  parent: 'والد',
-  child: 'طفل',
-  selectFamily: 'اختر عائلة',
-  noFamily: 'بدون عائلة',
-  createFamily: 'إنشاء عائلة',
-  updateFamily: 'تحديث العائلة',
-  
-  // Needs
-  addNeed: 'إضافة احتياج',
-  category: 'الفئة',
-  priority: 'الأولوية',
-  medical: 'طبي',
-  financial: 'مالي',
-  food: 'غذاء',
-  shelter: 'مأوى',
-  clothing: 'ملابس',
-  education: 'تعليم',
-  employment: 'توظيف',
-  transportation: 'مواصلات',
-  other: 'أخرى',
-  
-  // Priorities
+
+  // Common
+  yearsOld: 'سنة',
+  addedBy: 'تمت الإضافة بواسطة',
+  yes: 'نعم',
+  no: 'لا',
+  pending: 'قيد الانتظار',
+  inProgress: 'قيد التنفيذ',
+  completed: 'مكتمل',
   low: 'منخفض',
   medium: 'متوسط',
   high: 'عالي',
   urgent: 'عاجل',
-  
-  // Statuses
-  pending: 'قيد الانتظار',
-  inProgress: 'قيد التنفيذ',
-  completed: 'مكتمل',
-  
+  active: 'نشط',
+  inactive: 'غير نشط',
+  failed: 'فشل',
+  cancelled: 'ملغي',
+
+  // Assistance Types
+  medicalHelp: 'المساعدة الطبية',
+  foodAssistance: 'المساعدة الغذائية',
+  marriageAssistance: 'مساعدة الزواج',
+  debtAssistance: 'مساعدة الديون',
+  educationAssistance: 'المساعدة التعليمية',
+  shelterAssistance: 'مساعدة المأوى',
+
+  // Assistance Details
+  assistanceInformation: 'معلومات المساعدة',
+  typeOfMedicalAssistance: 'نوع المساعدة الطبية المطلوبة',
+  medicationDistributionFrequency: 'دورية صرف العلاج',
+  estimatedCostOfTreatment: 'تكلفة العلاج التقديرية',
+  healthInsuranceCoverage: 'التأمين الصحي',
+  additionalDetails: 'تفاصيل إضافية',
+  typeOfFoodAssistance: 'نوع المساعدة الغذائية المطلوبة',
+  foodSupplyCard: 'بطاقة التموين',
+  marriageSupportNeeded: 'مساعدة الزواج مطلوبة',
+  weddingContractSigned: 'تم توقيع عقد الزواج',
+  weddingDate: 'تاريخ الزفاف',
+  specificNeeds: 'احتياجات محددة',
+  debtStatus: 'حالة الدين',
+  debtAmount: 'مبلغ الدين',
+  reasonForDebt: 'سبب الدين',
+  familyEducationLevel: 'مستوى تعليم الأسرة',
+  desireForEducation: 'الرغبة في التعليم',
+  childrenEducationalNeeds: 'احتياجات الأطفال التعليمية',
+  typeOfHousing: 'نوع السكن',
+  housingCondition: 'حالة السكن',
+  numberOfRooms: 'عدد الغرف',
+  householdAppliances: 'الأجهزة المنزلية',
+
   // Messages
   confirmDelete: 'هل أنت متأكد أنك تريد الحذف؟',
   successAdd: 'تمت الإضافة بنجاح',
   successEdit: 'تم التعديل بنجاح',
   successDelete: 'تم الحذف بنجاح',
   error: 'حدث خطأ. يرجى المحاولة مرة أخرى.',
-  atLeastOneParent: 'يجب إضافة والد واحد على الأقل',
-  
-  // Placeholders
-  searchPlaceholder: 'البحث بالاسم أو رقم الهوية أو الهاتف...',
-  enterFirstName: 'أدخل الاسم الأول...',
-  enterLastName: 'أدخل اسم العائلة...',
-  enterIdNumber: 'أدخل رقم الهوية المكون من 14 رقم...',
-  enterPhone: 'أدخل رقم الهاتف...',
-  enterAddress: 'أدخل العنوان...',
-  enterDescription: 'أدخل أي معلومات إضافية...',
-  enterJobTitle: 'أدخل المسمى الوظيفي...',
-  describeNeed: 'وصف الاحتياج...',
-  
-  // Language
-  switchLanguage: 'English',
-  currentLanguage: 'العربية',
-  
-  // Additional Form Labels
-  personalInfo: 'المعلومات الشخصية',
-  contactInfo: 'معلومات الاتصال',
-  employmentInfo: 'معلومات العمل',
-  additionalInfo: 'معلومات إضافية',
-  selectDistrict: 'اختر المنطقة',
-  selectGender: 'اختر الجنس',
-  selectMaritalStatus: 'اختر الحالة الاجتماعية',
-  selectCategory: 'اختر الفئة',
-  selectPriority: 'اختر الأولوية',
-  allCategories: 'جميع الفئات',
-  allDistricts: 'جميع المناطق',
-  
-  // Form Actions
-  reset: 'إعادة تعيين',
-  submit: 'إرسال',
-  update: 'تحديث',
-  create: 'إنشاء',
-  saveIndividual: 'حفظ البيانات',
-  skipToReview: 'انتقل إلى المراجعة',
-  
-  // Status filters
-  allStatuses: 'جميع الحالات',
-  allPriorities: 'جميع الأولويات',
-  
-  // Table headers
-  created: 'تم الإنشاء',
-  
-  // Reports
-  reportsAndAnalytics: 'التقارير والتحليلات',
-  needsByCategory: 'الاحتياجات حسب الفئة',
-  needsStatusDistribution: 'توزيع حالة الاحتياجات',
-  needsTrendOverTime: 'اتجاه الاحتياجات مع مرور الوقت',
-  
-  // Distribution
-  createDistribution: 'إنشاء توزيع',
-  editDistribution: 'تعديل التوزيع',
-  distributionHistory: 'سجل التوزيع',
-  distributionDate: 'تاريخ التوزيع',
-  aidType: 'نوع المساعدة',
-  totalQuantity: 'الكمية الإجمالية',
-  totalValue: 'القيمة الإجمالية',
-  recipients: 'المستلمون',
-  addRecipient: 'إضافة مستلم',
-  quantityReceived: 'الكمية المستلمة',
-  
-  // Additional translations
-  selectIndividual: 'اختر فرد',
-  selectAidType: 'اختر نوع المساعدة',
-  enterQuantity: 'أدخل الكمية',
-  enterValue: 'أدخل القيمة',
-  describeDistribution: 'وصف التوزيع...',
-  
-  // Chart labels
-  count: 'العدد',
-  date: 'التاريخ',
-  value: 'القيمة',
-  
-  // Messages
+  loading: 'جاري التحميل...',
   noDataAvailable: 'لا توجد بيانات متاحة',
-  loadingData: 'جاري تحميل البيانات...',
-  
+
   // Buttons
   viewHistory: 'عرض السجل',
   print: 'طباعة',
   export: 'تصدير',
   filter: 'تصفية',
   clearFilters: 'مسح التصفية',
-  
-  // Confirmations
-  confirmCancel: 'هل أنت متأكد أنك تريد الإلغاء؟',
-  unsavedChanges: 'لديك تغييرات غير محفوظة. هل تريد المتابعة؟',
-
-  // Additional translations
-  name: 'الاسم',
-  addedBy: 'تمت الإضافة بواسطة',
-  view: 'عرض',
-  selectAll: 'تحديد الكل',
-  deselectAll: 'إلغاء تحديد الكل',
-  exportCSV: 'تصدير CSV',
-  selectAtLeastOne: 'يرجى تحديد فرد واحد على الأقل',
-  yes: 'نعم',
-  no: 'لا',
-  success: 'تم بنجاح',
-  warning: 'تحذير',
-  info: 'معلومات',
-  updated: 'تم التحديث',
-  deleted: 'تم الحذف',
-  noResults: 'لا توجد نتائج',
-  loading: 'جاري التحميل...',
-  required: 'مطلوب',
-  optional: 'اختياري',
-  invalidInput: 'إدخال غير صالح',
-  pleaseWait: 'يرجى الانتظار...',
-  confirmAction: 'تأكيد الإجراء',
-  goBack: 'رجوع',
   next: 'التالي',
   previous: 'السابق',
   finish: 'إنهاء',
-  open: 'فتح',
-  more: 'المزيد',
-  less: 'أقل',
-  all: 'الكل',
-  none: 'لا شيء',
-  or: 'أو',
-  and: 'و',
-  today: 'اليوم',
-  yesterday: 'أمس',
-  tomorrow: 'غداً',
-  now: 'الآن',
-  never: 'أبداً',
-  always: 'دائماً',
-  custom: 'مخصص',
-  default: 'افتراضي',
-  enabled: 'مفعل',
-  disabled: 'معطل',
-  active: 'نشط',
-  inactive: 'غير نشط',
-  failed: 'فشل',
-  cancelled: 'ملغي',
-  onHold: 'معلق',
-  scheduled: 'مجدول',
-  notStarted: 'لم يبدأ',
-  overdue: 'متأخر',
-  dueToday: 'مستحق اليوم',
-  dueSoon: 'مستحق قريباً',
-  noDueDate: 'لا يوجد تاريخ استحقاق',
-  highPriority: 'أولوية عالية',
-  mediumPriority: 'أولوية متوسطة',
-  lowPriority: 'أولوية منخفضة',
-  noPriority: 'بدون أولوية',
-  assignedTo: 'مسند إلى',
-  unassigned: 'غير مسند',
-  lastUpdated: 'آخر تحديث',
-  createdBy: 'تم الإنشاء بواسطة',
-  updatedBy: 'تم التحديث بواسطة',
-  deletedBy: 'تم الحذف بواسطة',
-  noDescription: 'لا يوجد وصف',
-  noNotes: 'لا توجد ملاحظات',
-  noComments: 'لا توجد تعليقات',
-  noAttachments: 'لا توجد مرفقات',
-  noTags: 'لا توجد علامات',
-  noCategories: 'لا توجد فئات',
-  noStatus: 'لا توجد حالة',
-  noAssignee: 'لا يوجد مسند إليه',
-  noStartDate: 'لا يوجد تاريخ بدء',
-  noEndDate: 'لا يوجد تاريخ انتهاء',
 
-  // Medical Help Section
-  medicalHelp: 'المساعدة الطبية',
-  typeOfMedicalAssistance: 'نوع المساعدة الطبية المطلوبة',
-  medicalCheckup: 'فحص طبي',
-  labTests: 'تحاليل معملية',
-  xraysScans: 'أشعة/فحوصات',
+  // Language
+  switchLanguage: 'English',
+  currentLanguage: 'العربية',
+
+  // Distribution
+  distributionHistory: 'سجل التوزيع',
+  totalDistributions: 'إجمالي التوزيعات',
+  totalValueReceived: 'إجمالي القيمة المستلمة',
+  quantityReceived: 'الكمية المستلمة',
+  value: 'القيمة',
+
+  // Medical Assistance Terms
   surgeries: 'عمليات جراحية',
-  additionalDetails: 'تفاصيل إضافية',
-  medicationDistributionFrequency: 'دورية صرف العلاج',
   monthly: 'شهري',
   intermittent: 'متقطع',
-  estimatedCostOfTreatment: 'تكلفة العلاج التقديرية',
-  ableToAfford: 'قادر',
-  unableToAfford: 'غير قادر',
-  partiallyAble: 'إلى حد ما',
-  healthInsuranceCoverage: 'هل هناك أحد أفراد الأسرة مشترك بالتأمين الصحي؟',
-  
-  // Food Assistance Section
-  foodAssistance: 'المساعدة الغذائية',
-  typeOfFoodAssistance: 'نوع المساعدة الغذائية المطلوبة',
-  readyMadeMeals: 'يحتاج إلى طعام جاهز',
-  nonReadyMeals: 'يحتاج إلى طعام غير جاهز',
-  foodSupplyCard: 'هل معه بطاقة تموين؟',
-  
-  // Marriage Assistance Section
-  marriageAssistance: 'مساعدة الزواج',
-  marriageSupportNeeded: 'هل تحتاج إلى مساعدة جواز؟',
-  weddingContractSigned: 'هل تم عقد الكتاب؟',
-  weddingDate: 'تاريخ الزفاف',
-  specificNeeds: 'احتياجات محددة',
-  whatAreTheNeeds: 'ما هي الاحتياجات؟',
-  
-  // Debt Assistance Section
-  debtAssistance: 'مساعدة الديون',
-  debtStatus: 'هل يوجد ديون؟',
-  reasonForDebt: 'سبب الدين',
-  whatIsReasonForDebt: 'ما هو سبب الدين؟',
-  debtAmount: 'مبلغ الدين',
-  whatIsDebtAmount: 'ما هي قيمة الدين؟',
-  uploadOfficialDebtDocuments: 'تحميل وثائق الدين الرسمية',
-  
-  // Education Assistance Section
-  educationAssistance: 'المساعدة التعليمية',
-  familyEducationLevel: 'مستوى تعليم الأسرة',
-  higherEducation: 'مؤهل عالي',
-  intermediateEducation: 'متوسط',
-  literate: 'يعرف كتابة وقراءة',
-  illiterate: 'أمي',
-  desireForEducation: 'إذا كان أمي، ما هي الرغبة في التعليم؟',
-  whatIsDesireForEducation: 'ما مدى الرغبة في التعليم؟',
-  childrenEducationalNeeds: 'احتياجات الأطفال التعليمية',
-  tuitionFees: 'مصروفات دراسية',
-  schoolUniforms: 'زي مدرسي',
-  books: 'كتب',
-  supplies: 'أدوات',
-  tutoring: 'دروس تقوية',
-  
-  // Shelter Assistance Section
-  shelterAssistance: 'مساعدة المأوى',
-  typeOfHousing: 'نوع السكن',
-  owned: 'تمليك',
-  newRental: 'إيجار جديد',
-  oldRental: 'إيجار قديم',
-  housingCondition: 'حالة السكن',
-  healthy: 'صحي',
-  moderate: 'إلى حد ما',
-  unhealthy: 'غير صحي',
-  numberOfRooms: 'عدد الغرف',
-  whatIsNumberOfRooms: 'عدد الحجرات؟',
-  householdAppliances: 'الأجهزة المنزلية',
-  stove: 'بوتوجاز',
-  manualWashingMachine: 'غسالة عادية',
-  automaticWashingMachine: 'غسالة أوتوماتيك',
-  refrigerator: 'ثلاجة',
-  fan: 'مروحة',
-  
-  // Form Sections
-  personalInformation: 'البيانات الشخصية',
-  contactInformation: 'معلومات الاتصال',
-  employmentInformation: 'معلومات العمل',
-  additionalMembers: 'أفراد إضافيون',
-  children: 'الأطفال',
-  need: 'احتياج',
-  
-  // Placeholders
-  choose: '-- اختر --',
-
-  // Modal titles
-  addNewIndividual: 'إضافة فرد جديد',
-  addNewIndividualDescription: 'إضافة فرد جديد إلى النظام',
-  submitIndividualRequest: 'تقديم طلب إضافة فرد',
-  submitIndividualRequestDescription: 'تقديم طلب إضافة فرد جديد للموافقة عليه',
-  updateIndividualDescription: 'تحديث بيانات الفرد',
-  
-  // Success messages
-  individualCreatedSuccess: 'تم إنشاء الفرد بنجاح',
-  individualUpdatedSuccess: 'تم تحديث بيانات الفرد بنجاح',
-  
-  // Error messages
-  errorSaving: 'حدث خطأ أثناء الحفظ',
-  
-  // ID Card related
-  idCardImage: 'صورة البطاقة الشخصية',
-  uploadIdCard: 'تحميل البطاقة الشخصية',
-  idCardUploaded: 'تم تحميل البطاقة الشخصية بنجاح',
-  idCardUploadFailed: 'فشل في تحميل البطاقة الشخصية',
-  viewIdCard: 'عرض البطاقة الشخصية',
-  
-  // Family Assignment
-  familyAssignment: 'تعيين العائلة',
-  familyAssignmentTooltip: 'تعيين هذا الفرد لعائلة موجودة أو إنشاء عائلة جديدة',
-  newFamily: 'عائلة جديدة',
-  toggleNewFamily: 'تبديل إنشاء عائلة جديدة',
-  searchFamily: 'بحث عن عائلة',
-  searchFamilyPlaceholder: 'اكتب للبحث عن العائلات...',
-  noFamiliesFound: 'لم يتم العثور على عائلات',
-  startTypingToSearch: 'ابدأ الكتابة للبحث عن العائلات',
-  phoneTooltip: 'أدخل رقم هاتف صحيح',
-  phoneFormat: 'الصيغة: +20 123 456 7890',
-  familyNameRequired: 'اسم العائلة مطلوب',
-  districtRequired: 'المنطقة مطلوبة',
+  ableToAfford: 'قادر على تحمل التكاليف',
+  unableToAfford: 'غير قادر على تحمل التكاليف',
+  partiallyAble: 'قادر جزئياً',
+  medicalCheckup: 'فحص طبي',
+  labTests: 'فحوصات مخبرية',
+  xraysScans: 'أشعة/فحوصات',
+  additionalMedicalDetails: 'تفاصيل طبية إضافية',
+  choose: 'اختر',
 };

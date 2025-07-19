@@ -1,0 +1,4 @@
+selenium>=4.16.0
+webdriver-manager>=4.0.1
+faker>=22.0.0
+argparse>=1.4.0 

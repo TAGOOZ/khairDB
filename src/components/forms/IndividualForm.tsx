@@ -158,7 +158,7 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
       shelter_assistance: {
         type_of_housing: '',
         housing_condition: '',
-        number_of_rooms: 2,
+        number_of_rooms: 0,
         household_appliances: []
       }
     },
@@ -311,7 +311,7 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
         shelter_assistance: data.shelter_assistance || {
           type_of_housing: '',
           housing_condition: '',
-          number_of_rooms: 2,
+          number_of_rooms: 0,
           household_appliances: []
         }
       };

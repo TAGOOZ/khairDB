@@ -10,6 +10,128 @@ export interface User {
 }
 
 // Assistance Details types
+export type TranslationKey =
+  | AssistanceTranslationKey
+  | CommonTranslationKey
+  | 'dashboard'
+  | 'individuals'
+  | 'families'
+  | 'needs'
+  | 'distributions'
+  | 'reports'
+  | 'projects'
+  | 'add'
+  | 'edit'
+  | 'delete'
+  | 'save'
+  | 'cancel'
+  | 'search'
+  | 'status'
+  | 'actions'
+  | 'close'
+  | 'remove'
+  | 'all'
+  | 'allCategories'
+  | 'allDistricts'
+  | 'searchPlaceholder'
+  | 'signIn'
+  | 'signOut'
+  | 'email'
+  | 'password'
+  | 'firstName'
+  | 'lastName'
+  | 'idNumber'
+  | 'dateOfBirth'
+  | 'gender'
+  | 'male'
+  | 'female'
+  | 'phone'
+  | 'address'
+  | 'district'
+  | 'description'
+  | 'maritalStatus'
+  | 'single'
+  | 'married'
+  | 'widowed'
+  | 'job'
+  | 'employmentStatus'
+  | 'salary'
+  | 'noSalary'
+  | 'hasSalary'
+  | 'socialSupport'
+  | 'listStatus'
+  | 'whitelist'
+  | 'blacklist'
+  | 'waitinglist'
+  | 'assistanceInformation'
+  | 'typeOfMedicalAssistance'
+  | 'medicationDistributionFrequency'
+  | 'estimatedCostOfTreatment'
+  | 'healthInsuranceCoverage'
+  | 'additionalDetails'
+  | 'typeOfFoodAssistance'
+  | 'foodSupplyCard'
+  | 'marriageSupportNeeded'
+  | 'weddingContractSigned'
+  | 'weddingDate'
+  | 'specificNeeds'
+  | 'debtStatus'
+  | 'debtAmount'
+  | 'reasonForDebt'
+  | 'familyEducationLevel'
+  | 'desireForEducation'
+  | 'childrenEducationalNeeds'
+  | 'typeOfHousing'
+  | 'housingCondition'
+  | 'numberOfRooms'
+  | 'householdAppliances'
+  | 'confirmDelete'
+  | 'successAdd'
+  | 'successEdit'
+  | 'successDelete'
+  | 'error'
+  | 'loading'
+  | 'noDataAvailable'
+  | 'viewHistory'
+  | 'print'
+  | 'export'
+  | 'filter'
+  | 'clearFilters'
+  | 'next'
+  | 'previous'
+  | 'finish'
+  | 'switchLanguage'
+  | 'currentLanguage'
+  | 'distributionHistory'
+  | 'totalDistributions'
+  | 'totalValueReceived'
+  | 'quantityReceived'
+  | 'value'
+  | 'pending'
+  | 'inProgress'
+  | 'completed';
+
+export type AssistanceTranslationKey = 
+  | 'medicalHelp'
+  | 'foodAssistance'
+  | 'marriageAssistance'
+  | 'debtAssistance'
+  | 'educationAssistance'
+  | 'shelterAssistance';
+
+export type CommonTranslationKey =
+  | 'yearsOld'
+  | 'addedBy'
+  | 'yes'
+  | 'no'
+  | 'pending'
+  | 'inProgress'
+  | 'completed'
+  | 'low'
+  | 'medium'
+  | 'high'
+  | 'urgent';
+
 export type AssistanceType = 
   | 'medical_help'
   | 'food_assistance'
@@ -60,6 +182,8 @@ export interface Individual {
   id_card_image_url?: string | null; // URL for the ID card image
   id_card_image_path?: string | null; // Storage path for the ID card image
   hashtags?: string[]; // Added field for hashtags
+  google_drive_folder_id?: string | null; // Google Drive folder ID
+  google_drive_folder_url?: string | null; // Google Drive folder URL
 }
 
 // Child types
@@ -103,7 +227,6 @@ export type NeedCategory =
   | 'other';
 
 export type NeedPriority = 'low' | 'medium' | 'high' | 'urgent';
-
 export type NeedStatus = 'pending' | 'in_progress' | 'completed';
 
 export interface Need {

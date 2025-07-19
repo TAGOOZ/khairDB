@@ -55,55 +55,28 @@ export function EmploymentStep() {
       
       {/* Show salary field conditionally */}
       {showSalaryField && (
-        <div className="animate-fadeIn">
+        <div>
           <label className="block text-sm font-medium mb-1" htmlFor="salary">
-            {t('monthlySalary')}
+            {t('salary')}
           </label>
-          <div className="relative mt-1 rounded-md shadow-sm">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-              <span className="text-gray-500 sm:text-sm">$</span>
-            </div>
-            <input
-              id="salary"
-              type="number"
-              {...register('salary', { valueAsNumber: true })}
-              className="w-full pl-7 p-2 border rounded-md border-gray-300"
-              placeholder="0.00"
-              min="0"
-              step="0.01"
-            />
-          </div>
+          <Controller
+            name="salary"
+            control={control}
+            defaultValue={null}
+            render={({ field }) => (
+              <input
+                type="number"
+                id="salary"
+                {...field}
+                value={field.value || ''}
+                onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                className="w-full p-2 border rounded-md border-gray-300"
+                placeholder="0"
+              />
+            )}
+          />
         </div>
       )}
-      
-      <div className="mt-4">
-        <div className="flex items-center mb-2">
-          <h4 className="text-md font-medium text-gray-800">{t('workEnvironment')}</h4>
-          <Tooltip content={t('workEnvironmentTooltip')} position="right" />
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <h5 className="font-medium text-sm mb-2">{t('skills')}</h5>
-            <textarea 
-              {...register('employment_skills')} 
-              className="w-full p-2 border rounded-md border-gray-300" 
-              rows={3}
-              placeholder={t('workSkillsPlaceholder')}
-            />
-          </div>
-          
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <h5 className="font-medium text-sm mb-2">{t('preferences')}</h5>
-            <textarea 
-              {...register('employment_preferences')} 
-              className="w-full p-2 border rounded-md border-gray-300" 
-              rows={3}
-              placeholder={t('workPreferencesPlaceholder')}
-            />
-          </div>
-        </div>
-      </div>
     </div>
   );
 } 
