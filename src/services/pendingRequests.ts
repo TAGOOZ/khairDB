@@ -140,7 +140,6 @@ import { supabase } from '../lib/supabase';
     
     export async function approveRequest(id: string, comment?: string) {
       try {
-        let request: any;
         const { data: { user } } = await supabase.auth.getUser();
         
         if (!user?.id) {
@@ -165,7 +164,7 @@ import { supabase } from '../lib/supabase';
         }
     
         // Create the individual directly since we don't have the approve_request function
-        const individualData = request.data;
+        const individualData = fetchedRequest.data;
         
         // Check if individual already exists
         const { data: existingIndividual } = await supabase
@@ -173,8 +172,6 @@ import { supabase } from '../lib/supabase';
           .select('id')
           .eq('id_number', individualData.id_number)
           .single();
-
-        request = fetchedRequest;
 
         if (existingIndividual) {
           // Individual already exists, just update the request status
@@ -241,7 +238,7 @@ import { supabase } from '../lib/supabase';
             salary: individualData.salary || null,
             list_status: individualData.list_status || 'whitelist',
             family_id: familyId,
-            created_by: request.submitted_by
+            created_by: fetchedRequest.submitted_by
           }])
           .select()
           .single();
@@ -281,7 +278,7 @@ import { supabase } from '../lib/supabase';
             .from('family_members')
             .insert([{
               family_id: familyId,
-              individual_id: newIndividual.id,
+              created_by: fetchedRequest.submitted_by
               role: 'parent'
             }]);
             
@@ -381,14 +378,14 @@ import { supabase } from '../lib/supabase';
         }
         
         // Insert needs if any
-        if (request?.data?.needs && Array.isArray(request.data.needs)) {
-          const needsInserts = request.data.needs.map((need) => ({
+        if (fetchedRequest?.data?.needs && Array.isArray(fetchedRequest.data.needs)) {
+          const needsInserts = fetchedRequest.data.needs.map((need) => ({
             individual_id: newIndividual.id,
             category: need.category,
             priority: need.priority,
             description: need.description,
             status: 'pending',
-            created_by: request.submitted_by
+            created_by: fetchedRequest.submitted_by
           }));
     
           const { error: needsError } = await supabase
@@ -484,8 +481,8 @@ import { supabase } from '../lib/supabase';
       }
     }
 
-        // Check if request is already approved
-        if (request.status === 'approved') {
+        // Check if fetchedRequest is already approved
+        if (fetchedRequest.status === 'approved') {
           throw new PendingRequestError(
             'already-approved',
             'This request has already been approved'
