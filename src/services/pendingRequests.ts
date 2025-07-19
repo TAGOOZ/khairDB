@@ -278,7 +278,7 @@ import { supabase } from '../lib/supabase';
             .from('family_members')
             .insert([{
               family_id: familyId,
-              created_by: fetchedRequest.submitted_by
+              created_by: fetchedRequest.submitted_by,
               role: 'parent'
             }]);
             
