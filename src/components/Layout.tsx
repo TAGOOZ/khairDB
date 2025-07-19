@@ -11,7 +11,8 @@ import {
   LogOut,
   Menu,
   X,
-  FolderKanban
+  FolderKanban,
+  UserCog
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -32,6 +33,7 @@ export function Layout() {
     { name: t('distributions'), href: '/distributions', icon: Package },
     { name: t('reports'), href: '/reports', icon: BarChart3 },
     { name: t('projects'), href: '/projects', icon: FolderKanban },
+    ...(user?.role === 'admin' ? [{ name: 'User Management', href: '/users', icon: UserCog }] : []),
   ];
 
   const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);

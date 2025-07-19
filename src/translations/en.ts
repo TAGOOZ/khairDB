@@ -121,4 +121,16 @@ export const translations = {
   primary: 'Primary',
   preparatory: 'Preparatory',
   secondary: 'Secondary'
+  
+  // User Management
+  users: 'Users',
+  addUser: 'Add User',
+  editUser: 'Edit User',
+  user: 'User',
+  admin: 'Admin',
+  searchUsers: 'Search Users',
+  searchUsersPlaceholder: 'Search by name or email...',
+  confirmDeleteUser: 'Are you sure you want to delete {{name}}?',
+  createdAt: 'Created At',
+  view: 'View',
 };

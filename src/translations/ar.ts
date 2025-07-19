@@ -77,6 +77,18 @@ export const translations = {
   primary: 'ابتدائي',
   preparatory: 'إعدادي',
   secondary: 'ثانوي',
+  
+  // User Management
+  users: 'المستخدمون',
+  addUser: 'إضافة مستخدم',
+  editUser: 'تعديل مستخدم',
+  user: 'مستخدم',
+  admin: 'مدير',
+  searchUsers: 'البحث في المستخدمين',
+  searchUsersPlaceholder: 'البحث بالاسم أو البريد الإلكتروني...',
+  confirmDeleteUser: 'هل أنت متأكد من حذف {{name}}؟',
+  createdAt: 'تاريخ الإنشاء',
+  view: 'عرض',
 
   // Assistance Types
   medicalHelp: 'المساعدة الطبية',
