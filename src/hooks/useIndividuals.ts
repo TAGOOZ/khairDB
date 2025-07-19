@@ -60,9 +60,18 @@ export function useIndividuals() {
             created_at,
             updated_at
           ),
-          family_members!inner(role)
+          children (
+            id,
+            first_name,
+            last_name,
+            date_of_birth,
+            gender,
+            school_stage,
+            description,
+            parent_id,
+            family_id
+          )
         `)
-        .eq('family_members.role', 'parent')
         .order('created_at', { ascending: false });
 
       if (filters.search) {
@@ -115,7 +124,8 @@ export function useIndividuals() {
       filteredData = filteredData.map(individual => ({
         ...individual,
         needs: individual.needs || [],
-        assistance_details: individual.assistance_details || []
+        assistance_details: individual.assistance_details || [],
+        children: individual.children || []
       }));
 
       // Fetch distributions for filtered individuals

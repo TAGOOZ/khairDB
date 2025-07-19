@@ -53,7 +53,6 @@ import React, { useState } from 'react';
           setSelectedRequest(null);
           setComment('');
           refreshRequests();
-          setIsRejectModalOpen(false);
         } catch (error) {
           console.error('Error approving request:', error);
           toast.error('Failed to approve request');

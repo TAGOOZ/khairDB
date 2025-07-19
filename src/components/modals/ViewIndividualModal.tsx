@@ -451,18 +451,18 @@ export function ViewIndividualModal({ isOpen, onClose, individual, isLoading }: 
                 {/* Children Section */}
                 {individual.children && individual.children.length > 0 && (
                   <div className="bg-gray-50 rounded-lg p-4">
-                    <h4 className="font-medium text-gray-900 mb-3">Children</h4>
+                    <h4 className="font-medium text-gray-900 mb-3">{t('children')} ({individual.children.length})</h4>
                     <div className="space-y-3">
                       {individual.children.map((child) => (
-                        <div key={child.id} className="flex items-center space-x-3 text-gray-700">
+                        <div key={child.id} className="bg-white p-3 rounded-lg border">
                           <User className="w-5 h-5" />
                           <div>
                             <p className="font-medium">{child.first_name} {child.last_name}</p>
                             <p className="text-sm">
-                              {formatDate(child.date_of_birth)} ({calculateAge(child.date_of_birth)} years old), {child.gender}
+                              {formatDate(child.date_of_birth)} ({calculateAge(child.date_of_birth)} {t('yearsOld')}), {t(child.gender)}
                             </p>
-                            {child.school_stage && <p className="text-sm">School Stage: {child.school_stage}</p>}
-                            {child.description && <p className="text-sm">Notes: {child.description}</p>}
+                            {child.school_stage && <p className="text-sm">{t('schoolStage')}: {t(child.school_stage)}</p>}
+                            {child.description && <p className="text-sm">{t('description')}: {child.description}</p>}
                           </div>
                         </div>
                       ))}
