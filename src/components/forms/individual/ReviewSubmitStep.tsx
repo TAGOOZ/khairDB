@@ -275,6 +275,45 @@ export function ReviewSubmitStep() {
           <ul className="list-disc list-inside text-sm text-red-600 ml-2">
             {Object.entries(errorsBySection).map(([section, count]) => {
               if (count > 0) {
+                // For assistance section, show detailed field errors
+                if (section === 'assistance') {
+                  // Map of assistance fields to translation keys
+                  const assistanceFields = {
+                    medical_help: t('medicalHelp'),
+                    food_assistance: t('foodAssistance'),
+                    marriage_assistance: t('marriageAssistance'),
+                    debt_assistance: t('debtAssistance'),
+                    education_assistance: t('educationAssistance'),
+                    shelter_assistance: t('shelterAssistance'),
+                  };
+                  return (
+                    <li key={section}>
+                      {t('assistanceNeeds')}:
+                      <ul className="ml-4 list-disc">
+                        {Object.entries(assistanceFields).map(([field, label]) => {
+                          if (errors[field]) {
+                            // If the error is an object, show its nested messages
+                            if (typeof errors[field] === 'object' && errors[field] !== null) {
+                              return Object.entries(errors[field]).map(([subField, subError]) => (
+                                <li key={subField}>
+                                  {label} - {t(subField)}: {subError?.message || t('error')}
+                                </li>
+                              ));
+                            }
+                            // Otherwise, just show the main error
+                            return (
+                              <li key={field}>
+                                {label}: {errors[field]?.message || t('error')}
+                              </li>
+                            );
+                          }
+                          return null;
+                        })}
+                      </ul>
+                    </li>
+                  );
+                }
+                // Default: show section error count
                 return (
                   <li key={section}>
                     {t(`${section}Information`)}: {count} {count === 1 ? t('error') : t('errors')}
