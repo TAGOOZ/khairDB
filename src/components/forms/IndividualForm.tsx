@@ -299,6 +299,7 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
       const formattedData = {
         ...data,
         children: uniqueChildren.map(child => ({
+          ...(child.id && { id: child.id }), // Preserve id if it exists
           first_name: child.first_name,
           last_name: child.last_name,
           date_of_birth: child.date_of_birth,

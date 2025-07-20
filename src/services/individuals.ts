@@ -702,6 +702,28 @@ export async function updateIndividual(id: string, data: IndividualFormData) {
             console.error('Error updating child:', updateChildError);
           }
         } else {
+          // Check for potential duplicate before inserting new child
+          const { data: potentialDuplicate, error: duplicateCheckError } = await supabase
+            .from('children')
+            .select('id, first_name, last_name, date_of_birth')
+            .eq('parent_id', id)
+            .eq('first_name', child.first_name)
+            .eq('last_name', child.last_name)
+            .eq('date_of_birth', child.date_of_birth)
+            .maybeSingle();
+
+          if (duplicateCheckError) {
+            console.error('Error checking for duplicate child:', duplicateCheckError);
+          } else if (potentialDuplicate) {
+            console.warn(`⚠️  WARNING: Child without ID matches existing child record. Potential duplicate detected:`, {
+              existingChildId: potentialDuplicate.id,
+              childName: `${child.first_name} ${child.last_name}`,
+              dateOfBirth: child.date_of_birth,
+              parentId: id,
+              message: 'This may indicate a bug where child ID was not preserved during form submission'
+            });
+          }
+
           // Insert new child
           const { error: insertChildError } = await supabase
             .from('children')
