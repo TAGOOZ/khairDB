@@ -164,4 +164,9 @@ export const translations = {
   xraysScans: 'أشعة/فحوصات',
   additionalMedicalDetails: 'تفاصيل طبية إضافية',
   choose: 'اختر',
+
+  // Review Submit Step
+  errorsToFixBefore: "يرجى تصحيح الأخطاء التالية قبل الإرسال:",
+  errorsToFix: "{{count}} أخطاء بحاجة للتصحيح",
+  pleaseCompleteForm: "يرجى إكمال النموذج",
 };

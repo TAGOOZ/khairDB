@@ -133,4 +133,7 @@ export const translations = {
   confirmDeleteUser: 'Are you sure you want to delete {{name}}?',
   createdAt: 'Created At',
   view: 'View',
+  errorsToFixBefore: "Please fix the following errors before submitting:",
+  errorsToFix: "{{count}} errors to fix",
+  pleaseCompleteForm: "Please complete the form",
 };
