@@ -15,6 +15,7 @@ export const availableHashtags = [
 export type HashtagType = typeof availableHashtags[number];
 
 const childSchema = z.object({
+  id: z.string().optional(), // Optional ID for existing children
   first_name: z.string().min(1, 'First name is required'),
   last_name: z.string().min(1, 'Last name is required'),
   date_of_birth: z.string()
