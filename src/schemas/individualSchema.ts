@@ -166,12 +166,40 @@ export const individualSchema = z.object({
     path: ["number_of_rooms"]
   }).optional().nullable()
 }).refine(data => {
-  if (data.children && data.children.length > 0) {
-    return data.family_id || data.new_family_name;
+  // Check if family information is required
+  const hasChildren = data.children && data.children.length > 0;
+  const hasAdditionalMembers = data.additional_members && data.additional_members.length > 0;
+  const requiresFamily = hasChildren || hasAdditionalMembers;
+  
+  if (!requiresFamily) {
+    return true; // No family members, so no family is required
+  }
+
+  // If family is required, check that either family_id or new_family_name is provided
+  const hasFamilyId = data.family_id && data.family_id.trim().length > 0;
+  const hasNewFamilyName = data.new_family_name && data.new_family_name.trim().length > 0;
+  
+  return hasFamilyId || hasNewFamilyName;
+}, {
+  message: "Please select an existing family or create a new one when adding family members",
+  path: ["family_id"]
+}).refine(data => {
+  // Validate new family name is not empty if provided
+  if (data.new_family_name !== undefined && data.new_family_name !== null) {
+    return data.new_family_name.trim().length > 0;
   }
   return true;
 }, {
-  message: "A family must be selected or created when adding children",
+  message: "Family name cannot be empty",
+  path: ["new_family_name"]
+}).refine(data => {
+  // Ensure both family_id and new_family_name are not provided at the same time
+  const hasFamilyId = data.family_id && data.family_id.trim().length > 0;
+  const hasNewFamilyName = data.new_family_name && data.new_family_name.trim().length > 0;
+  
+  return !(hasFamilyId && hasNewFamilyName);
+}, {
+  message: "Please choose either an existing family or create a new one, not both",
   path: ["family_id"]
 });
 

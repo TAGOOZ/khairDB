@@ -4,9 +4,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { individualSchema, IndividualFormData } from '../../schemas/individualSchema';
 import { Individual, Family } from '../../types';
 import { Button } from '../ui/Button';
-import { Plus, Trash2, HelpCircle, ArrowLeft, ArrowRight, Check } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { Tooltip } from '../ui/Tooltip';
 import '../../styles/animations.css';
 
 // Form step components (to be imported)
@@ -169,16 +168,6 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
   
   // Set up field arrays for dynamic fields
   const { 
-    fields: memberFields, 
-    append: appendMember, 
-    remove: removeMember 
-  } = useFieldArray({
-    control,
-    name: 'additional_members'
-  });
-
-  const { 
-    fields: childFields, 
     append: appendChild, 
     remove: removeChild 
   } = useFieldArray({
@@ -187,12 +176,11 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
   });
 
   const { 
-    fields: needFields, 
-    append: appendNeed, 
-    remove: removeNeed 
+    append: appendMember, 
+    remove: removeMember 
   } = useFieldArray({
     control,
-    name: 'needs'
+    name: 'additional_members'
   });
 
   // Calculate form completion percentage
@@ -203,9 +191,10 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
     setFormProgress(progress);
   }, [formState.dirtyFields]);
 
-  // Handle member addition logic
+  // Handle member addition logic with proper state sync
   const handleAddMember = (memberData: any) => {
     if (memberData.first_name && memberData.last_name) {
+      // Adding a child
       appendChild({
         first_name: memberData.first_name,
         last_name: memberData.last_name,
@@ -215,6 +204,7 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
         description: memberData.description
       });
     } else {
+      // Adding an adult family member
       appendMember({
         name: memberData.name || '',
         date_of_birth: memberData.date_of_birth,
@@ -225,6 +215,9 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
         relation: memberData.relation || ''
       });
     }
+
+    // Trigger form validation to ensure family requirements are checked
+    formMethods.trigger(['family_id', 'new_family_name']);
   };
 
   // Navigate between steps
@@ -253,6 +246,25 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
   const handleFormSubmit = async (data: IndividualFormData) => {
     try {
       window.scrollTo(0, 0);
+      
+      // Validate family information before submission
+      const hasChildren = data.children && data.children.length > 0;
+      const hasAdditionalMembers = data.additional_members && data.additional_members.length > 0;
+      const requiresFamily = hasChildren || hasAdditionalMembers;
+
+      if (requiresFamily) {
+        const hasFamilyId = data.family_id && data.family_id.trim().length > 0;
+        const hasNewFamilyName = data.new_family_name && data.new_family_name.trim().length > 0;
+        
+        if (!hasFamilyId && !hasNewFamilyName) {
+          // Trigger form validation to show errors
+          formMethods.setError('family_id', { 
+            type: 'required', 
+            message: 'Please select an existing family or create a new one when adding family members' 
+          });
+          return;
+        }
+      }
       
       // Filter out duplicate children by first and last name
       const uniqueChildren = (data.children || []).filter((child, index, self) =>
@@ -298,6 +310,9 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
       // Format the data for submission
       const formattedData = {
         ...data,
+        // Ensure family information is properly formatted
+        family_id: data.family_id?.trim() || null,
+        new_family_name: data.new_family_name?.trim() || undefined,
         children: uniqueChildren.map(child => ({
           first_name: child.first_name,
           last_name: child.last_name,

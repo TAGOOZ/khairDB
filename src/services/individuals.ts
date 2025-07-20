@@ -312,6 +312,37 @@ export async function createIndividual(data: IndividualFormData) {
 
     console.log('Authenticated user:', user.id);
 
+    // Defensive backend validation for family information
+    const hasChildren = data.children && data.children.length > 0;
+    const hasAdditionalMembers = data.additional_members && data.additional_members.length > 0;
+    const requiresFamily = hasChildren || hasAdditionalMembers;
+
+    if (requiresFamily) {
+      const hasFamilyId = data.family_id && data.family_id.trim().length > 0;
+      const hasNewFamilyName = data.new_family_name && data.new_family_name.trim().length > 0;
+      
+      if (!hasFamilyId && !hasNewFamilyName) {
+        throw new IndividualError(
+          'family-validation-failed', 
+          'Family information is required when adding family members. Please select an existing family or create a new one.'
+        );
+      }
+
+      if (hasFamilyId && hasNewFamilyName) {
+        throw new IndividualError(
+          'family-validation-failed', 
+          'Please choose either an existing family or create a new one, not both.'
+        );
+      }
+
+      if (hasNewFamilyName && data.new_family_name.trim().length === 0) {
+        throw new IndividualError(
+          'family-validation-failed', 
+          'Family name cannot be empty when creating a new family.'
+        );
+      }
+    }
+
     // Check if ID number exists
     const { data: existingIndividual, error: checkError } = await supabase
       .from('individuals')
@@ -518,6 +549,37 @@ export async function updateIndividual(id: string, data: IndividualFormData) {
     
     if (!user) {
       throw new IndividualError('auth-error', 'Authentication required', null);
+    }
+    
+    // Defensive backend validation for family information
+    const hasChildren = data.children && data.children.length > 0;
+    const hasAdditionalMembers = data.additional_members && data.additional_members.length > 0;
+    const requiresFamily = hasChildren || hasAdditionalMembers;
+
+    if (requiresFamily) {
+      const hasFamilyId = data.family_id && data.family_id.trim().length > 0;
+      const hasNewFamilyName = data.new_family_name && data.new_family_name.trim().length > 0;
+      
+      if (!hasFamilyId && !hasNewFamilyName) {
+        throw new IndividualError(
+          'family-validation-failed', 
+          'Family information is required when adding family members. Please select an existing family or create a new one.'
+        );
+      }
+
+      if (hasFamilyId && hasNewFamilyName) {
+        throw new IndividualError(
+          'family-validation-failed', 
+          'Please choose either an existing family or create a new one, not both.'
+        );
+      }
+
+      if (hasNewFamilyName && data.new_family_name.trim().length === 0) {
+        throw new IndividualError(
+          'family-validation-failed', 
+          'Family name cannot be empty when creating a new family.'
+        );
+      }
     }
     
     // Handle family creation or selection

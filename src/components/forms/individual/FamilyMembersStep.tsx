@@ -7,6 +7,7 @@ import { Button } from '../../ui/Button';
 import { IndividualFormData } from '../../../schemas/individualSchema';
 import { ChildRemovalModal } from './ChildRemovalModal';
 import { safeTrans } from '../../../utils/translations';
+import { Family } from '../../../types';
 
 // Modal component for adding family members
 interface AddMemberModalProps {
@@ -275,15 +276,17 @@ interface FamilyMembersStepProps {
   handleAddMember?: (data: any) => void;
   removeMember?: (index: number) => void;
   removeChild?: (index: number) => void;
+  families?: Family[];
 }
 
 export function FamilyMembersStep({ 
   handleAddMember, 
   removeMember, 
-  removeChild 
+  removeChild,
+  families = []
 }: FamilyMembersStepProps) {
   const { t } = useLanguage();
-  const { control, getValues, setValue } = useFormContext<IndividualFormData>();
+  const { control, getValues, setValue, formState, watch } = useFormContext<IndividualFormData>();
   
   // Use field arrays for direct access
   const { fields: childFields, remove: removeChildField } = useFieldArray({
@@ -381,12 +384,92 @@ export function FamilyMembersStep({
 
   const children = getValues('children') || [];
   const additionalMembers = getValues('additional_members') || [];
+  const familyId = watch('family_id');
+  const newFamilyName = watch('new_family_name');
+
+  // Check if family is required (when there are children or additional members)
+  const hasFamilyMembers = children.length > 0 || additionalMembers.length > 0;
+  const familyError = formState.errors.family_id?.message || formState.errors.new_family_name?.message;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-medium">{safeTrans(t, 'familyMembers')}</h3>
         <Tooltip content={safeTrans(t, 'familyMembersTooltip')} position="left" />
+      </div>
+
+      {/* Family Selection Section */}
+      <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+        <h4 className="text-md font-medium text-blue-900 mb-3">
+          {safeTrans(t, 'familyInformation')}
+        </h4>
+        
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {safeTrans(t, 'selectExistingFamily')}
+            </label>
+            <select
+              value={familyId || ''}
+              onChange={(e) => {
+                const value = e.target.value;
+                setValue('family_id', value || null);
+                if (value) {
+                  setValue('new_family_name', '');
+                }
+              }}
+              className={`w-full p-2 border rounded-md ${
+                familyError && !familyId && !newFamilyName ? 'border-red-500' : 'border-gray-300'
+              }`}
+            >
+              <option value="">{safeTrans(t, 'selectFamily')}</option>
+              {families.map((family) => (
+                <option key={family.id} value={family.id}>
+                  {family.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="text-center text-gray-500 font-medium">
+            {safeTrans(t, 'or')}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {safeTrans(t, 'createNewFamily')}
+            </label>
+            <input
+              type="text"
+              value={newFamilyName || ''}
+              onChange={(e) => {
+                const value = e.target.value;
+                setValue('new_family_name', value || undefined);
+                if (value) {
+                  setValue('family_id', null);
+                }
+              }}
+              placeholder={safeTrans(t, 'enterFamilyName')}
+              className={`w-full p-2 border rounded-md ${
+                familyError && !familyId && !newFamilyName ? 'border-red-500' : 'border-gray-300'
+              }`}
+            />
+          </div>
+        </div>
+
+        {/* Show family requirement and error messages */}
+        {hasFamilyMembers && (
+          <div className="mt-3">
+            <p className="text-sm text-blue-700">
+              {safeTrans(t, 'familyRequiredWhenMembers')}
+            </p>
+            {familyError && (
+              <p className="text-sm text-red-600 mt-1">
+                {familyError}
+              </p>
+            )}
+          </div>
+        )}
       </div>
       
       {/* Action buttons */}
