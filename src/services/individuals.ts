@@ -122,13 +122,7 @@ class AssistanceDetailsHandler {
           return data;
       }
     };
-        if (Array.isArray(value)) return hasArrayValues(value);
-        if (typeof value === 'boolean') return value === true;
-        if (typeof value === 'number') return value > 0;
-        if (typeof value === 'string') return value.trim().length > 0;
-        return false;
-      });
-    };
+       
 
     // Medical Help
     if (data.medical_help && hasNonEmptyValues(data.medical_help, 'medical_help')) {
