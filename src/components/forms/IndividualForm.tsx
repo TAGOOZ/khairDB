@@ -299,6 +299,7 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
       const formattedData = {
         ...data,
         children: uniqueChildren.map(child => ({
+          id: child.id, // Preserve the child ID for proper deletion tracking
           first_name: child.first_name,
           last_name: child.last_name,
           date_of_birth: child.date_of_birth,
