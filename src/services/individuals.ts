@@ -658,71 +658,105 @@ export async function updateIndividual(id: string, data: IndividualFormData) {
       }
     }
 
-    // Update children
-    if (Array.isArray(data.children) && familyId) {
-      // Fetch existing children for this individual
-      const { data: existingChildren, error: existingChildrenError } = await supabase
+    // Replace the children update section in updateIndividual function with this:
+
+// Update children
+if (Array.isArray(data.children) && familyId) {
+  // Fetch existing children for this individual
+  const { data: existingChildren, error: existingChildrenError } = await supabase
+    .from('children')
+    .select('id')
+    .eq('parent_id', id);
+    
+  if (existingChildrenError) {
+    console.error('Error fetching existing children:', existingChildrenError);
+    throw new IndividualError('fetch-failed', 'Failed to fetch existing children', existingChildrenError);
+  }
+
+  const existingIds = (existingChildren || []).map((c: { id: string }) => c.id);
+  
+  // Get IDs of children that are being kept/updated (only existing children with IDs)
+  const submittedIds = data.children
+    .filter((c: any) => c.id && typeof c.id === 'string') // Only include children that have valid IDs
+    .map((c: any) => c.id);
+
+  console.log('Existing children IDs:', existingIds);
+  console.log('Submitted children IDs:', submittedIds);
+  
+  // Delete children that were removed (exist in DB but not in submitted data)
+  const idsToDelete = existingIds.filter((cid: string) => !submittedIds.includes(cid));
+  
+  if (idsToDelete.length > 0) {
+    console.log('Deleting children with IDs:', idsToDelete);
+    const { error: deleteChildrenError } = await supabase
+      .from('children')
+      .delete()
+      .in('id', idsToDelete);
+      
+    if (deleteChildrenError) {
+      console.error('Error deleting children:', deleteChildrenError);
+      throw new IndividualError('deletion-failed', 'Failed to delete children', deleteChildrenError);
+    }
+  }
+  
+  // Process each child in the submitted data
+  for (const child of data.children as any[]) {
+    if (child.id && typeof child.id === 'string' && child.id.trim() !== '') {
+      // Update existing child
+      console.log('Updating existing child:', child.id);
+      const { error: updateChildError } = await supabase
         .from('children')
-        .select('id')
-        .eq('parent_id', id);
-      if (existingChildrenError) {
-        console.error('Error fetching existing children:', existingChildrenError);
+        .update({
+          first_name: child.first_name,
+          last_name: child.last_name,
+          date_of_birth: child.date_of_birth,
+          gender: child.gender,
+          school_stage: child.school_stage,
+          description: child.description || null,
+          parent_id: id,
+          family_id: familyId
+        })
+        .eq('id', child.id);
+        
+      if (updateChildError) {
+        console.error('Error updating child:', updateChildError);
+        throw new IndividualError('update-failed', 'Failed to update child', updateChildError);
       }
-      const existingIds = (existingChildren || []).map((c: { id: string }) => c.id);
-      const submittedIds = data.children.filter((c: any) => c.id).map((c: any) => c.id);
-      // Delete children that were removed
-      const idsToDelete = existingIds.filter((cid: string) => !submittedIds.includes(cid));
-      if (idsToDelete.length > 0) {
-        const { error: deleteChildrenError } = await supabase
-          .from('children')
-          .delete()
-          .in('id', idsToDelete);
-        if (deleteChildrenError) {
-          console.error('Error deleting children:', deleteChildrenError);
-        }
-      }
-      // Update existing children
-      for (const child of data.children as any[]) {
-        if (child.id) {
-          // Update child
-          const { error: updateChildError } = await supabase
-            .from('children')
-            .update({
-              first_name: child.first_name,
-              last_name: child.last_name,
-              date_of_birth: child.date_of_birth,
-              gender: child.gender,
-              school_stage: child.school_stage,
-              description: child.description || null,
-              parent_id: id,
-              family_id: familyId
-            })
-            .eq('id', child.id);
-          if (updateChildError) {
-            console.error('Error updating child:', updateChildError);
-          }
-        } else {
-          // Insert new child
-          const { error: insertChildError } = await supabase
-            .from('children')
-            .insert([{
-              first_name: child.first_name,
-              last_name: child.last_name,
-              date_of_birth: child.date_of_birth,
-              gender: child.gender,
-              school_stage: child.school_stage,
-              description: child.description || null,
-              parent_id: id,
-              family_id: familyId,
-              created_by: user.id
-            }]);
-          if (insertChildError) {
-            console.error('Error inserting child:', insertChildError);
-          }
-        }
+    } else {
+      // Insert new child (no ID or empty ID means it's new)
+      console.log('Inserting new child:', child.first_name, child.last_name);
+      const { error: insertChildError } = await supabase
+        .from('children')
+        .insert([{
+          first_name: child.first_name,
+          last_name: child.last_name,
+          date_of_birth: child.date_of_birth,
+          gender: child.gender,
+          school_stage: child.school_stage,
+          description: child.description || null,
+          parent_id: id,
+          family_id: familyId
+        }]);
+        
+      if (insertChildError) {
+        console.error('Error inserting child:', insertChildError);
+        throw new IndividualError('creation-failed', 'Failed to create child', insertChildError);
       }
     }
-
+  }
+} else if (Array.isArray(data.children) && data.children.length === 0 && familyId) {
+  // If children array is explicitly empty, delete all existing children
+  console.log('Deleting all children as children array is empty');
+  const { error: deleteAllChildrenError } = await supabase
+    .from('children')
+    .delete()
+    .eq('parent_id', id);
+    
+  if (deleteAllChildrenError) {
+    console.error('Error deleting all children:', deleteAllChildrenError);
+    throw new IndividualError('deletion-failed', 'Failed to delete all children', deleteAllChildrenError);
+  }
+}
     // Handle assistance details update
     const hasAssistanceData = data.medical_help || 
                             data.food_assistance || 
