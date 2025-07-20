@@ -670,6 +670,17 @@ export async function updateIndividual(id: string, data: IndividualFormData) {
       }
       const existingIds = (existingChildren || []).map((c: { id: string }) => c.id);
       const submittedIds = data.children.filter((c: any) => c.id).map((c: any) => c.id);
+      
+      // Warn if the frontend submits child objects without IDs that already exist in the database
+      const childrenWithoutIds = data.children.filter((c: any) => !c.id);
+      if (childrenWithoutIds.length > 0 && existingIds.length > 0) {
+        console.warn('Child duplication risk detected: Frontend submitted children without IDs while children exist in database', {
+          childrenWithoutIds: childrenWithoutIds.map(c => `${c.first_name} ${c.last_name}`),
+          existingChildrenCount: existingIds.length,
+          individualId: id
+        });
+      }
+      
       // Delete children that were removed
       const idsToDelete = existingIds.filter((cid: string) => !submittedIds.includes(cid));
       if (idsToDelete.length > 0) {
