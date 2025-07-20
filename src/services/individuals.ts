@@ -24,10 +24,104 @@ class AssistanceDetailsHandler {
       return Array.isArray(arr) && arr.length > 0;
     };
 
-    // Helper to check if an object has any meaningful values
-    const hasNonEmptyValues = (obj: any): boolean => {
+    // Enhanced helper to check if an object has any meaningful values
+    const hasNonEmptyValues = (obj: any, assistanceType: string): boolean => {
       if (!obj) return false;
-      return Object.entries(obj).some(([_, value]) => {
+      
+      // Special handling for different assistance types
+      switch (assistanceType) {
+        case 'debt_assistance':
+          // For debt assistance, only consider it meaningful if needs_debt_assistance is true
+          return obj.needs_debt_assistance === true;
+          
+        case 'marriage_assistance':
+          // For marriage assistance, only consider it meaningful if marriage_support_needed is true
+          return obj.marriage_support_needed === true;
+          
+        case 'medical_help':
+          // For medical help, check if any assistance types are selected or other meaningful data exists
+          return hasArrayValues(obj.type_of_medical_assistance_needed) || 
+                 obj.health_insurance_coverage === true ||
+                 (obj.medication_distribution_frequency && obj.medication_distribution_frequency.trim().length > 0) ||
+                 (obj.estimated_cost_of_treatment && obj.estimated_cost_of_treatment.trim().length > 0) ||
+                 (obj.additional_details && obj.additional_details.trim().length > 0);
+          
+        case 'food_assistance':
+          // For food assistance, check if any food types are selected or food supply card is true
+          return hasArrayValues(obj.type_of_food_assistance_needed) || obj.food_supply_card === true;
+          
+        case 'education_assistance':
+          // For education assistance, check if any meaningful education data exists
+          return (obj.family_education_level && obj.family_education_level.trim().length > 0) ||
+                 (obj.desire_for_education && obj.desire_for_education.trim().length > 0) ||
+                 hasArrayValues(obj.children_educational_needs);
+          
+        case 'shelter_assistance':
+          // For shelter assistance, check if any housing details are provided
+          return (obj.type_of_housing && obj.type_of_housing.trim().length > 0) ||
+                 (obj.housing_condition && obj.housing_condition.trim().length > 0) ||
+                 (obj.number_of_rooms && obj.number_of_rooms > 0) ||
+                 hasArrayValues(obj.household_appliances);
+          
+        default:
+          // Fallback to generic check
+          return Object.entries(obj).some(([_, value]) => {
+            if (Array.isArray(value)) return hasArrayValues(value);
+            if (typeof value === 'boolean') return value === true;
+            if (typeof value === 'number') return value > 0;
+            if (typeof value === 'string') return value.trim().length > 0;
+            return false;
+          });
+      }
+    };
+
+    // Helper to normalize assistance data based on type
+    const normalizeAssistanceData = (data: any, assistanceType: string): any => {
+      switch (assistanceType) {
+        case 'debt_assistance':
+          // If needs_debt_assistance is false, reset all other fields
+          if (!data.needs_debt_assistance) {
+            return {
+              needs_debt_assistance: false,
+              debt_amount: 0,
+              household_appliances: false,
+              hospital_bills: false,
+              education_fees: false,
+              business_debt: false,
+              other_debt: false
+            };
+          }
+          return {
+            needs_debt_assistance: Boolean(data.needs_debt_assistance),
+            debt_amount: Number(data.debt_amount) || 0,
+            household_appliances: Boolean(data.household_appliances),
+            hospital_bills: Boolean(data.hospital_bills),
+            education_fees: Boolean(data.education_fees),
+            business_debt: Boolean(data.business_debt),
+            other_debt: Boolean(data.other_debt)
+          };
+          
+        case 'marriage_assistance':
+          // If marriage_support_needed is false, reset all other fields
+          if (!data.marriage_support_needed) {
+            return {
+              marriage_support_needed: false,
+              wedding_contract_signed: false,
+              wedding_date: null,
+              specific_needs: null
+            };
+          }
+          return {
+            marriage_support_needed: Boolean(data.marriage_support_needed),
+            wedding_contract_signed: Boolean(data.wedding_contract_signed),
+            wedding_date: data.wedding_date || null,
+            specific_needs: data.specific_needs || null
+          };
+          
+        default:
+          return data;
+      }
+    };
         if (Array.isArray(value)) return hasArrayValues(value);
         if (typeof value === 'boolean') return value === true;
         if (typeof value === 'number') return value > 0;
@@ -37,11 +131,11 @@ class AssistanceDetailsHandler {
     };
 
     // Medical Help
-    if (data.medical_help && hasNonEmptyValues(data.medical_help)) {
+    if (data.medical_help && hasNonEmptyValues(data.medical_help, 'medical_help')) {
       assistanceDetails.push({
         individual_id: '', // Will be set later
         assistance_type: 'medical_help',
-        details: {
+        details: normalizeAssistanceData({
           type_of_medical_assistance_needed: hasArrayValues(data.medical_help.type_of_medical_assistance_needed) 
             ? data.medical_help.type_of_medical_assistance_needed 
             : [],
@@ -49,72 +143,59 @@ class AssistanceDetailsHandler {
           estimated_cost_of_treatment: data.medical_help.estimated_cost_of_treatment || null,
           health_insurance_coverage: Boolean(data.medical_help.health_insurance_coverage),
           additional_details: data.medical_help.additional_details || null
-        }
+        }, 'medical_help')
       });
     }
 
     // Food Assistance
-    if (data.food_assistance && hasNonEmptyValues(data.food_assistance)) {
+    if (data.food_assistance && hasNonEmptyValues(data.food_assistance, 'food_assistance')) {
       assistanceDetails.push({
         individual_id: '',
         assistance_type: 'food_assistance',
-        details: {
+        details: normalizeAssistanceData({
           type_of_food_assistance_needed: hasArrayValues(data.food_assistance.type_of_food_assistance_needed)
             ? data.food_assistance.type_of_food_assistance_needed
             : [],
           food_supply_card: Boolean(data.food_assistance.food_supply_card)
-        }
+        }, 'food_assistance')
       });
     }
 
     // Marriage Assistance
-    if (data.marriage_assistance && hasNonEmptyValues(data.marriage_assistance)) {
+    if (data.marriage_assistance && hasNonEmptyValues(data.marriage_assistance, 'marriage_assistance')) {
       assistanceDetails.push({
         individual_id: '',
         assistance_type: 'marriage_assistance',
-        details: {
-          marriage_support_needed: Boolean(data.marriage_assistance.marriage_support_needed),
-          wedding_contract_signed: Boolean(data.marriage_assistance.wedding_contract_signed),
-          wedding_date: data.marriage_assistance.wedding_date || null,
-          specific_needs: data.marriage_assistance.specific_needs || null
-        }
+        details: normalizeAssistanceData(data.marriage_assistance, 'marriage_assistance')
       });
     }
 
     // Debt Assistance
-    if (data.debt_assistance && hasNonEmptyValues(data.debt_assistance)) {
+    if (data.debt_assistance && hasNonEmptyValues(data.debt_assistance, 'debt_assistance')) {
       assistanceDetails.push({
         individual_id: '',
         assistance_type: 'debt_assistance',
-        details: {
-          needs_debt_assistance: Boolean(data.debt_assistance.needs_debt_assistance),
-          debt_amount: Number(data.debt_assistance.debt_amount) || 0,
-          household_appliances: Boolean(data.debt_assistance.household_appliances),
-          hospital_bills: Boolean(data.debt_assistance.hospital_bills),
-          education_fees: Boolean(data.debt_assistance.education_fees),
-          business_debt: Boolean(data.debt_assistance.business_debt),
-          other_debt: Boolean(data.debt_assistance.other_debt)
-        }
+        details: normalizeAssistanceData(data.debt_assistance, 'debt_assistance')
       });
     }
 
     // Education Assistance
-    if (data.education_assistance && hasNonEmptyValues(data.education_assistance)) {
+    if (data.education_assistance && hasNonEmptyValues(data.education_assistance, 'education_assistance')) {
       assistanceDetails.push({
         individual_id: '',
         assistance_type: 'education_assistance',
-        details: {
+        details: normalizeAssistanceData({
           family_education_level: data.education_assistance.family_education_level || null,
           desire_for_education: data.education_assistance.desire_for_education || null,
           children_educational_needs: hasArrayValues(data.education_assistance.children_educational_needs)
             ? data.education_assistance.children_educational_needs
             : []
-        }
+        }, 'education_assistance')
       });
     }
 
     // Shelter Assistance
-    if (data.shelter_assistance && hasNonEmptyValues(data.shelter_assistance)) {
+    if (data.shelter_assistance && hasNonEmptyValues(data.shelter_assistance, 'shelter_assistance')) {
       // Validate housing condition
       const validHousingConditions = ['excellent', 'good', 'fair', 'poor', 'critical'];
       const housingCondition = data.shelter_assistance.housing_condition || '';
@@ -129,14 +210,14 @@ class AssistanceDetailsHandler {
       assistanceDetails.push({
         individual_id: '',
         assistance_type: 'shelter_assistance',
-        details: {
+        details: normalizeAssistanceData({
           type_of_housing: validHousingTypes.includes(housingType) ? housingType : null,
           housing_condition: validHousingConditions.includes(housingCondition) ? housingCondition : null,
           number_of_rooms: numberOfRooms,
           household_appliances: hasArrayValues(data.shelter_assistance.household_appliances)
             ? data.shelter_assistance.household_appliances
             : []
-        }
+        }, 'shelter_assistance')
       });
     }
 

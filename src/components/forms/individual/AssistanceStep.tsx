@@ -51,7 +51,7 @@ function AssistanceSection({
 
 export function AssistanceStep() {
   const { t } = useLanguage();
-  const { register, watch } = useFormContext<IndividualFormData>();
+  const { register, watch, formState: { errors }, setValue } = useFormContext<IndividualFormData>();
   
   // Track which sections are open
   const [openSections, setOpenSections] = useState({
@@ -77,6 +77,33 @@ export function AssistanceStep() {
   // Watch marriage assistance status to show conditional fields
   const needsMarriageAssistance = watch('marriage_assistance.marriage_support_needed');
   const weddingContractSigned = watch('marriage_assistance.wedding_contract_signed');
+  
+  // Watch medical assistance to validate meaningful selection
+  const medicalAssistanceTypes = watch('medical_help.type_of_medical_assistance_needed') || [];
+  
+  // Helper function to clear related fields when main checkbox is unchecked
+  const { setValue } = useFormContext<IndividualFormData>();
+  
+  // Clear debt fields when needs_debt_assistance is unchecked
+  React.useEffect(() => {
+    if (!needsDebtAssistance) {
+      setValue('debt_assistance.debt_amount', 0);
+      setValue('debt_assistance.household_appliances', false);
+      setValue('debt_assistance.hospital_bills', false);
+      setValue('debt_assistance.education_fees', false);
+      setValue('debt_assistance.business_debt', false);
+      setValue('debt_assistance.other_debt', false);
+    }
+  }, [needsDebtAssistance, setValue]);
+  
+  // Clear marriage fields when marriage_support_needed is unchecked
+  React.useEffect(() => {
+    if (!needsMarriageAssistance) {
+      setValue('marriage_assistance.wedding_contract_signed', false);
+      setValue('marriage_assistance.wedding_date', '');
+      setValue('marriage_assistance.specific_needs', '');
+    }
+  }, [needsMarriageAssistance, setValue]);
 
   return (
     <div className="space-y-4">
@@ -276,6 +303,7 @@ export function AssistanceStep() {
                   className="w-full p-2 border rounded-md border-gray-300" 
                   placeholder={t('whatAreTheNeeds')}
                   rows={3}
+                  disabled={!needsMarriageAssistance || !weddingContractSigned}
                 />
               </div>
             </div>
@@ -296,6 +324,7 @@ export function AssistanceStep() {
                 type="checkbox" 
                 {...register('debt_assistance.needs_debt_assistance')} 
                 className="mr-2"
+                disabled={!needsMarriageAssistance}
               />
               <span>{t('needsDebtAssistance')}</span>
             </label>
@@ -308,12 +337,20 @@ export function AssistanceStep() {
                 <input 
                   type="number" 
                   {...register('debt_assistance.debt_amount', {
-                    setValueAs: (value) => value === "" ? 0 : Number(value)
+                    setValueAs: (value) => value === "" ? 0 : Number(value),
+                    required: needsDebtAssistance ? "Debt amount is required when debt assistance is needed" : false,
+                    min: needsDebtAssistance ? { value: 1, message: "Debt amount must be greater than 0" } : undefined
                   })} 
                   className="w-full p-2 border rounded-md border-gray-300" 
                   placeholder="0"
                   min="0"
+                  disabled={!needsDebtAssistance}
                 />
+                {errors.debt_assistance?.debt_amount && (
+                  <p className="mt-1 text-sm text-red-500" role="alert">
+                    {errors.debt_assistance.debt_amount.message}
+                  </p>
+                )}
               </div>
               
               <div>
@@ -324,6 +361,7 @@ export function AssistanceStep() {
                       type="checkbox" 
                       {...register('debt_assistance.household_appliances')} 
                       className="mr-2"
+                      disabled={!needsDebtAssistance}
                     />
                     <span>{t('householdAppliances')}</span>
                   </label>
@@ -332,6 +370,7 @@ export function AssistanceStep() {
                       type="checkbox" 
                       {...register('debt_assistance.hospital_bills')} 
                       className="mr-2"
+                      disabled={!needsDebtAssistance}
                     />
                     <span>{t('hospitalBills')}</span>
                   </label>
@@ -340,6 +379,7 @@ export function AssistanceStep() {
                       type="checkbox" 
                       {...register('debt_assistance.education_fees')} 
                       className="mr-2"
+                      disabled={!needsDebtAssistance}
                     />
                     <span>{t('educationFees')}</span>
                   </label>
@@ -348,6 +388,7 @@ export function AssistanceStep() {
                       type="checkbox" 
                       {...register('debt_assistance.business_debt')} 
                       className="mr-2"
+                      disabled={!needsDebtAssistance}
                     />
                     <span>{t('businessDebt')}</span>
                   </label>
@@ -356,6 +397,7 @@ export function AssistanceStep() {
                       type="checkbox" 
                       {...register('debt_assistance.other_debt')} 
                       className="mr-2"
+                      disabled={!needsDebtAssistance}
                     />
                     <span>{t('otherDebt')}</span>
                   </label>
