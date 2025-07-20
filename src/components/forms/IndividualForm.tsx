@@ -254,17 +254,58 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
     try {
       window.scrollTo(0, 0);
       
+      // Filter out duplicate children by first and last name
+      const uniqueChildren = (data.children || []).filter((child, index, self) =>
+        index === self.findIndex(c => c.first_name === child.first_name && c.last_name === child.last_name)
+      );
+
+      // Helper to check if assistance object has meaningful values
+      const hasNonEmptyValues = (obj: any, type: string) => {
+        if (!obj) return false;
+        switch (type) {
+          case 'debt_assistance':
+            return obj.needs_debt_assistance === true;
+          case 'marriage_assistance':
+            return obj.marriage_support_needed === true;
+          case 'medical_help':
+            return (Array.isArray(obj.type_of_medical_assistance_needed) && obj.type_of_medical_assistance_needed.length > 0) ||
+              obj.health_insurance_coverage === true ||
+              (obj.medication_distribution_frequency && obj.medication_distribution_frequency.trim().length > 0) ||
+              (obj.estimated_cost_of_treatment && obj.estimated_cost_of_treatment.trim().length > 0) ||
+              (obj.additional_details && obj.additional_details.trim().length > 0);
+          case 'food_assistance':
+            return (Array.isArray(obj.type_of_food_assistance_needed) && obj.type_of_food_assistance_needed.length > 0) || obj.food_supply_card === true;
+          case 'education_assistance':
+            return (obj.family_education_level && obj.family_education_level.trim().length > 0) ||
+              (obj.desire_for_education && obj.desire_for_education.trim().length > 0) ||
+              (Array.isArray(obj.children_educational_needs) && obj.children_educational_needs.length > 0);
+          case 'shelter_assistance':
+            return (obj.type_of_housing && obj.type_of_housing.trim().length > 0) ||
+              (obj.housing_condition && obj.housing_condition.trim().length > 0) ||
+              (obj.number_of_rooms && obj.number_of_rooms > 0) ||
+              (Array.isArray(obj.household_appliances) && obj.household_appliances.length > 0);
+          default:
+            return Object.entries(obj).some(([_, value]) => {
+              if (Array.isArray(value)) return value.length > 0;
+              if (typeof value === 'boolean') return value === true;
+              if (typeof value === 'number') return value > 0;
+              if (typeof value === 'string') return value.trim().length > 0;
+              return false;
+            });
+        }
+      };
+
       // Format the data for submission
       const formattedData = {
         ...data,
-        children: data.children?.map(child => ({
+        children: uniqueChildren.map(child => ({
           first_name: child.first_name,
           last_name: child.last_name,
           date_of_birth: child.date_of_birth,
           gender: child.gender,
           description: child.description || '',
           school_stage: child.school_stage || undefined
-        })) || [],
+        })),
         additional_members: data.additional_members?.map(member => ({
           name: member.name,
           date_of_birth: member.date_of_birth,
@@ -276,44 +317,12 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
         })) || [],
         needs: data.needs || [],
         hashtags: data.hashtags || [],
-        // Explicitly include all assistance fields to ensure they're properly submitted
-        medical_help: data.medical_help || {
-          type_of_medical_assistance_needed: [],
-          medication_distribution_frequency: '',
-          estimated_cost_of_treatment: '',
-          health_insurance_coverage: false,
-          additional_details: ''
-        },
-        food_assistance: data.food_assistance || {
-          type_of_food_assistance_needed: [],
-          food_supply_card: false
-        },
-        marriage_assistance: data.marriage_assistance || {
-          marriage_support_needed: false,
-          wedding_contract_signed: false,
-          wedding_date: '',
-          specific_needs: ''
-        },
-        debt_assistance: data.debt_assistance || {
-          needs_debt_assistance: false,
-          debt_amount: 0,
-          household_appliances: false,
-          hospital_bills: false,
-          education_fees: false,
-          business_debt: false,
-          other_debt: false
-        },
-        education_assistance: data.education_assistance || {
-          family_education_level: '',
-          desire_for_education: '',
-          children_educational_needs: []
-        },
-        shelter_assistance: data.shelter_assistance || {
-          type_of_housing: '',
-          housing_condition: '',
-          number_of_rooms: 0,
-          household_appliances: []
-        }
+        medical_help: hasNonEmptyValues(data.medical_help, 'medical_help') ? data.medical_help : undefined,
+        food_assistance: hasNonEmptyValues(data.food_assistance, 'food_assistance') ? data.food_assistance : undefined,
+        marriage_assistance: hasNonEmptyValues(data.marriage_assistance, 'marriage_assistance') ? data.marriage_assistance : undefined,
+        debt_assistance: hasNonEmptyValues(data.debt_assistance, 'debt_assistance') ? data.debt_assistance : undefined,
+        education_assistance: hasNonEmptyValues(data.education_assistance, 'education_assistance') ? data.education_assistance : undefined,
+        shelter_assistance: hasNonEmptyValues(data.shelter_assistance, 'shelter_assistance') ? data.shelter_assistance : undefined
       };
       
       await onSubmit(formattedData);
