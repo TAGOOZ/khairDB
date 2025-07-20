@@ -81,8 +81,7 @@ export function AssistanceStep() {
   // Watch medical assistance to validate meaningful selection
   const medicalAssistanceTypes = watch('medical_help.type_of_medical_assistance_needed') || [];
   
-  // Helper function to clear related fields when main checkbox is unchecked
-  const { setValue } = useFormContext<IndividualFormData>();
+  
   
   // Clear debt fields when needs_debt_assistance is unchecked
   React.useEffect(() => {
