@@ -6,6 +6,7 @@ import { Plus, Trash2, UserPlus } from 'lucide-react';
 import { Button } from '../../ui/Button';
 import { IndividualFormData } from '../../../schemas/individualSchema';
 import { ChildRemovalModal } from './ChildRemovalModal';
+import { deleteChild } from '../../../services/children';
 import { safeTrans } from '../../../utils/translations';
 
 // Modal component for adding family members
@@ -346,25 +347,28 @@ export function FamilyMembersStep({
   };
 
   // Handle permanently deleting a child
-  const handleDeleteChild = () => {
+  const handleDeleteChild = async () => {
     if (childRemovalModal.childIndex >= 0) {
-      // Use the original remove function which deletes the child from the database
-      if (removeChild) {
-        removeChild(childRemovalModal.childIndex);
-      }
+      const child = getValues(`children.${childRemovalModal.childIndex}`);
       
-      // Also remove from the form
-      removeChildField(childRemovalModal.childIndex);
-      closeChildRemovalModal();
-    }
-  };
-
-  // Handle removing child from family only (not deleting from database)
-  const handleRemoveFromFamily = () => {
-    if (childRemovalModal.childIndex >= 0) {
-      // Just remove from the form array, but don't trigger the database delete
-      removeChildField(childRemovalModal.childIndex);
-      closeChildRemovalModal();
+      try {
+        // If the child has an ID, delete it from the database
+        if (child.id) {
+          await deleteChild(child.id);
+        }
+        
+        // Remove from the form array
+        removeChildField(childRemovalModal.childIndex);
+        
+        // Close the modal
+        closeChildRemovalModal();
+      } catch (error) {
+        console.error('Failed to delete child:', error);
+        // You might want to show an error message to the user here
+        // For now, we'll still remove from form to maintain consistency
+        removeChildField(childRemovalModal.childIndex);
+        closeChildRemovalModal();
+      }
     }
   };
   
@@ -511,8 +515,6 @@ export function FamilyMembersStep({
         isOpen={childRemovalModal.isOpen}
         onClose={closeChildRemovalModal}
         onConfirm={handleDeleteChild}
-        onRemoveFromFamily={handleRemoveFromFamily}
-        showRemoveFromFamilyOption={true}
         childName={childRemovalModal.childName}
       />
     </div>

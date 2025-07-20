@@ -7,8 +7,6 @@ interface ChildRemovalModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
-  onRemoveFromFamily?: () => void;
-  showRemoveFromFamilyOption?: boolean;
   childName?: string;
 }
 
@@ -16,8 +14,6 @@ export const ChildRemovalModal: React.FC<ChildRemovalModalProps> = ({
   isOpen,
   onClose,
   onConfirm,
-  onRemoveFromFamily,
-  showRemoveFromFamilyOption = false,
   childName
 }) => {
   const { t } = useLanguage();
@@ -46,16 +42,6 @@ export const ChildRemovalModal: React.FC<ChildRemovalModalProps> = ({
             >
               {safeTrans(t, 'cancel')}
             </Button>
-            
-            {showRemoveFromFamilyOption && onRemoveFromFamily && (
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={onRemoveFromFamily}
-              >
-                {safeTrans(t, 'removeFromFamily')}
-              </Button>
-            )}
             
             <Button
               type="button"
