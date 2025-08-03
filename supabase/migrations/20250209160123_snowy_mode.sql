@@ -2,6 +2,39 @@
 DROP FUNCTION IF EXISTS create_individual_with_children(JSONB, JSONB);
 DROP FUNCTION IF EXISTS update_individual_with_children(UUID, JSONB, JSONB);
 
+-- Enable RLS on children table
+ALTER TABLE public.children ENABLE ROW LEVEL SECURITY;
+
+-- Children table policies
+CREATE POLICY "Users can view all children"
+  ON public.children FOR SELECT
+  TO authenticated
+  USING (true);
+
+CREATE POLICY "Users can create children"
+  ON public.children FOR INSERT
+  TO authenticated
+  WITH CHECK (
+    is_admin() OR
+    created_by = auth.uid()
+  );
+
+CREATE POLICY "Users can update children they created"
+  ON public.children FOR UPDATE
+  TO authenticated
+  USING (
+    is_admin() OR
+    created_by = auth.uid()
+  );
+
+CREATE POLICY "Users can delete children they created"
+  ON public.children FOR DELETE
+  TO authenticated
+  USING (
+    is_admin() OR
+    created_by = auth.uid()
+  );
+
 -- Function to add child with family
 CREATE OR REPLACE FUNCTION add_child_with_family(
   p_parent_id UUID,

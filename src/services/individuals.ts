@@ -2,6 +2,7 @@ import { supabase } from '../lib/supabase';
 import { IndividualFormData } from '../schemas/individualSchema';
 import { addHashtagToAll } from './hashtags';
 import { createIndividualFolderAPI } from '../api/googleDrive';
+import { Child } from '../types';
 
 interface AssistanceDetail {
   individual_id: string;
@@ -513,257 +514,177 @@ export async function createIndividual(data: IndividualFormData) {
 
 export async function updateIndividual(id: string, data: IndividualFormData) {
   try {
-    // Get the authenticated user
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      throw new IndividualError('auth-error', 'Authentication required', null);
-    }
-    
-    // Handle family creation or selection
-    let familyId = data.family_id;
-    
-    if (!familyId && data.new_family_name) {
-      const { data: newFamily, error: familyError } = await supabase
-        .from('families')
-        .insert([{
-          name: data.new_family_name,
-          district: data.district,
-          phone: data.phone || '',
-          address: data.address || '',
-          status: 'green'
-        }])
-        .select();
-        
-      if (familyError) {
-        throw new IndividualError('family-update-failed', 'Failed to create family', familyError);
-      }
-      
-      if (newFamily && newFamily.length > 0) {
-        familyId = newFamily[0].id;
-      }
-    }
-    
-    // Update individual record
-    const individualData = {
-      first_name: data.first_name,
-      last_name: data.last_name,
-      id_number: data.id_number,
-      date_of_birth: data.date_of_birth,
-      gender: data.gender,
-      marital_status: data.marital_status,
-      phone: data.phone || null,
-      address: data.address || null,
-      family_id: familyId,
-      district: data.district,
-      description: data.description || null,
-      job: data.job || null,
-      employment_status: data.employment_status,
-      salary: data.salary || null,
-      list_status: data.list_status
-    };
-
-    const { error } = await supabase
+    // Update individual
+    const { error: updateError } = await supabase
       .from('individuals')
-      .update(individualData)
+      .update({
+        first_name: data.first_name,
+        last_name: data.last_name,
+        id_number: data.id_number,
+        date_of_birth: data.date_of_birth,
+        gender: data.gender,
+        marital_status: data.marital_status,
+        phone: data.phone,
+        district: data.district,
+        address: data.address,
+        description: data.description,
+        job: data.job,
+        employment_status: data.employment_status,
+        salary: data.salary,
+        list_status: data.list_status
+      })
       .eq('id', id);
 
-    if (error) {
-      throw new IndividualError('update-failed', 'Failed to update individual', error);
+    if (updateError) {
+      throw new IndividualError('update-failed', 'Failed to update individual', updateError);
     }
 
-    // Update hashtags if specified
-    if (data.hashtags && data.hashtags.length > 0) {
-      // First, delete existing hashtag associations
-      const { error: hashtagDeleteError } = await supabase
-        .from('individual_hashtags')
-        .delete()
-        .eq('individual_id', id);
-        
-      if (hashtagDeleteError) {
-        console.error('Error deleting existing hashtags:', hashtagDeleteError);
-      }
-      
-      // Then add the new hashtags
-      for (const hashtag of data.hashtags) {
-        await addHashtagToAll(hashtag, [id]);
-      }
-    }
-
-    // Update family membership if family changed
+    // Update family membership if needed
+    const familyId = data.family_id;
     if (familyId) {
-      // Get the current family_id of the individual
-      const { data: currentIndividual } = await supabase
-        .from('individuals')
-        .select('family_id')
-        .eq('id', id)
-        .single();
-      
-      // Only remove from old family if they're changing families
-      if (currentIndividual && currentIndividual.family_id && currentIndividual.family_id !== familyId) {
-        // Check if they're the only parent in their current family
-        const { data: familyParents, error: parentsCheckError } = await supabase
-          .from('family_members')
-          .select('individual_id')
-          .eq('family_id', currentIndividual.family_id)
-          .eq('role', 'parent');
-          
-        if (parentsCheckError) {
-          console.error('Error checking family parents:', parentsCheckError);
-        }
-        
-        // If they are the only parent, don't remove them from the family
-        // This avoids violating the "at least one parent" constraint
-        if (!familyParents || familyParents.length > 1) {
-          // Safe to remove - there are other parents
-          const { error: deleteError } = await supabase
-        .from('family_members')
-        .delete()
-        .eq('individual_id', id);
-
-          if (deleteError) {
-            console.error('Error removing from previous family:', deleteError);
-          }
-        } else {
-          console.log('Skipping family_members removal - individual is the only parent in family');
-        }
-      }
-
-      // Check if the record already exists before inserting
+      // Check if already a member of this family
       const { data: existingMember, error: checkError } = await supabase
         .from('family_members')
         .select('id')
-        .eq('family_id', familyId)
         .eq('individual_id', id)
-        .maybeSingle();
+        .eq('family_id', familyId)
+        .single();
 
-      if (checkError) {
+      if (checkError && checkError.code !== 'PGRST116') {
         console.error('Error checking existing family member:', checkError);
       }
 
       if (!existingMember) {
         // Add to new family only if not already a member
-      const { error: memberError } = await supabase
-        .from('family_members')
-        .insert([{
-          family_id: familyId,
-          individual_id: id,
-          role: 'parent'
-        }]);
+        const { error: memberError } = await supabase
+          .from('family_members')
+          .insert([{
+            family_id: familyId,
+            individual_id: id,
+            role: 'parent'
+          }]);
 
-      if (memberError) {
+        if (memberError) {
           console.error('Family member insert error details:', memberError);
-        throw new IndividualError('family-member-update-failed', 'Failed to update family membership', memberError);
+          throw new IndividualError('family-member-update-failed', 'Failed to update family membership', memberError);
         }
       }
     }
 
-    // Replace the children update section in updateIndividual function with this:
+    // Update children
+    if (Array.isArray(data.children) && familyId) {
+      // Fetch existing children for this individual
+      const { data: existingChildren, error: existingChildrenError } = await supabase
+        .from('children')
+        .select('id, first_name, last_name')
+        .eq('parent_id', id);
+        
+      if (existingChildrenError) {
+        throw new IndividualError('fetch-failed', 'Failed to fetch existing children', existingChildrenError);
+      }
 
-// Update children
-if (Array.isArray(data.children) && familyId) {
-  // Fetch existing children for this individual
-  const { data: existingChildren, error: existingChildrenError } = await supabase
-    .from('children')
-    .select('id')
-    .eq('parent_id', id);
-    
-  if (existingChildrenError) {
-    console.error('Error fetching existing children:', existingChildrenError);
-    throw new IndividualError('fetch-failed', 'Failed to fetch existing children', existingChildrenError);
-  }
-
-  const existingIds = (existingChildren || []).map((c: { id: string }) => c.id);
-  
-  // Get IDs of children that are being kept/updated (only existing children with IDs)
-  const submittedIds = data.children
-    .filter((c: any) => c.id && typeof c.id === 'string') // Only include children that have valid IDs
-    .map((c: any) => c.id);
-
-  console.log('Existing children IDs:', existingIds);
-  console.log('Submitted children IDs:', submittedIds);
-  
-  // Delete children that were removed (exist in DB but not in submitted data)
-  const idsToDelete = existingIds.filter((cid: string) => !submittedIds.includes(cid));
-  
-  if (idsToDelete.length > 0) {
-    console.log('Deleting children with IDs:', idsToDelete);
-    const { error: deleteChildrenError } = await supabase
-      .from('children')
-      .delete()
-      .in('id', idsToDelete);
+      const existingIds = (existingChildren || []).map((c: { id: string }) => c.id);
       
-    if (deleteChildrenError) {
-      console.error('Error deleting children:', deleteChildrenError);
-      throw new IndividualError('deletion-failed', 'Failed to delete children', deleteChildrenError);
-    }
-  }
-  
-  // Process each child in the submitted data
-  for (const child of data.children as any[]) {
-    if (child.id && typeof child.id === 'string' && child.id.trim() !== '') {
-      // Update existing child
-      console.log('Updating existing child:', child.id);
-      const { error: updateChildError } = await supabase
-        .from('children')
-        .update({
-          first_name: child.first_name,
-          last_name: child.last_name,
-          date_of_birth: child.date_of_birth,
-          gender: child.gender,
-          school_stage: child.school_stage,
-          description: child.description || null,
-          parent_id: id,
-          family_id: familyId
-        })
-        .eq('id', child.id);
-        
-      if (updateChildError) {
-        console.error('Error updating child:', updateChildError);
-        throw new IndividualError('update-failed', 'Failed to update child', updateChildError);
+      // Get IDs of children that are being kept/updated (only existing children with IDs)
+      const submittedIds = data.children
+        .filter((c: any) => c.id && typeof c.id === 'string') // Only include children that have valid IDs
+        .map((c: any) => c.id);
+
+      console.log('Existing children IDs:', existingIds);
+      console.log('Submitted children IDs:', submittedIds);
+      
+      // Find children to delete (exist in DB but not in submitted data)
+      const idsToDelete = existingIds.filter((cid: string) => !submittedIds.includes(cid));
+      
+      if (idsToDelete.length > 0) {
+        console.log('Deleting children with IDs:', idsToDelete);
+        const { error: deleteChildrenError } = await supabase
+          .from('children')
+          .delete()
+          .in('id', idsToDelete)
+          .eq('parent_id', id); // Extra safety check
+          
+        if (deleteChildrenError) {
+          throw new IndividualError('deletion-failed', 'Failed to delete children', deleteChildrenError);
+        }
       }
-    } else {
-      // Insert new child (no ID or empty ID means it's new)
-      console.log('Inserting new child:', child.first_name, child.last_name);
-      const { error: insertChildError } = await supabase
+      
+      // Process each child in the submitted data
+      for (const child of data.children as Child[]) {
+        if (child.id && typeof child.id === 'string' && child.id.trim() !== '') {
+          // Verify the child belongs to this parent before updating
+          const { data: childExists, error: checkError } = await supabase
+            .from('children')
+            .select('id')
+            .eq('id', child.id)
+            .eq('parent_id', id)
+            .single();
+
+          if (checkError || !childExists) {
+            throw new IndividualError('invalid-child', `Child ${child.id} does not belong to this parent`, checkError);
+          }
+
+          // Update existing child
+          console.log('Updating existing child:', child.id);
+          const { error: updateChildError } = await supabase
+            .from('children')
+            .update({
+              first_name: child.first_name,
+              last_name: child.last_name,
+              date_of_birth: child.date_of_birth,
+              gender: child.gender,
+              school_stage: child.school_stage,
+              description: child.description || null,
+              parent_id: id,
+              family_id: familyId
+            })
+            .eq('id', child.id)
+            .eq('parent_id', id); // Extra safety check
+            
+          if (updateChildError) {
+            throw new IndividualError('update-failed', 'Failed to update child', updateChildError);
+          }
+        } else {
+          // Insert new child (no ID or empty ID means it's new)
+          console.log('Inserting new child:', child.first_name, child.last_name);
+          const { error: insertChildError } = await supabase
+            .from('children')
+            .insert([{
+              first_name: child.first_name,
+              last_name: child.last_name,
+              date_of_birth: child.date_of_birth,
+              gender: child.gender,
+              school_stage: child.school_stage,
+              description: child.description || null,
+              parent_id: id,
+              family_id: familyId
+            }]);
+            
+          if (insertChildError) {
+            throw new IndividualError('creation-failed', 'Failed to create child', insertChildError);
+          }
+        }
+      }
+    } else if (Array.isArray(data.children) && data.children.length === 0 && familyId) {
+      // If children array is explicitly empty, delete all existing children
+      console.log('Deleting all children as children array is empty');
+      const { error: deleteAllChildrenError } = await supabase
         .from('children')
-        .insert([{
-          first_name: child.first_name,
-          last_name: child.last_name,
-          date_of_birth: child.date_of_birth,
-          gender: child.gender,
-          school_stage: child.school_stage,
-          description: child.description || null,
-          parent_id: id,
-          family_id: familyId
-        }]);
+        .delete()
+        .eq('parent_id', id);
         
-      if (insertChildError) {
-        console.error('Error inserting child:', insertChildError);
-        throw new IndividualError('creation-failed', 'Failed to create child', insertChildError);
+      if (deleteAllChildrenError) {
+        throw new IndividualError('deletion-failed', 'Failed to delete all children', deleteAllChildrenError);
       }
     }
-  }
-} else if (Array.isArray(data.children) && data.children.length === 0 && familyId) {
-  // If children array is explicitly empty, delete all existing children
-  console.log('Deleting all children as children array is empty');
-  const { error: deleteAllChildrenError } = await supabase
-    .from('children')
-    .delete()
-    .eq('parent_id', id);
-    
-  if (deleteAllChildrenError) {
-    console.error('Error deleting all children:', deleteAllChildrenError);
-    throw new IndividualError('deletion-failed', 'Failed to delete all children', deleteAllChildrenError);
-  }
-}
+
     // Handle assistance details update
     const hasAssistanceData = data.medical_help || 
-                            data.food_assistance || 
-                            data.marriage_assistance || 
-                            data.debt_assistance || 
-                            data.education_assistance || 
-                            data.shelter_assistance;
+                          data.food_assistance || 
+                          data.marriage_assistance || 
+                          data.debt_assistance || 
+                          data.education_assistance || 
+                          data.shelter_assistance;
 
     if (hasAssistanceData) {
       await AssistanceDetailsHandler.updateAssistanceDetails(supabase, id, data);
@@ -772,24 +693,16 @@ if (Array.isArray(data.children) && familyId) {
     return id;
   } catch (error: any) {
     console.error('Error updating individual - DETAILED ERROR:', {
-      errorType: error?.constructor?.name,
-      message: error?.message,
-      code: error?.code,
-      details: error?.details,
-      stack: error?.stack
+      errorType: error.constructor.name,
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      stack: error.stack
     });
-    
-    // If it's already an IndividualError, just rethrow it
     if (error instanceof IndividualError) {
-    throw error;
+      throw error;
     }
-    
-    // Otherwise, create a new one with a more descriptive message
-    throw new IndividualError(
-      'update-failed', 
-      `Failed to update individual: ${error?.message || 'Unknown error'}`, 
-      error
-    );
+    throw new IndividualError('unexpected', 'An unexpected error occurred while updating the individual', error);
   }
 }
 

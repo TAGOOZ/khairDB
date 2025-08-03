@@ -136,4 +136,98 @@ export const translations = {
   errorsToFixBefore: "Please fix the following errors before submitting:",
   errorsToFix: "{{count}} errors to fix",
   pleaseCompleteForm: "Please complete the form",
+
+  // Assistance Description
+  assistanceDescription: 'Please provide details about any assistance needed.',
+  whatAreTheNeeds: 'What are the specific needs?',
+  whatIsDesireForEducation: 'What is the desire for education?',
+
+  // Medical Assistance
+  medicalCheckup: 'Medical Checkup',
+  labTests: 'Lab Tests',
+  xraysAndScans: 'X-rays/Scans',
+  surgeries: 'Surgeries',
+  monthly: 'Monthly',
+  intermittent: 'Intermittent',
+  ableToAfford: 'Able to afford',
+  unableToAfford: 'Unable to afford',
+  partiallyAble: 'Partially able',
+  choose: 'Choose',
+
+  // Food Assistance
+  readyMeals: 'Ready-made meals',
+  nonReadyMeals: 'Non-ready meals',
+
+  // Debt Types
+  householdAppliances: 'Household Appliances',
+  hospitalBills: 'Hospital Bills',
+  educationFees: 'Education Fees',
+  businessDebt: 'Business Debt',
+  otherDebt: 'Other Debt',
+  needsDebtAssistance: 'Needs Debt Assistance',
+
+  // Education Levels
+  noEducation: 'No Education',
+  primaryEducation: 'Primary Education',
+  intermediateEducation: 'Intermediate Education',
+  secondaryEducation: 'Secondary Education',
+  universityEducation: 'University Education',
+  literate: 'Literate',
+  illiterate: 'Illiterate',
+
+  // Educational Needs
+  tuitionFees: 'Tuition Fees',
+  supplies: 'School Supplies',
+  uniforms: 'School Uniforms',
+  transportation: 'Transportation',
+  books: 'Books',
+  tutoring: 'Tutoring',
+
+  // Household Appliances
+  stove: 'Stove',
+  automaticWashingMachine: 'Automatic Washing Machine',
+  manualWashingMachine: 'Manual Washing Machine',
+  refrigerator: 'Refrigerator',
+  tv: 'TV',
+  fan: 'Fan',
+
+  // Housing
+  owned: 'Owned',
+  newRental: 'New Rental',
+  oldRental: 'Old Rental',
+  healthy: 'Healthy',
+  moderate: 'Moderate',
+  unhealthy: 'Unhealthy',
+
+  // Form Steps
+  contactInformation: 'Contact Information',
+  personalInformation: 'Personal Information',
+  familyMembers: 'Family Members',
+  assistanceNeeds: 'Assistance Needs',
+  employmentInformation: 'Employment Information',
+  reviewAndSubmit: 'Review & Submit',
+  readyToSubmit: 'Ready to Submit',
+  reviewYourInformation: 'Review Your Information',
+  finalCheckSubmit: 'Final check before submitting your information',
+
+  // Additional Form Labels
+  summaryOfInformation: 'Summary of Information',
+  assistanceRequested: 'Assistance Requested',
+  familyAssignment: 'Family Assignment',
+  searchFamily: 'Search Family',
+  newFamily: 'New Family',
+
+  // Form Actions
+  skipToReview: 'Skip to Review',
+
+  // Page Sections
+  userManagement: 'User Management',
+
+  // Action Buttons
+  addIndividual: 'Add Individual',
+  createDistribution: 'Create Distribution',
+  submitIndividualRequest: 'Submit Individual Request',
+
+  // Filter Labels
+  category: 'Category',
 };

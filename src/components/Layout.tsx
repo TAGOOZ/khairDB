@@ -33,7 +33,7 @@ export function Layout() {
     { name: t('distributions'), href: '/distributions', icon: Package },
     { name: t('reports'), href: '/reports', icon: BarChart3 },
     { name: t('projects'), href: '/projects', icon: FolderKanban },
-    ...(user?.role === 'admin' ? [{ name: 'User Management', href: '/users', icon: UserCog }] : []),
+    ...(user?.role === 'admin' ? [{ name: t('userManagement'), href: '/users', icon: UserCog }] : []),
   ];
 
   const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);

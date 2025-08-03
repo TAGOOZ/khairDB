@@ -6,6 +6,7 @@ import { Pencil, Trash2, Eye, Printer } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { printIndividualsToCSV, downloadCSV } from '../../utils/print';
 import { useLanguage } from '../../contexts/LanguageContext';
+import type { TranslationKey } from '../../translations';
 
 interface IndividualsListProps {
   individuals: Individual[];
@@ -14,7 +15,7 @@ interface IndividualsListProps {
   onView: (individual: Individual) => void;
   userRole?: 'admin' | 'user';
   selectedForDistribution: string[];
-  setSelectedForDistribution: (ids: string[]) => void;
+  setSelectedForDistribution: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
 export function IndividualsList({ 
@@ -26,15 +27,14 @@ export function IndividualsList({
   selectedForDistribution, 
   setSelectedForDistribution 
 }: IndividualsListProps) {
-  const { t } = useLanguage();
+  const { t, dir } = useLanguage();
 
   const handleCheckboxChange = (id: string) => {
-    setSelectedForDistribution((prevSelected) => {
+    setSelectedForDistribution((prevSelected: string[]) => {
       if (prevSelected.includes(id)) {
-        return prevSelected.filter((selectedId) => selectedId !== id);
-      } else {
-        return [...prevSelected, id];
+        return prevSelected.filter((selectedId: string) => selectedId !== id);
       }
+      return [...prevSelected, id];
     });
   };
 
@@ -48,7 +48,7 @@ export function IndividualsList({
 
   const handlePrint = useCallback((format: 'csv') => {
     if (selectedForDistribution.length === 0) {
-      alert(t('selectAtLeastOne'));
+      alert(t('selectAtLeastOne' as TranslationKey));
       return;
     }
 
@@ -61,7 +61,7 @@ export function IndividualsList({
   }, [individuals, selectedForDistribution, t]);
 
   return (
-    <div className="bg-white shadow-md rounded-lg overflow-hidden">
+    <div className="bg-white shadow-md rounded-lg overflow-hidden" dir={dir}>
       <div className="flex justify-between items-center p-4">
         <div className="flex items-center">
           <Button
@@ -69,9 +69,12 @@ export function IndividualsList({
             size="sm"
             onClick={handleSelectAll}
           >
-            {selectedForDistribution.length === individuals.length ? t('deselectAll') : t('selectAll')}
+            {selectedForDistribution.length === individuals.length ? 
+              t('deselectAll' as TranslationKey) : 
+              t('selectAll' as TranslationKey)
+            }
           </Button>
-          <span className="ml-2 text-sm text-gray-500">
+          <span className="mx-2 text-sm text-gray-500">
             ({selectedForDistribution.length})
           </span>
         </div>
@@ -82,7 +85,7 @@ export function IndividualsList({
             icon={Printer}
             onClick={() => handlePrint('csv')}
           >
-            {t('exportCSV')}
+            {t('exportCSV' as TranslationKey)}
           </Button>
         </div>
       </div>
@@ -90,87 +93,78 @@ export function IndividualsList({
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                {t('name')}
+              <th className={`px-6 py-3 text-${dir === 'rtl' ? 'right' : 'left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
+                {t('name' as TranslationKey)}
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                {t('idNumber')}
+              <th className={`px-6 py-3 text-${dir === 'rtl' ? 'right' : 'left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
+                {t('created' as TranslationKey)}
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                {t('contactInfo')}
+              <th className={`px-6 py-3 text-${dir === 'rtl' ? 'right' : 'left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
+                {t('addedBy' as TranslationKey)}
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                {t('district')}
+              <th className={`px-6 py-3 text-${dir === 'rtl' ? 'right' : 'left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
+                {t('idNumber' as TranslationKey)}
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                {t('description')}
+              <th className={`px-6 py-3 text-${dir === 'rtl' ? 'right' : 'left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
+                {t('contactInfo' as TranslationKey)}
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                {t('needs')}
+              <th className={`px-6 py-3 text-${dir === 'rtl' ? 'right' : 'left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
+                {t('needs' as TranslationKey)}
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                {t('created')}
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                {t('addedBy')}
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                {t('actions')}
+              <th className={`px-6 py-3 text-${dir === 'rtl' ? 'left' : 'right'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
+                {t('actions' as TranslationKey)}
               </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {individuals.map((individual) => (
               <tr key={individual.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className={`px-6 py-4 text-${dir === 'rtl' ? 'right' : 'left'}`}>
                   <div className="flex items-center">
                     <input
                       type="checkbox"
                       checked={selectedForDistribution.includes(individual.id)}
                       onChange={() => handleCheckboxChange(individual.id)}
-                      className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 mr-2"
+                      className={`h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 ${dir === 'rtl' ? 'ml-2' : 'mr-2'}`}
                     />
-                    <div className="text-sm font-medium text-gray-900">
-                      {individual.first_name} {individual.last_name}
+                    <div>
+                      <div className="text-sm font-medium text-gray-900">
+                        {individual.first_name} {individual.last_name}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {t('district' as TranslationKey)} {individual.district}
+                      </div>
                     </div>
                   </div>
-                  <div className="text-sm text-gray-500">
-                    {formatDate(individual.date_of_birth)}
-                  </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{individual.id_number}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{individual.phone}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{t('district')} {individual.district}</div>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="text-sm text-gray-900 max-w-xs truncate">
-                    {individual.description || '-'}
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex gap-1">
-                    {individual.needs.map((need) => (
-                      <NeedsBadge key={need.id} need={need} />
-                    ))}
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td className={`px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-${dir === 'rtl' ? 'right' : 'left'}`}>
                   {formatDate(individual.created_at)}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className={`px-6 py-4 whitespace-nowrap text-${dir === 'rtl' ? 'right' : 'left'}`}>
                   <div className="text-sm text-gray-900">
                     {individual.created_by_user ? (
                       `${individual.created_by_user.first_name} ${individual.created_by_user.last_name}`
                     ) : '-'}
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <div className="flex justify-end space-x-2">
+                <td className={`px-6 py-4 whitespace-nowrap text-${dir === 'rtl' ? 'right' : 'left'}`}>
+                  <div className="text-sm text-gray-900">{individual.id_number}</div>
+                </td>
+                <td className={`px-6 py-4 text-${dir === 'rtl' ? 'right' : 'left'}`}>
+                  <div className="text-sm text-gray-900">{individual.phone}</div>
+                  <div className="text-sm text-gray-500 truncate max-w-[200px]">
+                    {individual.description || '-'}
+                  </div>
+                </td>
+                <td className={`px-6 py-4 whitespace-nowrap text-${dir === 'rtl' ? 'right' : 'left'}`}>
+                  <div className="flex flex-wrap gap-1 max-w-[200px]">
+                    {individual.needs.map((need) => (
+                      <NeedsBadge key={need.id} need={need} />
+                    ))}
+                  </div>
+                </td>
+                <td className={`px-6 py-4 whitespace-nowrap text-${dir === 'rtl' ? 'left' : 'right'} text-sm font-medium`}>
+                  <div className={`flex justify-${dir === 'rtl' ? 'start' : 'end'} space-x-2`}>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -178,28 +172,28 @@ export function IndividualsList({
                       onClick={() => onView(individual)}
                       className="text-gray-600 hover:text-gray-900"
                     >
-                      {t('view')}
+                      {t('view' as TranslationKey)}
                     </Button>
                     {userRole === 'admin' && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        icon={Pencil}
-                        onClick={() => onEdit(individual)}
-                      >
-                        {t('edit')}
-                      </Button>
-                    )}
-                    {userRole === 'admin' && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        icon={Trash2}
-                        onClick={() => onDelete(individual.id)}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        {t('delete')}
-                      </Button>
+                      <>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          icon={Pencil}
+                          onClick={() => onEdit(individual)}
+                        >
+                          {t('edit' as TranslationKey)}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          icon={Trash2}
+                          onClick={() => onDelete(individual.id)}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          {t('delete' as TranslationKey)}
+                        </Button>
+                      </>
                     )}
                   </div>
                 </td>

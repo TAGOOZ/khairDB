@@ -16,8 +16,10 @@ import { createIndividual, updateIndividual, IndividualError } from '../../servi
 import { useNavigate } from 'react-router-dom';
 import { getIndividual } from '../../services/individuals';
 import { supabase } from '../../lib/supabase';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 export function Individuals() {
+  const { t } = useLanguage();
   const { 
     individuals, 
     isLoading, 
@@ -236,19 +238,19 @@ export function Individuals() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">Individuals</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t('individuals')}</h1>
         <div className="flex space-x-4">
           <Button
             onClick={handleCreateDistribution}
             icon={Package}
           >
-            Create Distribution
+            {t('createDistribution')}
           </Button>
           <Button
             onClick={handleAdd}
             icon={Plus}
           >
-            {user?.role === 'admin' ? 'Add Individual' : 'Submit Individual Request'}
+            {user?.role === 'admin' ? t('addIndividual') : t('submitIndividualRequest')}
           </Button>
         </div>
       </div>

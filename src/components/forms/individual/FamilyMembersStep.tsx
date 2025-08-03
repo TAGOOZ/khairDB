@@ -6,8 +6,10 @@ import { Plus, Trash2, UserPlus } from 'lucide-react';
 import { Button } from '../../ui/Button';
 import { IndividualFormData } from '../../../schemas/individualSchema';
 import { ChildRemovalModal } from './ChildRemovalModal';
-import { deleteChild } from '../../../services/children';
+import { deleteChild, ChildError } from '../../../services/children';
 import { safeTrans } from '../../../utils/translations';
+import { toast } from '../../../pages/Individuals/Toast';
+import type { TranslationKey } from '../../../translations';
 
 // Modal component for adding family members
 interface AddMemberModalProps {
@@ -355,18 +357,24 @@ export function FamilyMembersStep({
         // If the child has an ID, delete it from the database
         if (child.id) {
           await deleteChild(child.id);
+          // Only remove from form after successful deletion
+          removeChildField(childRemovalModal.childIndex);
+          toast.success(t('successDelete' as TranslationKey));
+        } else {
+          // If no ID, it's a new child not yet saved to DB
+          removeChildField(childRemovalModal.childIndex);
         }
-        
-        // Remove from the form array
-        removeChildField(childRemovalModal.childIndex);
         
         // Close the modal
         closeChildRemovalModal();
       } catch (error) {
         console.error('Failed to delete child:', error);
-        // You might want to show an error message to the user here
-        // For now, we'll still remove from form to maintain consistency
-        removeChildField(childRemovalModal.childIndex);
+        const errorMessage = error instanceof ChildError 
+          ? error.message 
+          : t('error' as TranslationKey);
+        
+        toast.error(errorMessage);
+        // Don't remove from form if deletion failed
         closeChildRemovalModal();
       }
     }

@@ -55,16 +55,32 @@ export async function updateChild(childId: string, data: Partial<Child>) {
 
 export async function deleteChild(childId: string) {
   try {
-    const { error } = await supabase
+    // First verify the child exists and get parent info
+    const { data: child, error: fetchError } = await supabase
+      .from('children')
+      .select('id, parent_id, family_id')
+      .eq('id', childId)
+      .single();
+
+    if (fetchError) {
+      throw new ChildError('not-found', 'Child not found', fetchError);
+    }
+
+    if (!child) {
+      throw new ChildError('not-found', 'Child not found');
+    }
+
+    // Delete the child
+    const { error: deleteError } = await supabase
       .from('children')
       .delete()
       .eq('id', childId);
 
-    if (error) {
-      throw new ChildError('deletion-failed', error.message, error);
+    if (deleteError) {
+      throw new ChildError('deletion-failed', 'Failed to delete child', deleteError);
     }
   } catch (error) {
     if (error instanceof ChildError) throw error;
-    throw new ChildError('unexpected', 'An unexpected error occurred', error);
+    throw new ChildError('unexpected', 'An unexpected error occurred while deleting the child', error);
   }
 }

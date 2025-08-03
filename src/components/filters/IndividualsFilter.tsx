@@ -129,7 +129,7 @@ export function IndividualsFilter({ filters, onFilterChange }: IndividualsFilter
           <div key={index} className="flex gap-4 items-end bg-gray-50 p-3 rounded-lg">
             <div className="flex-1">
               <Select
-                label="Category"
+                label={t('category')}
                 value={need.category}
                 onChange={(e) => updateNeedFilter(index, 'category', e.target.value as AssistanceType | '')}
                 options={assistanceCategories}

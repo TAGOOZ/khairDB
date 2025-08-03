@@ -86,7 +86,7 @@ const getNeedPriorityTranslationKey = (priority: NeedPriority): TranslationKey =
 };
 
 export function ViewIndividualModal({ isOpen, onClose, individual, isLoading }: ViewIndividualModalProps) {
-  const { t } = useLanguage();
+  const { t, dir } = useLanguage();
 
   if (!isOpen) return null;
 
@@ -146,13 +146,18 @@ export function ViewIndividualModal({ isOpen, onClose, individual, isLoading }: 
     }
   };
 
+  // Helper function to translate array values
+  const translateArrayValues = (values: string[]) => {
+    return values.map(value => t(value as TranslationKey)).join(', ');
+  };
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
         <div className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" onClick={onClose} />
 
-        <div className="inline-block px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
-          <div className="absolute top-0 right-0 pt-4 pr-4">
+        <div className={`inline-block px-4 pt-5 pb-4 overflow-hidden text-${dir === 'rtl' ? 'right' : 'left'} align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6`}>
+          <div className={`absolute top-0 ${dir === 'rtl' ? 'left-0 pl-4' : 'right-0 pr-4'} pt-4`}>
             <Button
               variant="ghost"
               size="sm"
@@ -173,9 +178,9 @@ export function ViewIndividualModal({ isOpen, onClose, individual, isLoading }: 
                 {/* Basic Information */}
                 <div className="bg-gray-50 rounded-lg p-4 space-y-2">
                   <div className="flex items-center text-gray-600">
-                    <CreditCard className="w-5 h-5 mr-2" />
+                    <CreditCard className={`w-5 h-5 ${dir === 'rtl' ? 'ml-2' : 'mr-2'}`} />
                     <span className="flex items-center">
-                      <span className="text-gray-600 mr-1">{t('idNumber')}:</span>
+                      <span className={`text-gray-600 ${dir === 'rtl' ? 'ml-1' : 'mr-1'}`}>{t('idNumber')}:</span>
                       <span>{individual.id_number}</span>
                     </span>
                   </div>
@@ -295,23 +300,23 @@ export function ViewIndividualModal({ isOpen, onClose, individual, isLoading }: 
 
                           {/* Medical Help */}
                           {assistance.assistance_type === 'medical_help' && assistance.details && (
-                            <div className="ml-7 space-y-1 text-sm">
+                            <div className={`${dir === 'rtl' ? 'mr-7' : 'ml-7'} space-y-1 text-sm`}>
                               {assistance.details.type_of_medical_assistance_needed?.length > 0 && (
                                 <div className="flex items-start">
-                                  <span className="text-gray-600 mr-1">{t('typeOfMedicalAssistance')}:</span>
-                                  <span>{assistance.details.type_of_medical_assistance_needed.join(', ')}</span>
+                                  <span className={`text-gray-600 ${dir === 'rtl' ? 'ml-1' : 'mr-1'}`}>{t('typeOfMedicalAssistance')}:</span>
+                                  <span>{translateArrayValues(assistance.details.type_of_medical_assistance_needed)}</span>
                                 </div>
                               )}
                               {assistance.details.medication_distribution_frequency && (
                                 <div className="flex items-start">
                                   <span className="text-gray-600 mr-1">{t('medicationDistributionFrequency')}:</span>
-                                  <span>{t(assistance.details.medication_distribution_frequency)}</span>
+                                  <span>{t(assistance.details.medication_distribution_frequency as TranslationKey)}</span>
                                 </div>
                               )}
                               {assistance.details.estimated_cost_of_treatment && (
                                 <div className="flex items-start">
                                   <span className="text-gray-600 mr-1">{t('estimatedCostOfTreatment')}:</span>
-                                  <span>{t(assistance.details.estimated_cost_of_treatment)}</span>
+                                  <span>{t(assistance.details.estimated_cost_of_treatment as TranslationKey)}</span>
                                 </div>
                               )}
                               <div className="flex items-start">
@@ -329,11 +334,11 @@ export function ViewIndividualModal({ isOpen, onClose, individual, isLoading }: 
 
                           {/* Food Assistance */}
                           {assistance.assistance_type === 'food_assistance' && assistance.details && (
-                            <div className="ml-7 space-y-1 text-sm">
+                            <div className={`${dir === 'rtl' ? 'mr-7' : 'ml-7'} space-y-1 text-sm`}>
                               {assistance.details.type_of_food_assistance_needed?.length > 0 && (
                                 <div className="flex items-start">
-                                  <span className="text-gray-600 mr-1">{t('typeOfFoodAssistance')}:</span>
-                                  <span>{assistance.details.type_of_food_assistance_needed.join(', ')}</span>
+                                  <span className={`text-gray-600 ${dir === 'rtl' ? 'ml-1' : 'mr-1'}`}>{t('typeOfFoodAssistance')}:</span>
+                                  <span>{translateArrayValues(assistance.details.type_of_food_assistance_needed)}</span>
                                 </div>
                               )}
                               <div className="flex items-start">
@@ -345,7 +350,7 @@ export function ViewIndividualModal({ isOpen, onClose, individual, isLoading }: 
 
                           {/* Marriage Assistance */}
                           {assistance.assistance_type === 'marriage_assistance' && assistance.details && (
-                            <div className="ml-7 space-y-1 text-sm">
+                            <div className={`${dir === 'rtl' ? 'mr-7' : 'ml-7'} space-y-1 text-sm`}>
                               <div className="flex items-start">
                                 <span className="text-gray-600 mr-1">{t('marriageSupportNeeded')}:</span>
                                 <span>{assistance.details.marriage_support_needed ? t('yes') : t('no')}</span>
@@ -371,7 +376,7 @@ export function ViewIndividualModal({ isOpen, onClose, individual, isLoading }: 
 
                           {/* Debt Assistance */}
                           {assistance.assistance_type === 'debt_assistance' && assistance.details && (
-                            <div className="ml-7 space-y-1 text-sm">
+                            <div className={`${dir === 'rtl' ? 'mr-7' : 'ml-7'} space-y-1 text-sm`}>
                               <div className="flex items-start">
                                 <span className="text-gray-600 mr-1">{t('debtStatus')}:</span>
                                 <span>{assistance.details.debt_status ? t('yes') : t('no')}</span>
@@ -393,11 +398,11 @@ export function ViewIndividualModal({ isOpen, onClose, individual, isLoading }: 
 
                           {/* Education Assistance */}
                           {assistance.assistance_type === 'education_assistance' && assistance.details && (
-                            <div className="ml-7 space-y-1 text-sm">
+                            <div className={`${dir === 'rtl' ? 'mr-7' : 'ml-7'} space-y-1 text-sm`}>
                               {assistance.details.family_education_level && (
                                 <div className="flex items-start">
                                   <span className="text-gray-600 mr-1">{t('familyEducationLevel')}:</span>
-                                  <span>{assistance.details.family_education_level}</span>
+                                  <span>{t(assistance.details.family_education_level as TranslationKey)}</span>
                                 </div>
                               )}
                               {assistance.details.desire_for_education && (
@@ -409,7 +414,7 @@ export function ViewIndividualModal({ isOpen, onClose, individual, isLoading }: 
                               {assistance.details.children_educational_needs?.length > 0 && (
                                 <div className="flex items-start">
                                   <span className="text-gray-600 mr-1">{t('childrenEducationalNeeds')}:</span>
-                                  <span>{assistance.details.children_educational_needs.join(', ')}</span>
+                                  <span>{translateArrayValues(assistance.details.children_educational_needs)}</span>
                                 </div>
                               )}
                             </div>
@@ -417,17 +422,17 @@ export function ViewIndividualModal({ isOpen, onClose, individual, isLoading }: 
 
                           {/* Shelter Assistance */}
                           {assistance.assistance_type === 'shelter_assistance' && assistance.details && (
-                            <div className="ml-7 space-y-1 text-sm">
+                            <div className={`${dir === 'rtl' ? 'mr-7' : 'ml-7'} space-y-1 text-sm`}>
                               {assistance.details.type_of_housing && (
                                 <div className="flex items-start">
                                   <span className="text-gray-600 mr-1">{t('typeOfHousing')}:</span>
-                                  <span>{assistance.details.type_of_housing}</span>
+                                  <span>{t(assistance.details.type_of_housing as TranslationKey)}</span>
                                 </div>
                               )}
                               {assistance.details.housing_condition && (
                                 <div className="flex items-start">
                                   <span className="text-gray-600 mr-1">{t('housingCondition')}:</span>
-                                  <span>{assistance.details.housing_condition}</span>
+                                  <span>{t(assistance.details.housing_condition as TranslationKey)}</span>
                                 </div>
                               )}
                               <div className="flex items-start">
@@ -437,7 +442,7 @@ export function ViewIndividualModal({ isOpen, onClose, individual, isLoading }: 
                               {assistance.details.household_appliances?.length > 0 && (
                                 <div className="flex items-start">
                                   <span className="text-gray-600 mr-1">{t('householdAppliances')}:</span>
-                                  <span>{assistance.details.household_appliances.join(', ')}</span>
+                                  <span>{translateArrayValues(assistance.details.household_appliances)}</span>
                                 </div>
                               )}
                             </div>

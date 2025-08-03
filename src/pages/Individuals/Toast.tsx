@@ -34,7 +34,7 @@ export const toast = {
   },
   error: (message: string) => {
     showToast(message, 'error');
-  },
+  }
 };
 
 function showToast(message: string, type: 'success' | 'error') {

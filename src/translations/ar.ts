@@ -19,12 +19,17 @@ export const translations = {
   actions: 'الإجراءات',
   close: 'إغلاق',
   remove: 'حذف',
-
-  // Auth
-  signIn: 'تسجيل الدخول',
-  signOut: 'تسجيل الخروج',
-  email: 'البريد الإلكتروني',
-  password: 'كلمة المرور',
+  all: 'الكل',
+  allDistricts: 'كل المناطق',
+  allCategories: 'كل الفئات',
+  searchPlaceholder: 'البحث بالاسم أو رقم الهاتف أو الوصف...',
+  selectAll: 'تحديد الكل',
+  deselectAll: 'إلغاء تحديد الكل',
+  exportCSV: 'تصدير CSV',
+  selectAtLeastOne: 'يرجى تحديد عنصر واحد على الأقل',
+  name: 'الاسم',
+  created: 'تاريخ الإنشاء',
+  contactInfo: 'معلومات الاتصال',
 
   // Form Labels
   firstName: 'الاسم الأول',
@@ -77,7 +82,7 @@ export const translations = {
   primary: 'ابتدائي',
   preparatory: 'إعدادي',
   secondary: 'ثانوي',
-  
+
   // User Management
   users: 'المستخدمون',
   addUser: 'إضافة مستخدم',
@@ -100,6 +105,9 @@ export const translations = {
 
   // Assistance Details
   assistanceInformation: 'معلومات المساعدة',
+  assistanceDescription: 'يرجى تقديم تفاصيل عن أي مساعدة مطلوبة.',
+  whatAreTheNeeds: 'ما هي الاحتياجات المحددة؟',
+  whatIsDesireForEducation: 'ما هي الرغبة في التعليم؟',
   typeOfMedicalAssistance: 'نوع المساعدة الطبية المطلوبة',
   medicationDistributionFrequency: 'دورية صرف العلاج',
   estimatedCostOfTreatment: 'تكلفة العلاج التقديرية',
@@ -120,7 +128,64 @@ export const translations = {
   typeOfHousing: 'نوع السكن',
   housingCondition: 'حالة السكن',
   numberOfRooms: 'عدد الغرف',
+
+  // Medical Terms
+  medicalCheckup: 'فحص طبي',
+  labTests: 'فحوصات مخبرية',
+  xraysAndScans: 'أشعة وفحوصات',
+  surgeries: 'عمليات جراحية',
+  monthly: 'شهري',
+  intermittent: 'متقطع',
+  ableToAfford: 'قادر على تحمل التكاليف',
+  unableToAfford: 'غير قادر على تحمل التكاليف',
+  partiallyAble: 'قادر جزئياً',
+  choose: 'اختر',
+  additionalMedicalDetails: 'تفاصيل طبية إضافية',
+
+  // Food Types
+  readyMeals: 'وجبات جاهزة',
+  nonReadyMeals: 'مواد غذائية غير جاهزة',
+
+  // Debt Types
   householdAppliances: 'الأجهزة المنزلية',
+  hospitalBills: 'فواتير المستشفى',
+  educationFees: 'رسوم التعليم',
+  businessDebt: 'ديون تجارية',
+  otherDebt: 'ديون أخرى',
+  needsDebtAssistance: 'يحتاج مساعدة في الديون',
+
+  // Education Levels
+  noEducation: 'بدون تعليم',
+  primaryEducation: 'تعليم ابتدائي',
+  intermediateEducation: 'تعليم متوسط',
+  secondaryEducation: 'تعليم ثانوي',
+  universityEducation: 'تعليم جامعي',
+  literate: 'يقرأ ويكتب',
+  illiterate: 'أمي',
+
+  // Educational Needs
+  tuitionFees: 'مصاريف دراسية',
+  supplies: 'أدوات مدرسية',
+  uniforms: 'زي مدرسي',
+  transportation: 'مواصلات',
+  books: 'كتب',
+  tutoring: 'دروس خصوصية',
+
+  // Household Appliances
+  stove: 'بوتاجاز',
+  automaticWashingMachine: 'غسالة أوتوماتيك',
+  manualWashingMachine: 'غسالة عادية',
+  refrigerator: 'ثلاجة',
+  tv: 'تلفاز',
+  fan: 'مروحة',
+
+  // Housing
+  owned: 'ملك',
+  newRental: 'إيجار جديد',
+  oldRental: 'إيجار قديم',
+  healthy: 'صحي',
+  moderate: 'متوسط',
+  unhealthy: 'غير صحي',
 
   // Messages
   confirmDelete: 'هل أنت متأكد أنك تريد الحذف؟',
@@ -152,21 +217,40 @@ export const translations = {
   quantityReceived: 'الكمية المستلمة',
   value: 'القيمة',
 
-  // Medical Assistance Terms
-  surgeries: 'عمليات جراحية',
-  monthly: 'شهري',
-  intermittent: 'متقطع',
-  ableToAfford: 'قادر على تحمل التكاليف',
-  unableToAfford: 'غير قادر على تحمل التكاليف',
-  partiallyAble: 'قادر جزئياً',
-  medicalCheckup: 'فحص طبي',
-  labTests: 'فحوصات مخبرية',
-  xraysScans: 'أشعة/فحوصات',
-  additionalMedicalDetails: 'تفاصيل طبية إضافية',
-  choose: 'اختر',
-
   // Review Submit Step
   errorsToFixBefore: "يرجى تصحيح الأخطاء التالية قبل الإرسال:",
   errorsToFix: "{{count}} أخطاء بحاجة للتصحيح",
   pleaseCompleteForm: "يرجى إكمال النموذج",
+
+  // Form Steps
+  contactInformation: 'معلومات الاتصال',
+  personalInformation: 'المعلومات الشخصية',
+  familyMembers: 'أفراد الأسرة',
+  assistanceNeeds: 'احتياجات المساعدة',
+  employmentInformation: 'معلومات التوظيف',
+  reviewAndSubmit: 'مراجعة وإرسال',
+  readyToSubmit: 'جاهز للإرسال',
+  reviewYourInformation: 'راجع معلوماتك',
+  finalCheckSubmit: 'الفحص النهائي قبل إرسال معلوماتك',
+
+  // Additional Form Labels
+  summaryOfInformation: 'ملخص المعلومات',
+  assistanceRequested: 'المساعدة المطلوبة',
+  familyAssignment: 'تعيين الأسرة',
+  searchFamily: 'البحث عن الأسرة',
+  newFamily: 'أسرة جديدة',
+
+  // Form Actions
+  skipToReview: 'تخطي إلى المراجعة',
+
+  // Page Sections
+  userManagement: 'إدارة المستخدمين',
+
+  // Action Buttons
+  addIndividual: 'إضافة فرد',
+  createDistribution: 'إنشاء توزيع',
+  submitIndividualRequest: 'إرسال طلب فرد',
+
+  // Filter Labels
+  category: 'الفئة',
 };

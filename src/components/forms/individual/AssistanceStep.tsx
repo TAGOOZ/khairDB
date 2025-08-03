@@ -4,6 +4,7 @@ import { useLanguage } from '../../../contexts/LanguageContext';
 import { Tooltip } from '../../ui/Tooltip';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { IndividualFormData } from '../../../schemas/individualSchema';
+import type { TranslationKey } from '../../../translations';
 
 // Assistance section component for expandable sections
 interface AssistanceSectionProps {
@@ -124,37 +125,37 @@ export function AssistanceStep() {
                 <input 
                   type="checkbox" 
                   {...register('medical_help.type_of_medical_assistance_needed')} 
-                  value="Medical Checkup" 
+                  value="medicalCheckup" 
                   className="mr-2"
                 />
-                <span>{t('medicalCheckup')}</span>
+                <span>{t('medicalCheckup' as TranslationKey)}</span>
               </label>
               <label className="flex items-center">
                 <input 
                   type="checkbox" 
                   {...register('medical_help.type_of_medical_assistance_needed')} 
-                  value="Lab Tests" 
+                  value="labTests" 
                   className="mr-2"
                 />
-                <span>{t('labTests')}</span>
+                <span>{t('labTests' as TranslationKey)}</span>
               </label>
               <label className="flex items-center">
                 <input 
                   type="checkbox" 
                   {...register('medical_help.type_of_medical_assistance_needed')} 
-                  value="X-rays/Scans" 
+                  value="xraysAndScans" 
                   className="mr-2"
                 />
-                <span>{t('xraysScans')}</span>
+                <span>{t('xraysAndScans' as TranslationKey)}</span>
               </label>
               <label className="flex items-center">
                 <input 
                   type="checkbox" 
                   {...register('medical_help.type_of_medical_assistance_needed')} 
-                  value="Surgeries" 
+                  value="surgeries" 
                   className="mr-2"
                 />
-                <span>{t('surgeries')}</span>
+                <span>{t('surgeries' as TranslationKey)}</span>
               </label>
             </div>
           </div>
@@ -167,8 +168,8 @@ export function AssistanceStep() {
                 className="w-full p-2 border rounded-md border-gray-300"
               >
                 <option value="">{t('choose')}</option>
-                <option value="Monthly">{t('monthly')}</option>
-                <option value="Intermittent">{t('intermittent')}</option>
+                <option value="monthly">{t('monthly')}</option>
+                <option value="intermittent">{t('intermittent')}</option>
               </select>
             </div>
             
@@ -179,9 +180,9 @@ export function AssistanceStep() {
                 className="w-full p-2 border rounded-md border-gray-300"
               >
                 <option value="">{t('choose')}</option>
-                <option value="Able">{t('ableToAfford')}</option>
-                <option value="Unable">{t('unableToAfford')}</option>
-                <option value="Partially">{t('partiallyAble')}</option>
+                <option value="able">{t('ableToAfford')}</option>
+                <option value="unable">{t('unableToAfford')}</option>
+                <option value="partially">{t('partiallyAble')}</option>
               </select>
             </div>
           </div>
@@ -223,19 +224,19 @@ export function AssistanceStep() {
                 <input 
                   type="checkbox" 
                   {...register('food_assistance.type_of_food_assistance_needed')} 
-                  value="Ready-made meals" 
+                  value="readyMeals" 
                   className="mr-2"
                 />
-                <span>{t('readyMadeMeals')}</span>
+                <span>{t('readyMeals' as TranslationKey)}</span>
               </label>
               <label className="flex items-center">
                 <input 
                   type="checkbox" 
                   {...register('food_assistance.type_of_food_assistance_needed')} 
-                  value="Non-ready meals" 
+                  value="nonReadyMeals" 
                   className="mr-2"
                 />
-                <span>{t('nonReadyMeals')}</span>
+                <span>{t('nonReadyMeals' as TranslationKey)}</span>
               </label>
             </div>
           </div>
@@ -362,7 +363,7 @@ export function AssistanceStep() {
                       className="mr-2"
                       disabled={!needsDebtAssistance}
                     />
-                    <span>{t('householdAppliances')}</span>
+                    <span>{t('householdAppliances' as TranslationKey)}</span>
                   </label>
                   <label className="flex items-center">
                     <input 
@@ -371,7 +372,7 @@ export function AssistanceStep() {
                       className="mr-2"
                       disabled={!needsDebtAssistance}
                     />
-                    <span>{t('hospitalBills')}</span>
+                    <span>{t('hospitalBills' as TranslationKey)}</span>
                   </label>
                   <label className="flex items-center">
                     <input 
@@ -380,7 +381,7 @@ export function AssistanceStep() {
                       className="mr-2"
                       disabled={!needsDebtAssistance}
                     />
-                    <span>{t('educationFees')}</span>
+                    <span>{t('educationFees' as TranslationKey)}</span>
                   </label>
                   <label className="flex items-center">
                     <input 
@@ -389,7 +390,7 @@ export function AssistanceStep() {
                       className="mr-2"
                       disabled={!needsDebtAssistance}
                     />
-                    <span>{t('businessDebt')}</span>
+                    <span>{t('businessDebt' as TranslationKey)}</span>
                   </label>
                   <label className="flex items-center">
                     <input 
@@ -398,7 +399,7 @@ export function AssistanceStep() {
                       className="mr-2"
                       disabled={!needsDebtAssistance}
                     />
-                    <span>{t('otherDebt')}</span>
+                    <span>{t('otherDebt' as TranslationKey)}</span>
                   </label>
                 </div>
               </div>
@@ -421,10 +422,11 @@ export function AssistanceStep() {
               className="w-full p-2 border rounded-md border-gray-300"
             >
               <option value="">{t('choose')}</option>
-              <option value="Higher Education">{t('higherEducation')}</option>
-              <option value="Intermediate Education">{t('intermediateEducation')}</option>
-              <option value="Literate">{t('literate')}</option>
-              <option value="Illiterate">{t('illiterate')}</option>
+              <option value="noEducation">{t('noEducation')}</option>
+              <option value="primaryEducation">{t('primaryEducation')}</option>
+              <option value="intermediateEducation">{t('intermediateEducation')}</option>
+              <option value="secondaryEducation">{t('secondaryEducation')}</option>
+              <option value="universityEducation">{t('universityEducation')}</option>
             </select>
           </div>
           
@@ -445,46 +447,37 @@ export function AssistanceStep() {
                 <input 
                   type="checkbox" 
                   {...register('education_assistance.children_educational_needs')} 
-                  value="Tuition Fees" 
+                  value="tuitionFees" 
                   className="mr-2"
                 />
-                <span>{t('tuitionFees')}</span>
+                <span>{t('tuitionFees' as TranslationKey)}</span>
               </label>
               <label className="flex items-center">
                 <input 
                   type="checkbox" 
                   {...register('education_assistance.children_educational_needs')} 
-                  value="School Uniforms" 
+                  value="supplies" 
                   className="mr-2"
                 />
-                <span>{t('schoolUniforms')}</span>
+                <span>{t('supplies' as TranslationKey)}</span>
               </label>
               <label className="flex items-center">
                 <input 
                   type="checkbox" 
                   {...register('education_assistance.children_educational_needs')} 
-                  value="Books" 
+                  value="uniforms" 
                   className="mr-2"
                 />
-                <span>{t('books')}</span>
+                <span>{t('uniforms' as TranslationKey)}</span>
               </label>
               <label className="flex items-center">
                 <input 
                   type="checkbox" 
                   {...register('education_assistance.children_educational_needs')} 
-                  value="Supplies" 
+                  value="transportation" 
                   className="mr-2"
                 />
-                <span>{t('supplies')}</span>
-              </label>
-              <label className="flex items-center">
-                <input 
-                  type="checkbox" 
-                  {...register('education_assistance.children_educational_needs')} 
-                  value="Tutoring" 
-                  className="mr-2"
-                />
-                <span>{t('tutoring')}</span>
+                <span>{t('transportation' as TranslationKey)}</span>
               </label>
             </div>
           </div>
@@ -546,46 +539,37 @@ export function AssistanceStep() {
                 <input 
                   type="checkbox" 
                   {...register('shelter_assistance.household_appliances')} 
-                  value="Stove" 
+                  value="stove" 
                   className="mr-2"
                 />
-                <span>{t('stove')}</span>
+                <span>{t('stove' as TranslationKey)}</span>
               </label>
               <label className="flex items-center">
                 <input 
                   type="checkbox" 
                   {...register('shelter_assistance.household_appliances')} 
-                  value="Manual Washing Machine" 
+                  value="automaticWashingMachine" 
                   className="mr-2"
                 />
-                <span>{t('manualWashingMachine')}</span>
+                <span>{t('automaticWashingMachine' as TranslationKey)}</span>
               </label>
               <label className="flex items-center">
                 <input 
                   type="checkbox" 
                   {...register('shelter_assistance.household_appliances')} 
-                  value="Automatic Washing Machine" 
+                  value="refrigerator" 
                   className="mr-2"
                 />
-                <span>{t('automaticWashingMachine')}</span>
+                <span>{t('refrigerator' as TranslationKey)}</span>
               </label>
               <label className="flex items-center">
                 <input 
                   type="checkbox" 
                   {...register('shelter_assistance.household_appliances')} 
-                  value="Refrigerator" 
+                  value="tv" 
                   className="mr-2"
                 />
-                <span>{t('refrigerator')}</span>
-              </label>
-              <label className="flex items-center">
-                <input 
-                  type="checkbox" 
-                  {...register('shelter_assistance.household_appliances')} 
-                  value="Fan" 
-                  className="mr-2"
-                />
-                <span>{t('fan')}</span>
+                <span>{t('tv' as TranslationKey)}</span>
               </label>
             </div>
           </div>
