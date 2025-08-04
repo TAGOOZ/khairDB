@@ -1,9 +1,10 @@
-import React from 'react';
-import { X, Users, Calendar, MapPin, Phone } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Users, Calendar, MapPin, Phone, User } from 'lucide-react';
 import { Family } from '../../../types';
 import { formatDate } from '../../../utils/formatters';
 import { Button } from '../../../components/ui/Button';
 import { useLanguage } from '../../../contexts/LanguageContext';
+import { getFamilyMembersForDistribution } from '../../../services/distributions';
 
 interface ViewFamilyModalProps {
   isOpen: boolean;
@@ -13,6 +14,28 @@ interface ViewFamilyModalProps {
 
 export function ViewFamilyModal({ isOpen, onClose, family }: ViewFamilyModalProps) {
   const { t, dir } = useLanguage();
+  const [additionalMembers, setAdditionalMembers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  
+  // Fetch additional members when modal opens
+  useEffect(() => {
+    if (isOpen && family?.id) {
+      const fetchAdditionalMembers = async () => {
+        try {
+          setLoading(true);
+          const familyMembers = await getFamilyMembersForDistribution(family.id);
+          setAdditionalMembers(familyMembers.additional_members || []);
+        } catch (error) {
+          console.error('Error fetching additional members:', error);
+          setAdditionalMembers([]);
+        } finally {
+          setLoading(false);
+        }
+      };
+      
+      fetchAdditionalMembers();
+    }
+  }, [isOpen, family?.id]);
   
   if (!isOpen) return null;
 
@@ -132,7 +155,64 @@ export function ViewFamilyModal({ isOpen, onClose, family }: ViewFamilyModalProp
               </div>
             )}
 
-            {family.members.length === 0 && (
+            {additionalMembers.length > 0 && (
+              <div>
+                <h4 className="text-sm font-medium text-gray-900 mb-2">{t('additionalFamilyMembers')}</h4>
+                <div className="bg-gray-50 rounded-lg divide-y">
+                  {additionalMembers.map((member, index) => (
+                    <div key={index} className="p-3">
+                      <div className="flex items-start">
+                        <User className="w-5 h-5 text-gray-400 mr-2 mt-0.5" />
+                        <div className="flex-1">
+                          <div className="flex items-center mb-1">
+                            <p className="text-sm font-medium text-gray-900">
+                              {member.first_name} {member.last_name}
+                            </p>
+                            <span className="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
+                              {t('additionalMember')}
+                            </span>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-gray-500">
+                            {member.relation && (
+                              <div>
+                                <span className="font-medium">{t('relation')}:</span> {t(member.relation)}
+                              </div>
+                            )}
+                            
+                            {member.date_of_birth && (
+                              <div className="flex items-center">
+                                <Calendar className="w-3 h-3 mr-1" />
+                                {formatDate(member.date_of_birth)}
+                              </div>
+                            )}
+                            
+                            {member.job_title && (
+                              <div>
+                                <span className="font-medium">{t('jobTitle')}:</span> {member.job_title}
+                              </div>
+                            )}
+                            
+                            {member.phone_number && (
+                              <div className="flex items-center">
+                                <Phone className="w-3 h-3 mr-1" />
+                                {member.phone_number}
+                              </div>
+                            )}
+                            
+                            <div>
+                              <span className="font-medium">{t('addedBy')}:</span> {member.parent_name}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {family.members.length === 0 && additionalMembers.length === 0 && (
               <div className="text-center py-6 text-gray-500">
                 {t('noFamilyMembers')}
               </div>

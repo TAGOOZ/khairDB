@@ -72,7 +72,7 @@ export function Users() {
       setActivityLogs(logs);
     } catch (error) {
       console.error('Error fetching users:', error);
-      toast.error('Failed to fetch users.');
+      toast.error(t('failedToFetchUsers'));
     } finally {
       setIsLoading(false);
     }
@@ -109,7 +109,7 @@ export function Users() {
     setIsSubmitting(true);
     try {
       await deleteUser(selectedUser.id);
-      toast.success('User deleted successfully!');
+      toast.success(t('userDeletedSuccessfully'));
       fetchUsers();
       setIsDeleteConfirmOpen(false);
       setSelectedUser(null);
@@ -118,7 +118,7 @@ export function Users() {
       if (error instanceof UserError) {
         toast.error(error.message);
       } else {
-        toast.error('Failed to delete user.');
+        toast.error(t('failedToDeleteUser'));
       }
     } finally {
       setIsSubmitting(false);
@@ -138,10 +138,10 @@ export function Users() {
       if (modalMode === 'create') {
         const password = formData.get('password') as string;
         await createUser({ ...userData, password });
-        toast.success('User created successfully!');
+        toast.success(t('userCreatedSuccessfully'));
       } else if (selectedUser) {
         await updateUser(selectedUser.id, userData);
-        toast.success('User updated successfully!');
+        toast.success(t('userUpdatedSuccessfully'));
       }
       fetchUsers();
       setIsModalOpen(false);
@@ -151,7 +151,7 @@ export function Users() {
       if (error instanceof UserError) {
         toast.error(error.message);
       } else {
-        toast.error('Failed to save user.');
+        toast.error(t('failedToSaveUser'));
       }
     } finally {
       setIsSubmitting(false);

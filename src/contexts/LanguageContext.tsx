@@ -24,14 +24,15 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   }, [language]);
 
   const t = (key: TranslationKey): string => {
-    return translations[language][key] || key;
+    const currentTranslations = translations[language] as Record<string, string>;
+    return currentTranslations[key as string] || key;
   };
 
   const value = {
     language,
     setLanguage,
     t,
-    dir: language === 'ar' ? 'rtl' : 'ltr'
+    dir: (language === 'ar' ? 'rtl' : 'ltr') as 'rtl' | 'ltr'
   };
 
   return (

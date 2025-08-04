@@ -7,4 +7,4 @@ export const translations = {
 };
 
 export type Language = 'ar' | 'en';
-export type TranslationKey = keyof typeof enTranslations;
+export type TranslationKey = keyof typeof arTranslations | keyof typeof enTranslations;

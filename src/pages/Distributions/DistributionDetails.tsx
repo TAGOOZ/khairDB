@@ -1,6 +1,4 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Package, Calendar, DollarSign, Users, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Package, Calendar, DollarSign, Users } from 'lucide-react';
 import { Distribution } from '../../types';
 import { Button } from '../../components/ui/Button';
 import { formatDate, formatCurrency } from '../../utils/formatters';
@@ -100,7 +98,12 @@ export function DistributionDetails({ distribution, onClose }: DistributionDetai
                     <tr key={recipient.id}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">
-                          {recipient.individual.first_name} {recipient.individual.last_name}
+                          {recipient.individual 
+                            ? `${recipient.individual.first_name} ${recipient.individual.last_name}`
+                            : recipient.child 
+                              ? `${recipient.child.first_name} ${recipient.child.last_name} (Child)`
+                              : 'Unknown Recipient'
+                          }
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">

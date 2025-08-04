@@ -47,15 +47,15 @@ export function Individuals() {
       if (user?.role === 'user' && modalMode === 'create') {
         // Submit for approval if user role
         await submitIndividualRequest(data);
-        toast.success('Individual request submitted for approval');
+        toast.success(t('individualRequestSubmitted'));
       } else {
         // Direct creation/update for admin role
         if (modalMode === 'create') {
           await createIndividual(data);
-          toast.success('Individual successfully created');
+          toast.success(t('individualCreatedSuccessfully'));
         } else if (individualId) {
           await updateIndividual(individualId, data);
-          toast.success('Individual successfully updated');
+          toast.success(t('individualUpdatedSuccessfully'));
         }
       }
       
@@ -67,20 +67,20 @@ export function Individuals() {
       
       if (error instanceof IndividualError) {
         if (error.code === 'duplicate-id') {
-          toast.error('An individual with this ID number already exists');
+          toast.error(t('duplicateIdError'));
         } else {
           toast.error(error.message);
         }
       } else if (error instanceof PendingRequestError) {
         if (error.code === 'duplicate-id') {
-          toast.error('An individual with this ID number already exists');
+          toast.error(t('duplicateIdError'));
         } else if (error.code === 'unauthorized') {
-          toast.error('Please log in to submit requests');
+          toast.error(t('pleaseLoginToSubmit'));
         } else {
-          toast.error('Failed to submit request. Please try again.');
+          toast.error(t('failedToSubmitRequest'));
         }
       } else {
-        toast.error('An unexpected error occurred. Please try again.');
+        toast.error(t('unexpectedErrorOccurred'));
       }
     } finally {
       setIsSubmitting(false);
@@ -113,12 +113,12 @@ export function Individuals() {
         setSelectedIndividual(individualWithHashtags);
       } else {
         console.warn('Individual not found when trying to view:', individual.id);
-        toast.error('Individual details not found.');
+        toast.error(t('individualNotFound'));
         setIsViewModalOpen(false);
       }
     } catch (error) {
       console.error('Error fetching individual for view modal:', error);
-      toast.error('Failed to load individual details.');
+      toast.error(t('failedToLoadIndividual'));
       setIsViewModalOpen(false);
     } finally {
       setIsViewModalLoading(false);
@@ -138,20 +138,20 @@ export function Individuals() {
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this individual?')) {
+    if (window.confirm(t('confirmDeleteIndividual'))) {
       try {
         await deleteIndividual(id);
-        toast.success('Individual successfully deleted');
+        toast.success(t('individualDeletedSuccessfully'));
         refreshIndividuals();
       } catch (error) {
-        toast.error('Failed to delete individual. Please try again.');
+        toast.error(t('failedToDeleteIndividual'));
       }
     }
   };
 
   const handleCreateDistribution = () => {
     if (selectedForDistribution.length === 0) {
-      toast.error('Please select at least one individual to create a distribution.');
+      toast.error(t('pleaseSelectIndividuals'));
       return;
     }
     
@@ -214,7 +214,7 @@ export function Individuals() {
       }
     } catch (error) {
       console.error('Error preparing individual for edit:', error);
-      toast.error('Could not load individual data for editing.');
+      toast.error(t('couldNotLoadIndividualData'));
     }
   };
 
@@ -223,14 +223,14 @@ export function Individuals() {
   };
 
   const handleDeleteIndividual = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this individual?')) {
+    if (window.confirm(t('confirmDeleteIndividual'))) {
       try {
         await deleteIndividual(id);
         refreshIndividuals();
-        toast.success('Individual deleted successfully');
+        toast.success(t('individualDeletedSuccessfully'));
       } catch (error) {
         console.error('Error deleting individual:', error);
-        toast.error('Failed to delete individual');
+        toast.error(t('failedToDeleteIndividual'));
       }
     }
   };

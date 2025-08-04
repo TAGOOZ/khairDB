@@ -286,6 +286,73 @@ export function ViewIndividualModal({ isOpen, onClose, individual, isLoading }: 
                   </div>
                 </div>
 
+                {/* Additional Family Members */}
+                {individual.additional_members && individual.additional_members.length > 0 && (
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h4 className="font-medium text-gray-900 mb-3">{t('additionalFamilyMembers')}</h4>
+                    <div className="space-y-3">
+                      {individual.additional_members.map((member, index) => (
+                        <div key={index} className="bg-white rounded-lg p-3 border border-gray-200">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center mb-2">
+                                <User className="w-4 h-4 mr-2 text-gray-500" />
+                                <h5 className="font-medium text-gray-900">{member.name || t('unknownName')}</h5>
+                                <span className="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
+                                  {t('additionalMember')}
+                                </span>
+                              </div>
+                              
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                                {member.relation && (
+                                  <div className="flex items-center text-gray-600">
+                                    <span className="font-medium mr-1">{t('relation')}:</span>
+                                    <span>{t(member.relation as TranslationKey) || member.relation}</span>
+                                  </div>
+                                )}
+                                
+                                {member.gender && (
+                                  <div className="flex items-center text-gray-600">
+                                    <span className="font-medium mr-1">{t('gender')}:</span>
+                                    <span>{t(member.gender as TranslationKey)}</span>
+                                  </div>
+                                )}
+                                
+                                {member.date_of_birth && (
+                                  <div className="flex items-center text-gray-600">
+                                    <Calendar className="w-4 h-4 mr-1" />
+                                    <span className="font-medium mr-1">{t('dateOfBirth')}:</span>
+                                    <span>{formatDate(member.date_of_birth)}</span>
+                                    <span className="ml-1 text-gray-500">
+                                      ({calculateAge(member.date_of_birth)} {t('yearsOld')})
+                                    </span>
+                                  </div>
+                                )}
+                                
+                                {member.job_title && (
+                                  <div className="flex items-center text-gray-600">
+                                    <Briefcase className="w-4 h-4 mr-1" />
+                                    <span className="font-medium mr-1">{t('job')}:</span>
+                                    <span>{member.job_title}</span>
+                                  </div>
+                                )}
+                                
+                                {member.phone_number && (
+                                  <div className="flex items-center text-gray-600">
+                                    <Phone className="w-4 h-4 mr-1" />
+                                    <span className="font-medium mr-1">{t('phone')}:</span>
+                                    <span>{member.phone_number}</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Assistance Information */}
                 {individual.assistance_details && individual.assistance_details.length > 0 && (
                   <div className="bg-gray-50 rounded-lg p-4">

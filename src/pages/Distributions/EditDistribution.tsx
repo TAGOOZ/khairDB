@@ -13,10 +13,12 @@ import { useDistributions } from '../../hooks/useDistributions';
 import { updateDistribution } from '../../services/distributions';
 import { distributionSchema, DistributionFormData } from '../../schemas/distributionSchema';
 import { toast } from '../Individuals/Toast';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 export function EditDistribution() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const { individuals } = useIndividuals();
   const { families } = useFamilies();
   const { distributions } = useDistributions();
@@ -87,11 +89,11 @@ export function EditDistribution() {
     try {
       setIsSubmitting(true);
       await updateDistribution(id, data);
-      toast.success('Distribution updated successfully');
+      toast.success(t('distributionUpdatedSuccessfully'));
       navigate('/distributions');
     } catch (error) {
       console.error('Error updating distribution:', error);
-      toast.error('Failed to update distribution');
+      toast.error(t('failedToUpdateDistribution'));
     } finally {
       setIsSubmitting(false);
     }

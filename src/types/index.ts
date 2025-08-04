@@ -383,8 +383,10 @@ export interface Distribution {
 export interface DistributionRecipient {
   id: string;
   distribution_id: string;
-  individual_id: string;
-  individual: Individual;
+  individual_id: string | null;
+  child_id: string | null;
+  individual?: Individual;
+  child?: Child;
   quantity_received: number;
   value_received: number;
   notes: string | null;

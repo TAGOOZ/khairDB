@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { FamilyFormData } from '../../../schemas/familySchema';
 import { createFamily, updateFamily, deleteFamily, FamilyError } from '../../../services/families';
 import { toast } from '../../Individuals/Toast';
+import { useLanguage } from '../../../contexts/LanguageContext';
 
 interface UseFamilyActionsProps {
   onSuccess: () => void;
@@ -9,6 +10,7 @@ interface UseFamilyActionsProps {
 
 export function useFamilyActions({ onSuccess }: UseFamilyActionsProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { t } = useLanguage();
 
   const handleSubmit = async (data: FamilyFormData, familyId?: string) => {
     try {
@@ -17,16 +19,16 @@ export function useFamilyActions({ onSuccess }: UseFamilyActionsProps) {
       // Validate that there's at least one parent
       const hasParent = data.members.some(member => member.role === 'parent');
       if (!hasParent) {
-        toast.error('At least one parent is required');
+        toast.error(t('atLeastOneParentRequired'));
         return;
       }
 
       if (familyId) {
         await updateFamily(familyId, data);
-        toast.success('Family successfully updated');
+        toast.success(t('familyUpdatedSuccessfully'));
       } else {
         await createFamily(data);
-        toast.success('Family successfully created');
+        toast.success(t('familyCreatedSuccessfully'));
       }
       onSuccess();
     } catch (error) {
@@ -35,19 +37,19 @@ export function useFamilyActions({ onSuccess }: UseFamilyActionsProps) {
       if (error instanceof FamilyError) {
         switch (error.code) {
           case 'duplicate-name':
-            toast.error('A family with this name already exists');
+            toast.error(t('familyNameExists'));
             break;
           case 'invalid-members':
-            toast.error('Invalid family members configuration');
+            toast.error(t('invalidFamilyMembers'));
             break;
           case 'parent-fetch-failed':
-            toast.error('Failed to fetch parent information');
+            toast.error(t('failedToFetchParent'));
             break;
           default:
-            toast.error(error.message || 'Failed to save family. Please try again.');
+            toast.error(error.message || t('failedToSaveFamily'));
         }
       } else {
-        toast.error('An unexpected error occurred. Please try again.');
+        toast.error(t('unexpectedErrorOccurred'));
       }
     } finally {
       setIsSubmitting(false);
@@ -55,17 +57,17 @@ export function useFamilyActions({ onSuccess }: UseFamilyActionsProps) {
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this family? All members will be unlinked from this family.')) {
+    if (window.confirm(t('confirmDeleteFamily'))) {
       try {
         await deleteFamily(id);
-        toast.success('Family successfully deleted');
+        toast.success(t('familyDeletedSuccessfully'));
         onSuccess();
       } catch (error) {
         console.error('Error deleting family:', error);
         if (error instanceof FamilyError) {
           toast.error(error.message);
         } else {
-          toast.error('Failed to delete family. Please try again.');
+          toast.error(t('failedToDeleteFamily'));
         }
       }
     }

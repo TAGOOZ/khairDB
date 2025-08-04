@@ -130,6 +130,11 @@ export function IndividualsList({
                     <div>
                       <div className="text-sm font-medium text-gray-900">
                         {individual.first_name} {individual.last_name}
+                        {individual.additional_members && individual.additional_members.length > 0 && (
+                          <span className="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
+                            +{individual.additional_members.length} {t('additionalMember' as TranslationKey)}
+                          </span>
+                        )}
                       </div>
                       <div className="text-sm text-gray-500">
                         {t('district' as TranslationKey)} {individual.district}
