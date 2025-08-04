@@ -33,7 +33,7 @@ const additionalMemberSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   date_of_birth: z.string().min(1, 'Date of birth is required'),
   gender: z.enum(['male', 'female']),
-  role: z.enum(['spouse', 'sibling', 'grandparent', 'other']),
+  role: z.enum(['spouse', 'sibling', 'grandparent', 'other']).optional(),
   job_title: z.string().optional(),
   phone_number: z.string()
     .optional()

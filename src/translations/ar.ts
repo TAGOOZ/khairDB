@@ -23,6 +23,33 @@ export const translations = {
   allDistricts: 'كل المناطق',
   allCategories: 'كل الفئات',
   searchPlaceholder: 'البحث بالاسم أو رقم الهاتف أو الوصف...',
+
+  // Dashboard Stats
+  whitelistedIndividuals: 'الأفراد في القائمة البيضاء',
+  blacklistedIndividuals: 'الأفراد في القائمة السوداء',
+  waitinglistIndividuals: 'الأفراد في قائمة الانتظار',
+  totalFamilies: 'إجمالي العائلات',
+  urgentNeeds: 'الاحتياجات العاجلة',
+  completedCases: 'الحالات المكتملة',
+  needsByCategory: 'الاحتياجات حسب الفئة',
+
+  // Requests Section
+  requests: 'الطلبات',
+  searchRequests: 'البحث في الطلبات...',
+  requestFrom: 'طلب من',
+  submittedOn: 'تم الإرسال في',
+  approve: 'موافقة',
+  reject: 'رفض',
+  approved: 'تمت الموافقة',
+  rejected: 'مرفوض',
+  additionalInformation: 'معلومات إضافية',
+  adminComment: 'تعليق المدير:',
+  noRequestsFound: 'لم يتم العثور على طلبات',
+  rejectRequest: 'رفض الطلب',
+  addRejectionComment: 'أضف تعليق الرفض...',
+  confirmDelete: 'تأكيد الحذف',
+  confirmDeleteRequest: 'هل أنت متأكد من حذف هذا الطلب؟',
+
   selectAll: 'تحديد الكل',
   deselectAll: 'إلغاء تحديد الكل',
   exportCSV: 'تصدير CSV',
@@ -34,6 +61,7 @@ export const translations = {
   // Form Labels
   firstName: 'الاسم الأول',
   lastName: 'اسم العائلة',
+  name: 'الاسم',
   idNumber: 'رقم الهوية',
   dateOfBirth: 'تاريخ الميلاد',
   gender: 'الجنس',
@@ -250,7 +278,51 @@ export const translations = {
   addIndividual: 'إضافة فرد',
   createDistribution: 'إنشاء توزيع',
   submitIndividualRequest: 'إرسال طلب فرد',
+  addFamily: 'إضافة أسرة',
 
   // Filter Labels
   category: 'الفئة',
+
+  // Family Page
+  familyName: 'اسم الأسرة',
+  contactInfo: 'معلومات الاتصال',
+  members: 'الأعضاء',
+  searchFamilies: 'البحث في العائلات',
+  searchByFamilyName: 'البحث باسم الأسرة...',
+  created: 'تاريخ الإنشاء',
+  contactInformation: 'معلومات الاتصال',
+  parents: 'الآباء',
+  children: 'الأطفال',
+  noContactInformation: 'لا توجد معلومات اتصال متاحة',
+  noFamilyMembers: 'لم يتم إضافة أعضاء الأسرة بعد',
+
+  // Status Colors
+  green: 'أخضر',
+  yellow: 'أصفر',
+  red: 'أحمر',
+
+  // Family Member Actions
+  addChild: 'إضافة طفل',
+  addFamilyMember: 'إضافة بالغ',
+  addAdult: 'إضافة بالغ',
+
+  // Relations
+  relation: 'العلاقة',
+  selectRelation: 'اختر العلاقة',
+  wife: 'زوجة',
+  husband: 'زوج',
+  sister: 'أخت',
+  brother: 'أخ',
+  mother: 'أم',
+  father: 'أب',
+  motherInLaw: 'حماة',
+  fatherInLaw: 'حمو',
+
+  // Additional fields
+  none: 'لا يوجد',
+  jobTitle: 'المسمى الوظيفي',
+  phoneNumber: 'رقم الهاتف',
+  familyMembersTooltip: 'إضافة أفراد العائلة إلى هذه الأسرة',
+  adults: 'البالغون',
+  noFamilyMembersYet: 'لم يتم إضافة أعضاء الأسرة بعد',
 };

@@ -24,6 +24,32 @@ export const translations = {
   allDistricts: 'All Districts',
   searchPlaceholder: 'Search by name, phone, or description...',
 
+  // Dashboard Stats
+  whitelistedIndividuals: 'Whitelisted Individuals',
+  blacklistedIndividuals: 'Blacklisted Individuals',
+  waitinglistIndividuals: 'Waiting List Individuals',
+  totalFamilies: 'Total Families',
+  urgentNeeds: 'Urgent Needs',
+  completedCases: 'Completed Cases',
+  needsByCategory: 'Needs by Category',
+
+  // Requests Section
+  requests: 'Requests',
+  searchRequests: 'Search requests...',
+  requestFrom: 'Request from',
+  submittedOn: 'Submitted on',
+  approve: 'Approve',
+  reject: 'Reject',
+  approved: 'Approved',
+  rejected: 'Rejected',
+  additionalInformation: 'Additional Information',
+  adminComment: 'Admin Comment:',
+  noRequestsFound: 'No requests found',
+  rejectRequest: 'Reject Request',
+  addRejectionComment: 'Add a rejection comment...',
+  confirmDelete: 'Confirm Delete',
+  confirmDeleteRequest: 'Are you sure you want to delete this request?',
+
   // Auth
   signIn: 'Sign In',
   signOut: 'Sign Out',
@@ -33,6 +59,7 @@ export const translations = {
   // Form Labels
   firstName: 'First Name',
   lastName: 'Last Name',
+  name: 'Name',
   idNumber: 'ID Number',
   dateOfBirth: 'Date of Birth',
   gender: 'Gender',
@@ -227,7 +254,51 @@ export const translations = {
   addIndividual: 'Add Individual',
   createDistribution: 'Create Distribution',
   submitIndividualRequest: 'Submit Individual Request',
+  addFamily: 'Add Family',
 
   // Filter Labels
   category: 'Category',
+
+  // Family Page
+  familyName: 'Family Name',
+  contactInfo: 'Contact Info',
+  members: 'Members',
+  searchFamilies: 'Search Families',
+  searchByFamilyName: 'Search by family name...',
+  created: 'Created',
+  contactInformation: 'Contact Information',
+  parents: 'Parents',
+  children: 'Children',
+  noContactInformation: 'No contact information available',
+  noFamilyMembers: 'No family members added yet',
+
+  // Status Colors
+  green: 'Green',
+  yellow: 'Yellow',
+  red: 'Red',
+
+  // Family Member Actions
+  addChild: 'Add Child',
+  addFamilyMember: 'Add Adult',
+  addAdult: 'Add Adult',
+
+  // Relations
+  relation: 'Relation',
+  selectRelation: 'Select Relation',
+  wife: 'Wife',
+  husband: 'Husband',
+  sister: 'Sister',
+  brother: 'Brother',
+  mother: 'Mother',
+  father: 'Father',
+  motherInLaw: 'Mother In Law',
+  fatherInLaw: 'Father In Law',
+
+  // Additional fields
+  none: 'None',
+  jobTitle: 'Job Title',
+  phoneNumber: 'Phone Number',
+  familyMembersTooltip: 'Add family members to this household',
+  adults: 'Adults',
+  noFamilyMembersYet: 'No family members added yet',
 };

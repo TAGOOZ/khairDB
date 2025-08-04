@@ -7,7 +7,6 @@ import { Button } from '../../ui/Button';
 import { IndividualFormData } from '../../../schemas/individualSchema';
 import { ChildRemovalModal } from './ChildRemovalModal';
 import { deleteChild, ChildError } from '../../../services/children';
-import { safeTrans } from '../../../utils/translations';
 import { toast } from '../../../pages/Individuals/Toast';
 import type { TranslationKey } from '../../../translations';
 
@@ -23,8 +22,16 @@ function AddMemberModal({ isOpen, onClose, onAddMember, type }: AddMemberModalPr
   const { t } = useLanguage();
   const [memberData, setMemberData] = useState<any>({
     gender: type === 'child' ? 'boy' : 'male',
-    role: 'other',
   });
+
+  // Reset form data when modal opens or type changes
+  React.useEffect(() => {
+    if (isOpen) {
+      setMemberData({
+        gender: type === 'child' ? 'boy' : 'male',
+      });
+    }
+  }, [isOpen, type]);
 
   if (!isOpen) return null;
 
@@ -38,10 +45,24 @@ function AddMemberModal({ isOpen, onClose, onAddMember, type }: AddMemberModalPr
     e.preventDefault();
     e.stopPropagation();
     
+    // Validate required fields based on type
+    if (type === 'child') {
+      if (!memberData.first_name || !memberData.last_name || !memberData.date_of_birth) {
+        alert('Please fill in all required fields');
+        return;
+      }
+    } else {
+      // Adult validation
+      if (!memberData.name || !memberData.date_of_birth || !memberData.relation) {
+        alert('Please fill in all required fields');
+        return;
+      }
+    }
+    
+    console.log('Submitting member data:', memberData); // Debug log
     onAddMember(memberData);
     setMemberData({
       gender: type === 'child' ? 'boy' : 'male',
-      role: 'other',
     });
     onClose();
   };
@@ -51,7 +72,7 @@ function AddMemberModal({ isOpen, onClose, onAddMember, type }: AddMemberModalPr
       <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="p-6">
           <h3 className="text-lg font-medium mb-4">
-            {type === 'child' ? safeTrans(t, 'addChild') : safeTrans(t, 'addFamilyMember')}
+            {type === 'child' ? t('addChild') : t('addFamilyMember')}
           </h3>
           
           <div 
@@ -62,7 +83,7 @@ function AddMemberModal({ isOpen, onClose, onAddMember, type }: AddMemberModalPr
               <>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-1">{safeTrans(t, 'firstName')}</label>
+                    <label className="block text-sm font-medium mb-1">{t('firstName')}</label>
                     <input
                       type="text"
                       name="first_name"
@@ -74,7 +95,7 @@ function AddMemberModal({ isOpen, onClose, onAddMember, type }: AddMemberModalPr
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium mb-1">{safeTrans(t, 'lastName')}</label>
+                    <label className="block text-sm font-medium mb-1">{t('lastName')}</label>
                     <input
                       type="text"
                       name="last_name"
@@ -87,7 +108,7 @@ function AddMemberModal({ isOpen, onClose, onAddMember, type }: AddMemberModalPr
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium mb-1">{safeTrans(t, 'dateOfBirth')}</label>
+                  <label className="block text-sm font-medium mb-1">{t('dateOfBirth')}</label>
                   <input
                     type="date"
                     name="date_of_birth"
@@ -100,36 +121,36 @@ function AddMemberModal({ isOpen, onClose, onAddMember, type }: AddMemberModalPr
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium mb-1">{safeTrans(t, 'gender')}</label>
+                  <label className="block text-sm font-medium mb-1">{t('gender')}</label>
                   <select
                     name="gender"
                     value={memberData.gender || 'boy'}
                     onChange={handleChange}
                     className="w-full p-2 border rounded-md"
                   >
-                    <option value="boy">{safeTrans(t, 'boy')}</option>
-                    <option value="girl">{safeTrans(t, 'girl')}</option>
+                    <option value="boy">{t('boy')}</option>
+                    <option value="girl">{t('girl')}</option>
                   </select>
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium mb-1">{safeTrans(t, 'schoolStage')}</label>
+                  <label className="block text-sm font-medium mb-1">{t('schoolStage')}</label>
                   <select
                     name="school_stage"
                     value={memberData.school_stage || ''}
                     onChange={handleChange}
                     className="w-full p-2 border rounded-md"
                   >
-                    <option value="">{safeTrans(t, 'none')}</option>
-                    <option value="kindergarten">{safeTrans(t, 'kindergarten')}</option>
-                    <option value="primary">{safeTrans(t, 'primary')}</option>
-                    <option value="preparatory">{safeTrans(t, 'preparatory')}</option>
-                    <option value="secondary">{safeTrans(t, 'secondary')}</option>
+                    <option value="">{t('none')}</option>
+                    <option value="kindergarten">{t('kindergarten')}</option>
+                    <option value="primary">{t('primary')}</option>
+                    <option value="preparatory">{t('preparatory')}</option>
+                    <option value="secondary">{t('secondary')}</option>
                   </select>
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium mb-1">{safeTrans(t, 'description')}</label>
+                  <label className="block text-sm font-medium mb-1">{t('description')}</label>
                   <textarea
                     name="description"
                     value={memberData.description || ''}
@@ -142,7 +163,7 @@ function AddMemberModal({ isOpen, onClose, onAddMember, type }: AddMemberModalPr
             ) : (
               <>
                 <div>
-                  <label className="block text-sm font-medium mb-1">{safeTrans(t, 'name')}</label>
+                  <label className="block text-sm font-medium mb-1">{t('name')}</label>
                   <input
                     type="text"
                     name="name"
@@ -154,7 +175,7 @@ function AddMemberModal({ isOpen, onClose, onAddMember, type }: AddMemberModalPr
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium mb-1">{safeTrans(t, 'dateOfBirth')}</label>
+                  <label className="block text-sm font-medium mb-1">{t('dateOfBirth')}</label>
                   <input
                     type="date"
                     name="date_of_birth"
@@ -167,58 +188,43 @@ function AddMemberModal({ isOpen, onClose, onAddMember, type }: AddMemberModalPr
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-1">{safeTrans(t, 'gender')}</label>
+                    <label className="block text-sm font-medium mb-1">{t('gender')}</label>
                     <select
                       name="gender"
                       value={memberData.gender || 'male'}
                       onChange={handleChange}
                       className="w-full p-2 border rounded-md"
                     >
-                      <option value="male">{safeTrans(t, 'male')}</option>
-                      <option value="female">{safeTrans(t, 'female')}</option>
+                      <option value="male">{t('male')}</option>
+                      <option value="female">{t('female')}</option>
                     </select>
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium mb-1">{safeTrans(t, 'role')}</label>
+                    <label className="block text-sm font-medium mb-1">{t('relation')}</label>
                     <select
-                      name="role"
-                      value={memberData.role || 'other'}
+                      name="relation"
+                      value={memberData.relation || ''}
                       onChange={handleChange}
                       className="w-full p-2 border rounded-md"
+                      required
                     >
-                      <option value="spouse">{safeTrans(t, 'spouse')}</option>
-                      <option value="sibling">{safeTrans(t, 'sibling')}</option>
-                      <option value="grandparent">{safeTrans(t, 'grandparent')}</option>
-                      <option value="other">{safeTrans(t, 'other')}</option>
+                      <option value="" disabled>{t('selectRelation')}</option>
+                      <option value="wife">{t('wife')}</option>
+                      <option value="husband">{t('husband')}</option>
+                      <option value="sister">{t('sister')}</option>
+                      <option value="brother">{t('brother')}</option>
+                      <option value="mother">{t('mother')}</option>
+                      <option value="father">{t('father')}</option>
+                      <option value="mother_in_law">{t('motherInLaw')}</option>
+                      <option value="father_in_law">{t('fatherInLaw')}</option>
                     </select>
                   </div>
                 </div>
                 
-                <div>
-                  <label className="block text-sm font-medium mb-1">{safeTrans(t, 'relation')}</label>
-                  <select
-                    name="relation"
-                    value={memberData.relation || ''}
-                    onChange={handleChange}
-                    className="w-full p-2 border rounded-md"
-                    required
-                  >
-                    <option value="" disabled>{safeTrans(t, 'selectRelation')}</option>
-                    <option value="wife">{safeTrans(t, 'wife')}</option>
-                    <option value="husband">{safeTrans(t, 'husband')}</option>
-                    <option value="sister">{safeTrans(t, 'sister')}</option>
-                    <option value="brother">{safeTrans(t, 'brother')}</option>
-                    <option value="mother">{safeTrans(t, 'mother')}</option>
-                    <option value="father">{safeTrans(t, 'father')}</option>
-                    <option value="mother_in_law">{safeTrans(t, 'motherInLaw')}</option>
-                    <option value="father_in_law">{safeTrans(t, 'fatherInLaw')}</option>
-                  </select>
-                </div>
-                
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-1">{safeTrans(t, 'jobTitle')}</label>
+                    <label className="block text-sm font-medium mb-1">{t('jobTitle')}</label>
                     <input
                       type="text"
                       name="job_title"
@@ -229,7 +235,7 @@ function AddMemberModal({ isOpen, onClose, onAddMember, type }: AddMemberModalPr
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium mb-1">{safeTrans(t, 'phoneNumber')}</label>
+                    <label className="block text-sm font-medium mb-1">{t('phoneNumber')}</label>
                     <input
                       type="tel"
                       name="phone_number"
@@ -253,7 +259,7 @@ function AddMemberModal({ isOpen, onClose, onAddMember, type }: AddMemberModalPr
                   onClose();
                 }}
               >
-                {safeTrans(t, 'cancel')}
+                {t('cancel')}
               </Button>
               <Button 
                 type="button" 
@@ -264,7 +270,7 @@ function AddMemberModal({ isOpen, onClose, onAddMember, type }: AddMemberModalPr
                   handleSubmit(e);
                 }}
               >
-                {safeTrans(t, 'add')}
+                {t('add')}
               </Button>
             </div>
           </div>
@@ -397,8 +403,8 @@ export function FamilyMembersStep({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-medium">{safeTrans(t, 'familyMembers')}</h3>
-        <Tooltip content={safeTrans(t, 'familyMembersTooltip')} position="left" />
+        <h3 className="text-lg font-medium">{t('familyMembers')}</h3>
+        <Tooltip content={t('familyMembersTooltip')} position="left" />
       </div>
       
       {/* Action buttons */}
@@ -410,7 +416,7 @@ export function FamilyMembersStep({
           icon={UserPlus}
           onClick={() => openModal('child')}
         >
-          {safeTrans(t, 'addChild')}
+          {t('addChild')}
         </Button>
         
         <Button
@@ -420,7 +426,7 @@ export function FamilyMembersStep({
           icon={UserPlus}
           onClick={() => openModal('adult')}
         >
-          {safeTrans(t, 'addAdult')}
+          {t('addAdult')}
         </Button>
       </div>
       
@@ -428,7 +434,7 @@ export function FamilyMembersStep({
       <div className="mt-4 space-y-4">
         {children.length > 0 && (
           <div>
-            <h4 className="text-md font-medium text-gray-800 mb-2">{safeTrans(t, 'children')}</h4>
+            <h4 className="text-md font-medium text-gray-800 mb-2">{t('children')}</h4>
             <div className="space-y-2">
               {children.map((child, index) => (
                 <div 
@@ -440,8 +446,8 @@ export function FamilyMembersStep({
                       {child.first_name} {child.last_name}
                     </div>
                     <div className="text-sm text-gray-600">
-                      {child.gender === 'boy' ? safeTrans(t, 'boy') : safeTrans(t, 'girl')} • 
-                      {child.school_stage && ` ${safeTrans(t, child.school_stage as any)} • `}
+                      {child.gender === 'boy' ? t('boy') : t('girl')} • 
+                      {child.school_stage && ` ${t(child.school_stage as any)} • `}
                       {child.date_of_birth && new Date(child.date_of_birth).toLocaleDateString()}
                     </div>
                   </div>
@@ -454,7 +460,7 @@ export function FamilyMembersStep({
                     onClick={() => openChildRemovalModal(index)}
                     className="text-red-600 hover:text-red-700"
                   >
-                    {safeTrans(t, 'remove')}
+                    {t('remove')}
                   </Button>
                 </div>
               ))}
@@ -464,7 +470,7 @@ export function FamilyMembersStep({
         
         {additionalMembers.length > 0 && (
           <div>
-            <h4 className="text-md font-medium text-gray-800 mb-2">{safeTrans(t, 'adults')}</h4>
+            <h4 className="text-md font-medium text-gray-800 mb-2">{t('adults')}</h4>
             <div className="space-y-2">
               {additionalMembers.map((member, index) => (
                 <div 
@@ -476,13 +482,13 @@ export function FamilyMembersStep({
                       {member.name}
                     </div>
                     <div className="text-sm text-gray-600">
-                      {safeTrans(t, member.relation as any)} • 
-                      {member.gender === 'male' ? safeTrans(t, 'male') : safeTrans(t, 'female')} • 
+                      {t(member.relation as any)} • 
+                      {member.gender === 'male' ? t('male') : t('female')} • 
                       {member.date_of_birth && new Date(member.date_of_birth).toLocaleDateString()}
                     </div>
                     {member.job_title && (
                       <div className="text-sm text-gray-600">
-                        {safeTrans(t, 'job')}: {member.job_title}
+                        {t('job')}: {member.job_title}
                       </div>
                     )}
                   </div>
@@ -495,7 +501,7 @@ export function FamilyMembersStep({
                     onClick={() => handleRemoveMember(index)}
                     className="text-red-600 hover:text-red-700"
                   >
-                    {safeTrans(t, 'remove')}
+                    {t('remove')}
                   </Button>
                 </div>
               ))}
@@ -505,7 +511,7 @@ export function FamilyMembersStep({
         
         {children.length === 0 && additionalMembers.length === 0 && (
           <div className="text-center py-6 text-gray-500">
-            {safeTrans(t, 'noFamilyMembersYet')}
+            {t('noFamilyMembersYet')}
           </div>
         )}
       </div>

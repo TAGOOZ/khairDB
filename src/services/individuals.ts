@@ -376,6 +376,7 @@ export async function createIndividual(data: IndividualFormData) {
       salary: data.salary || null,
       list_status: data.list_status,
       family_id: familyId,
+      additional_members: data.additional_members || [],
       created_by: user.id
     };
 
@@ -531,7 +532,8 @@ export async function updateIndividual(id: string, data: IndividualFormData) {
         job: data.job,
         employment_status: data.employment_status,
         salary: data.salary,
-        list_status: data.list_status
+        list_status: data.list_status,
+        additional_members: data.additional_members || []
       })
       .eq('id', id);
 

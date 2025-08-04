@@ -3,6 +3,7 @@ import { X, Users, Calendar, MapPin, Phone } from 'lucide-react';
 import { Family } from '../../../types';
 import { formatDate } from '../../../utils/formatters';
 import { Button } from '../../../components/ui/Button';
+import { useLanguage } from '../../../contexts/LanguageContext';
 
 interface ViewFamilyModalProps {
   isOpen: boolean;
@@ -11,6 +12,8 @@ interface ViewFamilyModalProps {
 }
 
 export function ViewFamilyModal({ isOpen, onClose, family }: ViewFamilyModalProps) {
+  const { t, dir } = useLanguage();
+  
   if (!isOpen) return null;
 
   const parentMembers = family.members.filter(member => member.family_role === 'parent');
@@ -27,19 +30,19 @@ export function ViewFamilyModal({ isOpen, onClose, family }: ViewFamilyModalProp
       <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
         <div className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" onClick={onClose} />
 
-        <div className="inline-block px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
-          <div className="flex items-start justify-between mb-4">
+        <div className={`inline-block px-4 pt-5 pb-4 overflow-hidden ${dir === 'rtl' ? 'text-right' : 'text-left'} align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6`} dir={dir}>
+          <div className={`flex items-start ${dir === 'rtl' ? 'flex-row-reverse' : 'justify-between'} mb-4`}>
             <div>
-              <div className="flex items-center gap-2">
+              <div className={`flex items-center ${dir === 'rtl' ? 'flex-row-reverse' : 'gap-2'}`}>
                 <h3 className="text-lg font-medium leading-6 text-gray-900">
                   {family.name}
                 </h3>
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[family.status]}`}>
-                  {family.status}
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[family.status]} ${dir === 'rtl' ? 'ml-2' : 'ml-0'}`}>
+                  {t(family.status as 'green' | 'yellow' | 'red')}
                 </span>
               </div>
               <p className="mt-1 text-sm text-gray-500">
-                Created {formatDate(family.created_at)}
+                {t('created')} {formatDate(family.created_at)}
               </p>
             </div>
             <Button
@@ -49,12 +52,12 @@ export function ViewFamilyModal({ isOpen, onClose, family }: ViewFamilyModalProp
               onClick={onClose}
               className="text-gray-400 hover:text-gray-500"
             >
-              Close
+              {t('close')}
             </Button>
           </div>
 
           <div className="mb-6 bg-gray-50 rounded-lg p-4">
-            <h4 className="text-sm font-medium text-gray-900 mb-2">Contact Information</h4>
+            <h4 className="text-sm font-medium text-gray-900 mb-2">{t('contactInformation')}</h4>
             <div className="space-y-2">
               {family.phone && (
                 <div className="flex items-center text-sm text-gray-600">
@@ -65,7 +68,7 @@ export function ViewFamilyModal({ isOpen, onClose, family }: ViewFamilyModalProp
               {family.district && (
                 <div className="flex items-center text-sm text-gray-600">
                   <MapPin className="w-4 h-4 mr-2" />
-                  <span>District {family.district}</span>
+                  <span>{t('district')} {family.district}</span>
                 </div>
               )}
               {family.address && (
@@ -75,7 +78,7 @@ export function ViewFamilyModal({ isOpen, onClose, family }: ViewFamilyModalProp
                 </div>
               )}
               {!family.phone && !family.district && !family.address && (
-                <p className="text-sm text-gray-500">No contact information available</p>
+                <p className="text-sm text-gray-500">{t('noContactInformation')}</p>
               )}
             </div>
           </div>
@@ -83,7 +86,7 @@ export function ViewFamilyModal({ isOpen, onClose, family }: ViewFamilyModalProp
           <div className="space-y-6">
             {parentMembers.length > 0 && (
               <div>
-                <h4 className="text-sm font-medium text-gray-900 mb-2">Parents</h4>
+                <h4 className="text-sm font-medium text-gray-900 mb-2">{t('parents')}</h4>
                 <div className="bg-gray-50 rounded-lg divide-y">
                   {parentMembers.map(member => (
                     <div key={member.id} className="p-3">
@@ -107,7 +110,7 @@ export function ViewFamilyModal({ isOpen, onClose, family }: ViewFamilyModalProp
 
             {childMembers.length > 0 && (
               <div>
-                <h4 className="text-sm font-medium text-gray-900 mb-2">Children</h4>
+                <h4 className="text-sm font-medium text-gray-900 mb-2">{t('children')}</h4>
                 <div className="bg-gray-50 rounded-lg divide-y">
                   {childMembers.map(member => (
                     <div key={member.id} className="p-3">
@@ -131,7 +134,7 @@ export function ViewFamilyModal({ isOpen, onClose, family }: ViewFamilyModalProp
 
             {family.members.length === 0 && (
               <div className="text-center py-6 text-gray-500">
-                No family members added yet
+                {t('noFamilyMembers')}
               </div>
             )}
           </div>

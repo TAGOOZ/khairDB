@@ -14,8 +14,10 @@ import React, { useState } from 'react';
     import { AddIndividualModal } from '../../components/modals/AddIndividualModal';
     import { useFamilies } from '../../hooks/useFamilies';
     import { Modal } from '../../components/ui/Modal';
+    import { useLanguage } from '../../contexts/LanguageContext';
     
     export function PendingRequests() {
+      const { t } = useLanguage();
       const { requests, isLoading, refreshRequests } = usePendingRequests();
       const { user } = useAuthStore();
       const { families } = useFamilies();
@@ -208,7 +210,7 @@ import React, { useState } from 'react';
         <>
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <h2 className="text-lg font-semibold text-gray-900">Requests</h2>
+              <h2 className="text-lg font-semibold text-gray-900">{t('requests')}</h2>
             </div>
     
             <Card>
@@ -216,10 +218,9 @@ import React, { useState } from 'react';
                 <div className="flex items-center gap-4">
                   <div className="flex-1">
                     <Input
-                      placeholder="Search requests..."
+                      placeholder={t('searchRequests')}
                       value={filters.search}
                       onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-                      icon={Search}
                     />
                   </div>
                   <div className="w-48">
@@ -227,9 +228,9 @@ import React, { useState } from 'react';
                       value={filters.status}
                       onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
                       options={[
-                        { value: 'pending', label: 'Pending' },
-                        { value: 'approved', label: 'Approved' },
-                        { value: 'rejected', label: 'Rejected' }
+                        { value: 'pending', label: t('pending') },
+                        { value: 'approved', label: t('approved') },
+                        { value: 'rejected', label: t('rejected') }
                       ]}
                     />
                   </div>
@@ -330,7 +331,7 @@ import React, { useState } from 'react';
     
                   {filteredRequests.length === 0 && (
                     <div className="text-center py-8 text-gray-500">
-                      No requests found
+                      {t('noRequestsFound')}
                     </div>
                   )}
                 </div>

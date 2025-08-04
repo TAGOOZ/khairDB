@@ -10,8 +10,10 @@ import { Button } from '../../components/ui/Button';
 import { Family } from '../../types';
 import { FamilyFormData } from '../../schemas/familySchema';
 import { useFamilyActions } from './hooks/useFamilyActions';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 export function Families() {
+  const { t } = useLanguage();
   const { 
     families, 
     isLoading, 
@@ -64,12 +66,12 @@ export function Families() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">Families</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t('families')}</h1>
         <Button
           onClick={handleAdd}
           icon={Plus}
         >
-          Add Family
+          {t('addFamily')}
         </Button>
       </div>
 

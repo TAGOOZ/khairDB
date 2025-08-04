@@ -205,7 +205,9 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
 
   // Handle member addition logic
   const handleAddMember = (memberData: any) => {
+    console.log('handleAddMember called with:', memberData); // Debug log
     if (memberData.first_name && memberData.last_name) {
+      // This is a child
       appendChild({
         first_name: memberData.first_name,
         last_name: memberData.last_name,
@@ -214,16 +216,18 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
         school_stage: memberData.school_stage,
         description: memberData.description
       });
+      console.log('Added child to form');
     } else {
+      // This is an adult
       appendMember({
         name: memberData.name || '',
         date_of_birth: memberData.date_of_birth,
         gender: memberData.gender as 'male' | 'female',
-        role: memberData.role || 'other',
-        job_title: memberData.job_title,
-        phone_number: memberData.phone_number,
-        relation: memberData.relation || ''
+        relation: memberData.relation || '',
+        job_title: memberData.job_title || '',
+        phone_number: memberData.phone_number || ''
       });
+      console.log('Added adult to form');
     }
   };
 
@@ -251,6 +255,7 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
 
   // Form submission handler
   const handleFormSubmit = async (data: IndividualFormData) => {
+    console.log('Form data at submit:', data); // DEBUG LOG
     try {
       window.scrollTo(0, 0);
       
@@ -310,7 +315,6 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
           name: member.name,
           date_of_birth: member.date_of_birth,
           gender: member.gender,
-          role: member.role,
           job_title: member.job_title,
           phone_number: member.phone_number,
           relation: member.relation
@@ -324,6 +328,9 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
         education_assistance: hasNonEmptyValues(data.education_assistance, 'education_assistance') ? data.education_assistance : undefined,
         shelter_assistance: hasNonEmptyValues(data.shelter_assistance, 'shelter_assistance') ? data.shelter_assistance : undefined
       };
+      
+      console.log('Formatted data being sent to backend:', formattedData);
+      console.log('Additional members:', formattedData.additional_members);
       
       await onSubmit(formattedData);
       reset();
