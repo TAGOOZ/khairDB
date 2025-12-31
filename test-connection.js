@@ -1,7 +1,7 @@
-const { createClient } = require('@supabase/supabase-js')
+import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = 'https://xcyzvtkkgmuezvdaqlgv.supabase.co'
-const supabaseKey = 'Mustafa_Mu0512@@'
+const supabaseUrl = process.env.VITE_SUPABASE_URL
+const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY
 
 const supabase = createClient(supabaseUrl, supabaseKey)
 

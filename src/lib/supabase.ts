@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 import { Database } from '../types/supabase';
 
-const supabaseUrl = 'https://xcyzvtkkgmuezvdaqlgv.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjeXp2dGtrZ211ZXp2ZGFxbGd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzM0MzgyNDYsImV4cCI6MjA0OTAxNDI0Nn0.8YolmP36r7hRSVh3T0qaEa1i0DEBlZ0rnGKsLOW-oMQ';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseKey) {
   throw new Error('Missing Supabase credentials');
