@@ -19,7 +19,7 @@ class AssistanceDetailsHandler {
    */
   static normalizeAssistanceDetails(data: IndividualFormData): AssistanceDetail[] {
     const assistanceDetails: AssistanceDetail[] = [];
-    
+
     // Helper to check if an array has actual values
     const hasArrayValues = (arr: any[] | null | undefined): boolean => {
       return Array.isArray(arr) && arr.length > 0;
@@ -28,42 +28,42 @@ class AssistanceDetailsHandler {
     // Enhanced helper to check if an object has any meaningful values
     const hasNonEmptyValues = (obj: any, assistanceType: string): boolean => {
       if (!obj) return false;
-      
+
       // Special handling for different assistance types
       switch (assistanceType) {
         case 'debt_assistance':
           // For debt assistance, only consider it meaningful if needs_debt_assistance is true
           return obj.needs_debt_assistance === true;
-          
+
         case 'marriage_assistance':
           // For marriage assistance, only consider it meaningful if marriage_support_needed is true
           return obj.marriage_support_needed === true;
-          
+
         case 'medical_help':
           // For medical help, check if any assistance types are selected or other meaningful data exists
-          return hasArrayValues(obj.type_of_medical_assistance_needed) || 
-                 obj.health_insurance_coverage === true ||
-                 (obj.medication_distribution_frequency && obj.medication_distribution_frequency.trim().length > 0) ||
-                 (obj.estimated_cost_of_treatment && obj.estimated_cost_of_treatment.trim().length > 0) ||
-                 (obj.additional_details && obj.additional_details.trim().length > 0);
-          
+          return hasArrayValues(obj.type_of_medical_assistance_needed) ||
+            obj.health_insurance_coverage === true ||
+            (obj.medication_distribution_frequency && obj.medication_distribution_frequency.trim().length > 0) ||
+            (obj.estimated_cost_of_treatment && obj.estimated_cost_of_treatment.trim().length > 0) ||
+            (obj.additional_details && obj.additional_details.trim().length > 0);
+
         case 'food_assistance':
           // For food assistance, check if any food types are selected or food supply card is true
           return hasArrayValues(obj.type_of_food_assistance_needed) || obj.food_supply_card === true;
-          
+
         case 'education_assistance':
           // For education assistance, check if any meaningful education data exists
           return (obj.family_education_level && obj.family_education_level.trim().length > 0) ||
-                 (obj.desire_for_education && obj.desire_for_education.trim().length > 0) ||
-                 hasArrayValues(obj.children_educational_needs);
-          
+            (obj.desire_for_education && obj.desire_for_education.trim().length > 0) ||
+            hasArrayValues(obj.children_educational_needs);
+
         case 'shelter_assistance':
           // For shelter assistance, check if any housing details are provided
           return (obj.type_of_housing && obj.type_of_housing.trim().length > 0) ||
-                 (obj.housing_condition && obj.housing_condition.trim().length > 0) ||
-                 (obj.number_of_rooms && obj.number_of_rooms > 0) ||
-                 hasArrayValues(obj.household_appliances);
-          
+            (obj.housing_condition && obj.housing_condition.trim().length > 0) ||
+            (obj.number_of_rooms && obj.number_of_rooms > 0) ||
+            hasArrayValues(obj.household_appliances);
+
         default:
           // Fallback to generic check
           return Object.entries(obj).some(([_, value]) => {
@@ -101,7 +101,7 @@ class AssistanceDetailsHandler {
             business_debt: Boolean(data.business_debt),
             other_debt: Boolean(data.other_debt)
           };
-          
+
         case 'marriage_assistance':
           // If marriage_support_needed is false, reset all other fields
           if (!data.marriage_support_needed) {
@@ -118,12 +118,12 @@ class AssistanceDetailsHandler {
             wedding_date: data.wedding_date || null,
             specific_needs: data.specific_needs || null
           };
-          
+
         default:
           return data;
       }
     };
-       
+
 
     // Medical Help
     if (data.medical_help && hasNonEmptyValues(data.medical_help, 'medical_help')) {
@@ -131,8 +131,8 @@ class AssistanceDetailsHandler {
         individual_id: '', // Will be set later
         assistance_type: 'medical_help',
         details: normalizeAssistanceData({
-          type_of_medical_assistance_needed: hasArrayValues(data.medical_help.type_of_medical_assistance_needed) 
-            ? data.medical_help.type_of_medical_assistance_needed 
+          type_of_medical_assistance_needed: hasArrayValues(data.medical_help.type_of_medical_assistance_needed)
+            ? data.medical_help.type_of_medical_assistance_needed
             : [],
           medication_distribution_frequency: data.medical_help.medication_distribution_frequency || null,
           estimated_cost_of_treatment: data.medical_help.estimated_cost_of_treatment || null,
@@ -194,14 +194,14 @@ class AssistanceDetailsHandler {
       // Validate housing condition
       const validHousingConditions = ['excellent', 'good', 'fair', 'poor', 'critical'];
       const housingCondition = data.shelter_assistance.housing_condition || '';
-      
+
       // Validate housing type
       const validHousingTypes = ['owned', 'rented', 'temporary', 'shelter', 'other'];
       const housingType = data.shelter_assistance.type_of_housing || '';
-      
+
       // Validate and normalize number of rooms
       const numberOfRooms = Math.max(0, Number(data.shelter_assistance.number_of_rooms) || 0);
-      
+
       assistanceDetails.push({
         individual_id: '',
         assistance_type: 'shelter_assistance',
@@ -306,7 +306,7 @@ export async function createIndividual(data: IndividualFormData) {
 
     // Get the authenticated user
     const { data: { user } } = await supabase.auth.getUser();
-    
+
     if (!user) {
       throw new IndividualError('auth-error', 'Authentication required', null);
     }
@@ -331,10 +331,10 @@ export async function createIndividual(data: IndividualFormData) {
 
     // Handle family creation or selection
     let familyId = data.family_id;
-    
+
     if (!familyId && data.new_family_name) {
       console.log('Creating new family:', data.new_family_name);
-      
+
       const { data: newFamily, error: familyError } = await supabase
         .from('families')
         .insert([{
@@ -345,20 +345,20 @@ export async function createIndividual(data: IndividualFormData) {
           status: 'green'
         }])
         .select();
-        
+
       if (familyError) {
         console.error('Family creation error details:', familyError);
         throw new IndividualError('family-creation-failed', 'Failed to create family: ' + familyError.message, familyError);
       }
-      
+
       if (!newFamily || newFamily.length === 0) {
         throw new IndividualError('family-creation-failed', 'Family was created but no data was returned', null);
       }
-      
+
       familyId = newFamily[0].id;
       console.log('Successfully created new family with ID:', familyId);
     }
-  
+
     // Create individual record
     const individualData = {
       first_name: data.first_name,
@@ -469,7 +469,7 @@ export async function createIndividual(data: IndividualFormData) {
     if (assistanceDetails.length > 0) {
       // Set the individual_id for each assistance detail
       assistanceDetails.forEach(detail => detail.individual_id = newIndividual.id);
-      
+
       const { error: assistanceError } = await supabase
         .from('assistance_details')
         .insert(assistanceDetails);
@@ -557,7 +557,18 @@ export async function updateIndividual(id: string, data: IndividualFormData) {
       }
 
       if (!existingMember) {
-        // Add to new family only if not already a member
+        // First, remove from any other families (prevent multi-family membership)
+        const { error: removeError } = await supabase
+          .from('family_members')
+          .delete()
+          .eq('individual_id', id)
+          .neq('family_id', familyId);
+
+        if (removeError) {
+          console.error('Error removing from old families:', removeError);
+        }
+
+        // Add to new family
         const { error: memberError } = await supabase
           .from('family_members')
           .insert([{
@@ -573,6 +584,7 @@ export async function updateIndividual(id: string, data: IndividualFormData) {
       }
     }
 
+
     // Update children
     if (Array.isArray(data.children) && familyId) {
       // Fetch existing children for this individual
@@ -580,13 +592,13 @@ export async function updateIndividual(id: string, data: IndividualFormData) {
         .from('children')
         .select('id, first_name, last_name')
         .eq('parent_id', id);
-        
+
       if (existingChildrenError) {
         throw new IndividualError('fetch-failed', 'Failed to fetch existing children', existingChildrenError);
       }
 
       const existingIds = (existingChildren || []).map((c: { id: string }) => c.id);
-      
+
       // Get IDs of children that are being kept/updated (only existing children with IDs)
       const submittedIds = data.children
         .filter((c: any) => c.id && typeof c.id === 'string') // Only include children that have valid IDs
@@ -594,10 +606,10 @@ export async function updateIndividual(id: string, data: IndividualFormData) {
 
       console.log('Existing children IDs:', existingIds);
       console.log('Submitted children IDs:', submittedIds);
-      
+
       // Find children to delete (exist in DB but not in submitted data)
       const idsToDelete = existingIds.filter((cid: string) => !submittedIds.includes(cid));
-      
+
       if (idsToDelete.length > 0) {
         console.log('Deleting children with IDs:', idsToDelete);
         const { error: deleteChildrenError } = await supabase
@@ -605,12 +617,12 @@ export async function updateIndividual(id: string, data: IndividualFormData) {
           .delete()
           .in('id', idsToDelete)
           .eq('parent_id', id); // Extra safety check
-          
+
         if (deleteChildrenError) {
           throw new IndividualError('deletion-failed', 'Failed to delete children', deleteChildrenError);
         }
       }
-      
+
       // Process each child in the submitted data
       for (const child of data.children as Child[]) {
         if (child.id && typeof child.id === 'string' && child.id.trim() !== '') {
@@ -642,7 +654,7 @@ export async function updateIndividual(id: string, data: IndividualFormData) {
             })
             .eq('id', child.id)
             .eq('parent_id', id); // Extra safety check
-            
+
           if (updateChildError) {
             throw new IndividualError('update-failed', 'Failed to update child', updateChildError);
           }
@@ -661,7 +673,7 @@ export async function updateIndividual(id: string, data: IndividualFormData) {
               parent_id: id,
               family_id: familyId
             }]);
-            
+
           if (insertChildError) {
             throw new IndividualError('creation-failed', 'Failed to create child', insertChildError);
           }
@@ -674,19 +686,19 @@ export async function updateIndividual(id: string, data: IndividualFormData) {
         .from('children')
         .delete()
         .eq('parent_id', id);
-        
+
       if (deleteAllChildrenError) {
         throw new IndividualError('deletion-failed', 'Failed to delete all children', deleteAllChildrenError);
       }
     }
 
     // Handle assistance details update
-    const hasAssistanceData = data.medical_help || 
-                          data.food_assistance || 
-                          data.marriage_assistance || 
-                          data.debt_assistance || 
-                          data.education_assistance || 
-                          data.shelter_assistance;
+    const hasAssistanceData = data.medical_help ||
+      data.food_assistance ||
+      data.marriage_assistance ||
+      data.debt_assistance ||
+      data.education_assistance ||
+      data.shelter_assistance;
 
     if (hasAssistanceData) {
       await AssistanceDetailsHandler.updateAssistanceDetails(supabase, id, data);
@@ -723,85 +735,85 @@ export async function deleteIndividual(id: string) {
         .select('family_id')
         .eq('id', id)
         .single();
-        
+
       if (individualError) {
         throw new IndividualError('fetch-failed', 'Failed to fetch individual', individualError);
       }
-        
+
       if (individual?.family_id) {
         const { data: familyParents, error: parentsError } = await supabase
           .from('family_members')
           .select('individual_id')
           .eq('family_id', individual.family_id)
           .eq('role', 'parent');
-          
+
         if (parentsError) {
           throw new IndividualError('fetch-failed', 'Failed to fetch family parents', parentsError);
         }
-          
+
         if (familyParents && familyParents.length <= 1) {
           // This is the only parent, delete the whole family
           console.warn('Deleting the only parent in family:', individual.family_id);
-          
+
           // Delete all family members
           const { error: membersDeleteError } = await supabase
             .from('family_members')
             .delete()
             .eq('family_id', individual.family_id);
-            
+
           if (membersDeleteError) {
             throw new IndividualError('deletion-failed', 'Failed to delete family members', membersDeleteError);
           }
-          
+
           // Delete the family
           const { error: familyDeleteError } = await supabase
             .from('families')
             .delete()
             .eq('id', individual.family_id);
-            
+
           if (familyDeleteError) {
             throw new IndividualError('deletion-failed', 'Failed to delete family', familyDeleteError);
           }
         }
       }
-      
+
       // Delete related records first
       const { error: assistanceError } = await supabase
         .from('assistance_details')
         .delete()
         .eq('individual_id', id);
-        
+
       if (assistanceError) {
         throw new IndividualError('deletion-failed', 'Failed to delete assistance details', assistanceError);
       }
-      
+
       const { error: hashtagsError } = await supabase
         .from('individual_hashtags')
         .delete()
         .eq('individual_id', id);
-        
+
       if (hashtagsError) {
         throw new IndividualError('deletion-failed', 'Failed to delete hashtags', hashtagsError);
       }
-      
+
       const { error: membersError } = await supabase
         .from('family_members')
         .delete()
         .eq('individual_id', id);
-        
+
       if (membersError) {
         throw new IndividualError('deletion-failed', 'Failed to delete family membership', membersError);
       }
-      
+
       const { error: childrenError } = await supabase
         .from('children')
         .delete()
         .eq('parent_id', id);
-        
+
       if (childrenError) {
         throw new IndividualError('deletion-failed', 'Failed to delete children', childrenError);
       }
-      
+
       // Finally delete the individual
       const { error } = await supabase
         .from('individuals')
@@ -811,13 +823,13 @@ export async function deleteIndividual(id: string) {
       if (error) {
         throw new IndividualError('deletion-failed', 'Failed to delete individual', error);
       }
-      
+
       // Commit the transaction
       const { error: commitError } = await supabase.rpc('commit_transaction');
       if (commitError) {
         throw new IndividualError('transaction-failed', 'Failed to commit transaction', commitError);
       }
-      
+
       return true;
     } catch (error) {
       // Rollback on any error
@@ -896,7 +908,7 @@ export async function getIndividual(id: string) {
         notes: dr.notes,
         status: dr.distribution.status
       }));
-    
+
     // Fetch assistance details
     const { data: assistanceDetails, error: assistanceError } = await supabase
       .from('assistance_details')
@@ -913,8 +925,8 @@ export async function getIndividual(id: string) {
         switch (detail.assistance_type) {
           case 'medical_help':
             acc.medical_help = {
-              type_of_medical_assistance_needed: Array.isArray(detail.details.type_of_medical_assistance_needed) 
-                ? detail.details.type_of_medical_assistance_needed 
+              type_of_medical_assistance_needed: Array.isArray(detail.details.type_of_medical_assistance_needed)
+                ? detail.details.type_of_medical_assistance_needed
                 : [],
               medication_distribution_frequency: detail.details.medication_distribution_frequency ?? null,
               estimated_cost_of_treatment: detail.details.estimated_cost_of_treatment ?? null,

@@ -29,16 +29,24 @@ serve(async (req) => {
     // Get the authorization header from the request
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
-      throw new Error('No authorization header')
+      return new Response(
+        JSON.stringify({ error: 'No authorization header' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+      )
     }
 
-    // Verify the user is authenticated and is an admin
+    // Verify the user is authenticated - use service role to validate the token
     const token = authHeader.replace('Bearer ', '')
     const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
-    
+
     if (authError || !user) {
-      throw new Error('Unauthorized')
+      console.error('Auth verification failed:', authError)
+      return new Response(
+        JSON.stringify({ error: 'Invalid or expired token' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+      )
     }
+
 
     // Check if the user is an admin
     const { data: userData, error: userError } = await supabaseAdmin
@@ -86,7 +94,7 @@ serve(async (req) => {
     console.log(`User deleted: ${userToDelete.email} by admin ${user.email}`)
 
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         success: true,
         message: 'User deleted successfully'
       }),
@@ -97,10 +105,10 @@ serve(async (req) => {
     )
   } catch (error) {
     console.error('Error deleting user:', error)
-    
+
     return new Response(
-      JSON.stringify({ 
-        error: error instanceof Error ? error.message : 'An unknown error occurred' 
+      JSON.stringify({
+        error: error instanceof Error ? error.message : 'An unknown error occurred'
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

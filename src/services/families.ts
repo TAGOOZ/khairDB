@@ -16,12 +16,29 @@ export class FamilyError extends Error {
 export async function createFamily(data: FamilyFormData): Promise<Family> {
   try {
     // Validate that there's at least one parent
-    const hasParent = data.members.some(member => member.role === 'parent');
+    const hasParent = data.members.some((member: { role: string }) => member.role === 'parent');
     if (!hasParent) {
       throw new FamilyError('invalid-members', 'At least one parent is required');
     }
 
-    // Start a transaction
+    // Validate that all member IDs exist in individuals table
+    const memberIds = data.members.map((m: { id: string }) => m.id);
+    const { data: validMembers, error: validationError } = await supabase
+      .from('individuals')
+      .select('id')
+      .in('id', memberIds);
+
+    if (validationError) {
+      throw new FamilyError('validation-failed', 'Failed to validate members', validationError);
+    }
+
+    const validIds = (validMembers || []).map((m: { id: string }) => m.id);
+    const invalidIds = memberIds.filter((id: string) => !validIds.includes(id));
+    if (invalidIds.length > 0) {
+      throw new FamilyError('invalid-members', `Some members do not exist: ${invalidIds.join(', ')}`);
+    }
+
+    // Create family
     const { data: family, error: familyError } = await supabase
       .from('families')
       .insert([{
@@ -39,7 +56,7 @@ export async function createFamily(data: FamilyFormData): Promise<Family> {
     }
 
     // Add members to family_members table
-    const memberInserts = data.members.map(member => ({
+    const memberInserts = data.members.map((member: { id: string; role: string }) => ({
       family_id: family.id,
       individual_id: member.id,
       role: member.role
@@ -54,6 +71,7 @@ export async function createFamily(data: FamilyFormData): Promise<Family> {
       await supabase.from('families').delete().eq('id', family.id);
       throw new FamilyError('member-creation-failed', 'Failed to add family members', membersError);
     }
+
 
     // Fetch the complete family with members and children
     const { data: completeFamily, error: fetchError } = await supabase
@@ -95,9 +113,26 @@ export async function createFamily(data: FamilyFormData): Promise<Family> {
 export async function updateFamily(id: string, data: FamilyFormData): Promise<Family> {
   try {
     // Validate that there's at least one parent
-    const hasParent = data.members.some(member => member.role === 'parent');
+    const hasParent = data.members.some((member: { role: string }) => member.role === 'parent');
     if (!hasParent) {
       throw new FamilyError('invalid-members', 'At least one parent is required');
+    }
+
+    // Validate that all member IDs exist in individuals table
+    const memberIds = data.members.map((m: { id: string }) => m.id);
+    const { data: validMembers, error: validationError } = await supabase
+      .from('individuals')
+      .select('id')
+      .in('id', memberIds);
+
+    if (validationError) {
+      throw new FamilyError('validation-failed', 'Failed to validate members', validationError);
+    }
+
+    const validIds = (validMembers || []).map((m: { id: string }) => m.id);
+    const invalidIds = memberIds.filter((memberId: string) => !validIds.includes(memberId));
+    if (invalidIds.length > 0) {
+      throw new FamilyError('invalid-members', `Some members do not exist: ${invalidIds.join(', ')}`);
     }
 
     // Update family
@@ -127,7 +162,7 @@ export async function updateFamily(id: string, data: FamilyFormData): Promise<Fa
     }
 
     // Add new members
-    const memberInserts = data.members.map(member => ({
+    const memberInserts = data.members.map((member: { id: string; role: string }) => ({
       family_id: id,
       individual_id: member.id,
       role: member.role
@@ -140,6 +175,7 @@ export async function updateFamily(id: string, data: FamilyFormData): Promise<Fa
     if (membersError) {
       throw new FamilyError('member-update-failed', 'Failed to update family members', membersError);
     }
+
 
     // Fetch updated family with members and children
     const { data: updatedFamily, error: fetchError } = await supabase
@@ -180,7 +216,18 @@ export async function updateFamily(id: string, data: FamilyFormData): Promise<Fa
 
 export async function deleteFamily(id: string): Promise<void> {
   try {
-    // Delete children first
+    // First, set family_id to null for all individuals in this family
+    // This prevents orphaned records with invalid foreign keys
+    const { error: individualsError } = await supabase
+      .from('individuals')
+      .update({ family_id: null })
+      .eq('family_id', id);
+
+    if (individualsError) {
+      throw new FamilyError('delete-failed', 'Failed to unlink individuals from family', individualsError);
+    }
+
+    // Delete children
     const { error: childrenError } = await supabase
       .from('children')
       .delete()
@@ -190,7 +237,17 @@ export async function deleteFamily(id: string): Promise<void> {
       throw new FamilyError('delete-failed', 'Failed to delete family children', childrenError);
     }
 
-    // Then delete the family (this will cascade to family_members)
+    // Delete family_members (should cascade, but be explicit)
+    const { error: membersError } = await supabase
+      .from('family_members')
+      .delete()
+      .eq('family_id', id);
+
+    if (membersError) {
+      throw new FamilyError('delete-failed', 'Failed to delete family members', membersError);
+    }
+
+    // Then delete the family
     const { error: deleteError } = await supabase
       .from('families')
       .delete()
@@ -204,3 +261,4 @@ export async function deleteFamily(id: string): Promise<void> {
     throw new FamilyError('unexpected', 'An unexpected error occurred', error);
   }
 }
+

@@ -110,7 +110,7 @@ export async function createDistribution(data: DistributionFormData): Promise<Di
           }
         };
       }
-      
+
       return {
         ...recipient,
         original_individual_id: recipient.individual_id,
@@ -125,8 +125,8 @@ export async function createDistribution(data: DistributionFormData): Promise<Di
     console.log('Distribution creation debug:', {
       totalRecipients: data.recipients.length,
       totalQuantity,
-      recipients: data.recipients.map(r => ({ 
-        id: r.individual_id, 
+      recipients: data.recipients.map(r => ({
+        id: r.individual_id,
         quantity: r.quantity_received,
         isAdditional: r.individual_id.toString().startsWith('additional_')
       }))
@@ -158,34 +158,34 @@ export async function createDistribution(data: DistributionFormData): Promise<Di
 
     // Then, create the recipient records
     const recipientsToInsert = [];
-    
+
     // Group recipients by individual, aggregating additional members
     const recipientGroups = new Map();
     const additionalMembersToProcess = [];
-    
+
     // First pass: Process main individuals and children, collect additional members
     for (const recipient of formattedRecipients) {
       const isAdditionalMember = recipient.original_individual_id && recipient.original_individual_id.toString().startsWith('additional_');
-      
+
       if (isAdditionalMember) {
         // Store additional member for second pass
         additionalMembersToProcess.push(recipient);
         continue;
       }
-      
+
       if (!recipient.individual_id) {
         continue; // Skip null IDs
       }
-      
+
       // Check if this ID exists in the children table
       const { data: childData } = await supabase
         .from('children')
         .select('id')
         .eq('id', recipient.individual_id)
         .single();
-      
+
       const individualId = recipient.individual_id;
-      
+
       if (recipientGroups.has(individualId)) {
         // Add to existing entry
         recipientGroups.get(individualId).quantity_received += recipient.quantity_received;
@@ -199,12 +199,12 @@ export async function createDistribution(data: DistributionFormData): Promise<Di
         });
       }
     }
-    
+
     // Second pass: Process additional members and add to their parent individuals
     for (const recipient of additionalMembersToProcess) {
       // Parse additional member reference
       const [, parentIndividualId] = recipient.original_individual_id.toString().split('_');
-      
+
       // Add quantity to the parent individual
       if (recipientGroups.has(parentIndividualId)) {
         recipientGroups.get(parentIndividualId).quantity_received += recipient.quantity_received;
@@ -219,7 +219,7 @@ export async function createDistribution(data: DistributionFormData): Promise<Di
         });
       }
     }
-    
+
     console.log('Recipients after grouping:', {
       totalGroups: recipientGroups.size,
       groups: Array.from(recipientGroups.entries()).map(([id, data]) => ({
@@ -229,7 +229,7 @@ export async function createDistribution(data: DistributionFormData): Promise<Di
         isChild: data.is_child
       }))
     });
-    
+
     // Convert grouped recipients to insert format
     for (const [individualId, groupData] of recipientGroups) {
       if (groupData.is_child) {
@@ -240,7 +240,7 @@ export async function createDistribution(data: DistributionFormData): Promise<Di
           child_id: individualId,
           quantity_received: groupData.quantity_received,
           value_received: (data.value / totalQuantity) * groupData.quantity_received,
-          notes: groupData.additional_members_count > 0 
+          notes: groupData.additional_members_count > 0
             ? `Includes ${groupData.additional_members_count} additional family member(s)`
             : null
         });
@@ -252,7 +252,7 @@ export async function createDistribution(data: DistributionFormData): Promise<Di
           child_id: null,
           quantity_received: groupData.quantity_received,
           value_received: (data.value / totalQuantity) * groupData.quantity_received,
-          notes: groupData.additional_members_count > 0 
+          notes: groupData.additional_members_count > 0
             ? `Includes ${groupData.additional_members_count} additional family member(s)`
             : null
         });
@@ -313,13 +313,13 @@ export async function createDistribution(data: DistributionFormData): Promise<Di
         recipientsFetchError
       );
     }
-    
+
     // For each recipient, fetch the individual or child data separately
     const recipientsWithDetails = await Promise.all(
       (recipientsData || []).map(async (recipient) => {
         let individual = null;
         let child = null;
-        
+
         // If recipient has individual_id, fetch individual data
         if (recipient.individual_id) {
           const { data: individualData } = await supabase
@@ -329,7 +329,7 @@ export async function createDistribution(data: DistributionFormData): Promise<Di
             .single();
           individual = individualData;
         }
-        
+
         // If recipient has child_id, fetch child data
         if (recipient.child_id) {
           const { data: childData } = await supabase
@@ -339,7 +339,7 @@ export async function createDistribution(data: DistributionFormData): Promise<Di
             .single();
           child = childData;
         }
-        
+
         return {
           ...recipient,
           individual,
@@ -369,14 +369,9 @@ export async function createDistribution(data: DistributionFormData): Promise<Di
 
 export async function updateDistribution(id: string, data: DistributionFormData): Promise<Distribution> {
   try {
-    // Validate total quantities
+    // Calculate total quantity if not matching (allow auto-calculation like create)
     const totalRecipientQuantity = data.recipients.reduce((sum, r) => sum + r.quantity_received, 0);
-    if (totalRecipientQuantity !== data.quantity) {
-      throw new DistributionError(
-        'invalid-quantities',
-        'Total recipient quantities must match the distribution quantity'
-      );
-    }
+    const totalQuantity = data.quantity || totalRecipientQuantity;
 
     const { data: distribution, error: distributionError } = await supabase
       .from('distributions')
@@ -384,7 +379,7 @@ export async function updateDistribution(id: string, data: DistributionFormData)
         date: data.date,
         aid_type: data.aid_type,
         description: data.description,
-        quantity: data.quantity,
+        quantity: totalQuantity,
         value: data.value,
       })
       .eq('id', id)
@@ -394,7 +389,7 @@ export async function updateDistribution(id: string, data: DistributionFormData)
     if (distributionError) throw distributionError;
 
     // Calculate value per unit
-    const valuePerUnit = data.value / data.quantity;
+    const valuePerUnit = data.value / totalQuantity;
 
     // Delete existing recipients
     await supabase
@@ -402,18 +397,70 @@ export async function updateDistribution(id: string, data: DistributionFormData)
       .delete()
       .eq('distribution_id', id);
 
-    // Insert new recipients with calculated value_received
-    const recipientInserts = data.recipients.map(recipient => ({
-      distribution_id: id,
-      individual_id: recipient.individual_id,
-      quantity_received: recipient.quantity_received,
-      value_received: Number((recipient.quantity_received * valuePerUnit).toFixed(2)),
-      notes: null
-    }));
+    // Process recipients - handle children and additional members
+    const recipientsToInsert = [];
+    const recipientGroups = new Map();
+
+    for (const recipient of data.recipients) {
+      const recipientId = recipient.individual_id?.toString() || '';
+
+      // Skip additional members - aggregate to parent
+      if (recipientId.startsWith('additional_')) {
+        const [, parentIndividualId] = recipientId.split('_');
+        if (recipientGroups.has(parentIndividualId)) {
+          recipientGroups.get(parentIndividualId).quantity_received += recipient.quantity_received;
+          recipientGroups.get(parentIndividualId).additional_members_count++;
+        } else {
+          recipientGroups.set(parentIndividualId, {
+            individual_id: parentIndividualId,
+            child_id: null,
+            quantity_received: recipient.quantity_received,
+            additional_members_count: 1,
+            is_child: false
+          });
+        }
+        continue;
+      }
+
+      // Check if this is a child
+      const { data: childData } = await supabase
+        .from('children')
+        .select('id')
+        .eq('id', recipientId)
+        .single();
+
+      const isChild = !!childData;
+
+      if (recipientGroups.has(recipientId)) {
+        recipientGroups.get(recipientId).quantity_received += recipient.quantity_received;
+      } else {
+        recipientGroups.set(recipientId, {
+          individual_id: isChild ? null : recipientId,
+          child_id: isChild ? recipientId : null,
+          quantity_received: recipient.quantity_received,
+          additional_members_count: 0,
+          is_child: isChild
+        });
+      }
+    }
+
+    // Convert to insert format
+    for (const [, groupData] of recipientGroups) {
+      recipientsToInsert.push({
+        distribution_id: id,
+        individual_id: groupData.individual_id,
+        child_id: groupData.child_id,
+        quantity_received: groupData.quantity_received,
+        value_received: Number((groupData.quantity_received * valuePerUnit).toFixed(2)),
+        notes: groupData.additional_members_count > 0
+          ? `Includes ${groupData.additional_members_count} additional family member(s)`
+          : null
+      });
+    }
 
     const { error: recipientsError } = await supabase
       .from('distribution_recipients')
-      .insert(recipientInserts);
+      .insert(recipientsToInsert);
 
     if (recipientsError) throw recipientsError;
 
@@ -428,8 +475,20 @@ export async function updateDistribution(id: string, data: DistributionFormData)
   }
 }
 
+
 export async function deleteDistribution(id: string): Promise<void> {
   try {
+    // Explicitly delete recipients first (cascades exist, but be explicit for clarity)
+    const { error: recipientsError } = await supabase
+      .from('distribution_recipients')
+      .delete()
+      .eq('distribution_id', id);
+
+    if (recipientsError) {
+      console.error('Error deleting distribution recipients:', recipientsError);
+    }
+
+    // Then delete the distribution
     const { error } = await supabase
       .from('distributions')
       .delete()
@@ -445,6 +504,7 @@ export async function deleteDistribution(id: string): Promise<void> {
     );
   }
 }
+
 
 export async function getDistributionHistory(
   startDate?: Date,
@@ -481,6 +541,32 @@ export async function getDistributionHistory(
     throw new DistributionError(
       'fetch-failed',
       'Failed to fetch distribution history',
+      error
+    );
+  }
+}
+
+/**
+ * Update the status of a distribution
+ * @param id Distribution ID
+ * @param status New status: 'in_progress', 'completed', or 'cancelled'
+ */
+export async function updateDistributionStatus(
+  id: string,
+  status: 'in_progress' | 'completed' | 'cancelled'
+): Promise<void> {
+  try {
+    const { error } = await supabase
+      .from('distributions')
+      .update({ status })
+      .eq('id', id);
+
+    if (error) throw error;
+  } catch (error) {
+    console.error('Error updating distribution status:', error);
+    throw new DistributionError(
+      'status-update-failed',
+      'Failed to update distribution status',
       error
     );
   }

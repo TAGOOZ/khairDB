@@ -32,13 +32,10 @@ export async function submitIndividualRequest(data: Omit<IndividualRequest, 'id'
 
 export async function getPendingRequests(): Promise<IndividualRequest[]> {
   try {
+    // Note: individual_requests stores data in 'details' JSONB column, not separate columns
     const { data, error } = await supabase
       .from('individual_requests')
-      .select(`
-        *,
-        submitted_by_user:users!pending_requests_submitted_by_fkey(first_name, last_name),
-        reviewed_by_user:users!pending_requests_reviewed_by_fkey(first_name, last_name)
-      `)
+      .select('*')
       .eq('status', 'pending')
       .order('submitted_at', { ascending: false });
 
@@ -48,6 +45,7 @@ export async function getPendingRequests(): Promise<IndividualRequest[]> {
     throw new ApprovalError('fetch-failed', 'Failed to fetch pending requests', error);
   }
 }
+
 
 
 export async function approveRequest(requestId: string, comment?: string): Promise<void> {

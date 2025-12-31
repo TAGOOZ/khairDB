@@ -209,7 +209,7 @@ export type TranslationKey =
   | 'addChild'
   | 'addFamilyMember';
 
-export type AssistanceTranslationKey = 
+export type AssistanceTranslationKey =
   | 'medicalHelp'
   | 'foodAssistance'
   | 'marriageAssistance'
@@ -243,7 +243,7 @@ export type CommonTranslationKey =
   | 'assistanceInformation'
   | 'needsDebtAssistance';
 
-export type AssistanceType = 
+export type AssistanceType =
   | 'medical_help'
   | 'food_assistance'
   | 'marriage_assistance'
@@ -326,7 +326,7 @@ export interface AdditionalMember {
 }
 
 // Need types
-export type NeedCategory = 
+export type NeedCategory =
   | 'medical'
   | 'financial'
   | 'food'
@@ -413,4 +413,27 @@ export interface PendingRequest {
     first_name: string;
     last_name: string;
   };
+}
+
+// Individual Request types (stored in individual_requests table)
+export interface IndividualRequest {
+  id: string;
+  status: 'pending' | 'approved' | 'rejected';
+  submitted_at: string;
+  details: any; // JSONB containing all request data
+  created_at: string;
+  updated_at: string;
+}
+
+// Approval Log types
+export interface ApprovalLog {
+  id: string;
+  action: string;
+  request_id: string | null;
+  request_type: string | null;
+  admin_id: string | null;
+  admin_name: string | null;
+  target_name: string | null;
+  details: any;
+  created_at: string;
 }
