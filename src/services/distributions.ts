@@ -95,7 +95,7 @@ export async function createDistribution(data: DistributionFormData): Promise<Di
     }
 
     // Format recipients to handle additional members
-    const formattedRecipients = data.recipients.map(recipient => {
+    const formattedRecipients = data.recipients.map((recipient: { individual_id: string; quantity_received: number }) => {
       // If it's an additional member, store the reference but keep the original ID for processing
       if (recipient.individual_id.toString().startsWith('additional_')) {
         const [, parentIndividualId, memberIndex] = recipient.individual_id.toString().split('_');
@@ -120,12 +120,12 @@ export async function createDistribution(data: DistributionFormData): Promise<Di
     });
 
     // Calculate total quantity if not provided
-    const totalQuantity = data.quantity || data.recipients.reduce((sum, recipient) => sum + recipient.quantity_received, 0);
+    const totalQuantity = data.quantity || data.recipients.reduce((sum: number, recipient: { quantity_received: number }) => sum + recipient.quantity_received, 0);
 
     console.log('Distribution creation debug:', {
       totalRecipients: data.recipients.length,
       totalQuantity,
-      recipients: data.recipients.map(r => ({
+      recipients: data.recipients.map((r: { individual_id: string; quantity_received: number }) => ({
         id: r.individual_id,
         quantity: r.quantity_received,
         isAdditional: r.individual_id.toString().startsWith('additional_')
@@ -316,7 +316,7 @@ export async function createDistribution(data: DistributionFormData): Promise<Di
 
     // For each recipient, fetch the individual or child data separately
     const recipientsWithDetails = await Promise.all(
-      (recipientsData || []).map(async (recipient) => {
+      (recipientsData || []).map(async (recipient: { individual_id: string | null; child_id: string | null; quantity_received: number; value_received: number; notes: string | null }) => {
         let individual = null;
         let child = null;
 
@@ -370,7 +370,7 @@ export async function createDistribution(data: DistributionFormData): Promise<Di
 export async function updateDistribution(id: string, data: DistributionFormData): Promise<Distribution> {
   try {
     // Calculate total quantity if not matching (allow auto-calculation like create)
-    const totalRecipientQuantity = data.recipients.reduce((sum, r) => sum + r.quantity_received, 0);
+    const totalRecipientQuantity = data.recipients.reduce((sum: number, r: { quantity_received: number }) => sum + r.quantity_received, 0);
     const totalQuantity = data.quantity || totalRecipientQuantity;
 
     const { data: distribution, error: distributionError } = await supabase

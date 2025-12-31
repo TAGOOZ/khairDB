@@ -290,8 +290,10 @@ export class IndividualError extends Error {
     this.code = code;
     this.originalError = originalError;
 
-    if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, this.constructor);
+    // V8 engines (Node.js) provide captureStackTrace
+    const ErrorWithCapture = Error as any;
+    if (typeof ErrorWithCapture.captureStackTrace === 'function') {
+      ErrorWithCapture.captureStackTrace(this, this.constructor);
     }
   }
 }
@@ -429,7 +431,7 @@ export async function createIndividual(data: IndividualFormData) {
     // Insert children if any
     if (data.children && data.children.length > 0 && familyId) {
       try {
-        const childPromises = data.children.map(async (child) => {
+        const childPromises = data.children.map(async (child: { first_name: string; last_name: string; date_of_birth: string; gender: string; school_stage?: string; description?: string }) => {
           const { data: newChild, error: childError } = await supabase
             .from('children')
             .insert([{

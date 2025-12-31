@@ -406,7 +406,7 @@ export async function approveRequest(id: string, comment?: string) {
 
       // Insert needs if any
       if (fetchedRequest?.data?.needs && Array.isArray(fetchedRequest.data.needs)) {
-        const needsInserts = fetchedRequest.data.needs.map((need) => ({
+        const needsInserts = fetchedRequest.data.needs.map((need: { category: string; priority: string; description: string }) => ({
           individual_id: newIndividual.id,
           category: need.category,
           priority: need.priority,
