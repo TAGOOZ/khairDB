@@ -3,17 +3,18 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { availableHashtags } from '../schemas/individualSchema';
 import { Plus, Trash2, Edit, Check, X, Users, ChevronRight } from 'lucide-react';
-import { 
-  getHashtagCounts, 
-  addHashtagToAll, 
-  removeHashtagFromAll, 
+import {
+  getHashtagCounts,
+  addHashtagToAll,
+  removeHashtagFromAll,
   createHashtag,
-  Hashtag 
+  Hashtag
 } from '../services/hashtags';
 import { supabase } from '../lib/supabase';
 
 export function Projects() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const isRTL = language === 'ar';
   const queryClient = useQueryClient();
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
   const [isAddingHashtag, setIsAddingHashtag] = useState(false);
@@ -45,37 +46,37 @@ export function Projects() {
         try {
           // Get hashtag ID first
           const hashtags = projectStats.filter((h: Hashtag) => h.name === selectedProject);
-          
+
           if (hashtags.length === 0) {
             setIndividualsList([]);
             return;
           }
-          
+
           const hashtagId = hashtags[0].id;
-          
+
           // Query for individuals with this hashtag
           const { data, error } = await supabase
             .from('individual_hashtags')
             .select('individual_id')
             .eq('hashtag_id', hashtagId);
-            
+
           if (error) throw error;
-          
+
           if (!data || data.length === 0) {
             setIndividualsList([]);
             return;
           }
-          
+
           // Get the individual details
           const individualIds = data.map((item: { individual_id: string }) => item.individual_id);
-          
+
           const { data: individuals, error: indError } = await supabase
             .from('individuals')
             .select('id, first_name, last_name, id_number, district')
             .in('id', individualIds);
-            
+
           if (indError) throw indError;
-          
+
           setIndividualsList(individuals || []);
         } catch (error) {
           console.error('Error fetching individuals:', error);
@@ -83,7 +84,7 @@ export function Projects() {
           setIndividualsList([]);
         }
       };
-      
+
       fetchIndividuals();
     }
   }, [selectedProject, projectStats]);
@@ -96,9 +97,9 @@ export function Projects() {
         .from('hashtags')
         .insert([{ name: hashtagName }])
         .select();
-        
+
       if (error) throw error;
-      
+
       // Refetch data
       queryClient.invalidateQueries({ queryKey: ['projectStats'] });
     } catch (error) {
@@ -115,19 +116,19 @@ export function Projects() {
         const { data: individuals, error } = await supabase
           .from('individuals')
           .select('id');
-          
+
         if (error) throw error;
-        
+
         if (!individuals || individuals.length === 0) return;
-        
+
         const individualIds = individuals.map((ind: { id: string }) => ind.id);
-        
+
         // Remove hashtag from all individuals
         await removeHashtagFromAll(hashtagName, individualIds);
-        
+
         // Refetch data
         queryClient.invalidateQueries({ queryKey: ['projectStats'] });
-        
+
         if (selectedProject === hashtagName) {
           setSelectedProject(null);
           setIndividualsList([]);
@@ -142,14 +143,14 @@ export function Projects() {
   // Handle adding a new hashtag
   const handleAddHashtag = async () => {
     if (!newHashtag.trim()) return;
-    
+
     try {
       // Create the hashtag
       await createHashtag(newHashtag.trim());
-      
+
       // Refetch data
       queryClient.invalidateQueries({ queryKey: ['projectStats'] });
-      
+
       setNewHashtag('');
       setIsAddingHashtag(false);
     } catch (error) {
@@ -197,7 +198,7 @@ export function Projects() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="md:col-span-1 bg-white p-6 rounded-lg shadow">
             <h2 className="text-xl font-semibold mb-4">Projects List</h2>
-            
+
             {/* New hashtag input */}
             {isAddingHashtag && (
               <div className="mb-4 p-3 border border-blue-200 bg-blue-50 rounded-md">
@@ -225,7 +226,7 @@ export function Projects() {
                     <X className="w-5 h-5" />
                   </button>
                 </div>
-                
+
                 {/* Missing hashtags */}
                 {missingHashtags.length > 0 && (
                   <div className="mt-2">
@@ -245,11 +246,11 @@ export function Projects() {
                 )}
               </div>
             )}
-            
+
             {/* Project list */}
             <ul className="space-y-2">
               {projectStats.map((item: Hashtag) => (
-                <li 
+                <li
                   key={item.id}
                   className={`
                     flex justify-between items-center p-3 rounded-md cursor-pointer transition-colors
@@ -278,7 +279,7 @@ export function Projects() {
                   </div>
                 </li>
               ))}
-              
+
               {projectStats.length === 0 && (
                 <li className="text-center py-4 text-gray-500">
                   No projects found
@@ -286,30 +287,30 @@ export function Projects() {
               )}
             </ul>
           </div>
-          
+
           <div className="md:col-span-2 bg-white p-6 rounded-lg shadow">
             {selectedProject ? (
               <>
                 <h2 className="text-xl font-semibold mb-4">
                   {selectedProject} - Individuals ({individualsList.length})
                 </h2>
-                
+
                 {individualsList.length > 0 ? (
                   <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
                         <tr>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Name
+                          <th scope="col" className={`px-6 py-3 text-${isRTL ? 'right' : 'left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
+                            {t('name')}
                           </th>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            ID
+                          <th scope="col" className={`px-6 py-3 text-${isRTL ? 'right' : 'left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
+                            {t('idNumber')}
                           </th>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            District
+                          <th scope="col" className={`px-6 py-3 text-${isRTL ? 'right' : 'left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
+                            {t('district')}
                           </th>
-                          <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Actions
+                          <th scope="col" className={`px-6 py-3 text-${isRTL ? 'left' : 'right'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
+                            {t('actions')}
                           </th>
                         </tr>
                       </thead>

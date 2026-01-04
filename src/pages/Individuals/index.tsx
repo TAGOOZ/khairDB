@@ -1,290 +1,122 @@
-import React, { useState } from 'react';
-import { Plus, Package } from 'lucide-react';
+import { useState } from 'react';
+import { Plus } from 'lucide-react';
+import { useIndividuals } from '../../hooks/useIndividuals';
 import { IndividualsList } from './IndividualsList';
 import { IndividualsFilter } from '../../components/filters/IndividualsFilter';
-import { useIndividuals } from '../../hooks/useIndividuals';
 import { AddIndividualModal } from '../../components/modals/AddIndividualModal';
-import { ViewIndividualModal } from '../../components/modals/ViewIndividualModal';
-import { Individual } from '../../types';
-import { IndividualFormData } from '../../schemas/individualSchema';
-import { toast } from './Toast';
-import { useFamilies } from '../../hooks/useFamilies';
-import { useAuthStore } from '../../store/authStore';
-import { submitIndividualRequest, PendingRequestError } from '../../services/pendingRequests';
+import { ViewIndividualModal } from "../../components/modals/ViewIndividualModal";
 import { Button } from '../../components/ui/Button';
-import { createIndividual, updateIndividual, IndividualError } from '../../services/individuals';
-import { useNavigate } from 'react-router-dom';
-import { getIndividual } from '../../services/individuals';
-import { supabase } from '../../lib/supabase';
+import { Pagination } from '../../components/ui/Pagination';
+import { Individual } from '../../types';
+
+import { useIndividualActions } from './hooks/useIndividualActions';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useAuthStore } from '../../store/authStore';
 
 export function Individuals() {
   const { t } = useLanguage();
-  const { 
-    individuals, 
-    isLoading, 
-    filters, 
+  const { user } = useAuthStore();
+  const {
+    individuals,
+    isLoading,
+    totalCount,
+    filters,
     setFilters,
-    refreshIndividuals,
-    deleteIndividual
+    refreshIndividuals
   } = useIndividuals();
 
-  const { user } = useAuthStore();
-  const { families } = useFamilies();
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-  const [isViewModalLoading, setIsViewModalLoading] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedIndividual, setSelectedIndividual] = useState<Individual | null>(null);
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
   const [selectedForDistribution, setSelectedForDistribution] = useState<string[]>([]);
-  const navigate = useNavigate();
 
-  const handleSubmit = async (data: IndividualFormData, individualId?: string) => {
-    try {
-      setIsSubmitting(true);
-      
-      if (user?.role === 'user' && modalMode === 'create') {
-        // Submit for approval if user role
-        await submitIndividualRequest(data);
-        toast.success(t('individualRequestSubmitted'));
-      } else {
-        // Direct creation/update for admin role
-        if (modalMode === 'create') {
-          await createIndividual(data);
-          toast.success(t('individualCreatedSuccessfully'));
-        } else if (individualId) {
-          await updateIndividual(individualId, data);
-          toast.success(t('individualUpdatedSuccessfully'));
-        }
-      }
-      
-      setIsModalOpen(false);
+  const { handleSubmit, handleDelete, isSubmitting } = useIndividualActions({
+    onSuccess: () => {
+      setIsAddModalOpen(false);
       setSelectedIndividual(null);
       refreshIndividuals();
-    } catch (error) {
-      console.error('Error handling individual:', error);
-      
-      if (error instanceof IndividualError) {
-        if (error.code === 'duplicate-id') {
-          toast.error(t('duplicateIdError'));
-        } else {
-          toast.error(error.message);
-        }
-      } else if (error instanceof PendingRequestError) {
-        if (error.code === 'duplicate-id') {
-          toast.error(t('duplicateIdError'));
-        } else if (error.code === 'unauthorized') {
-          toast.error(t('pleaseLoginToSubmit'));
-        } else {
-          toast.error(t('failedToSubmitRequest'));
-        }
-      } else {
-        toast.error(t('unexpectedErrorOccurred'));
-      }
-    } finally {
-      setIsSubmitting(false);
     }
-  };
+  });
 
-  const handleView = async (individual: Individual) => {
-    setIsViewModalOpen(true);
-    setIsViewModalLoading(true);
-    setSelectedIndividual(null);
-    try {
-      const completeIndividual = await getIndividual(individual.id);
-      
-      if (completeIndividual) {
-        // Fetch hashtags as they are not part of the getIndividual query by default
-        const { data: hashtagsData, error: hashtagsError } = await supabase
-          .from('individual_hashtags')
-          .select('hashtag:hashtags(name)')
-          .eq('individual_id', individual.id);
-        
-        if (hashtagsError) {
-          console.error('Error fetching hashtags for individual:', hashtagsError);
-        }
-
-        // Append hashtags to the completeIndividual object
-        const individualWithHashtags = {
-          ...completeIndividual,
-          hashtags: hashtagsData?.map((h: any) => h.hashtag?.name).filter(Boolean) || [],
-        };
-        setSelectedIndividual(individualWithHashtags);
-      } else {
-        console.warn('Individual not found when trying to view:', individual.id);
-        toast.error(t('individualNotFound'));
-        setIsViewModalOpen(false);
-      }
-    } catch (error) {
-      console.error('Error fetching individual for view modal:', error);
-      toast.error(t('failedToLoadIndividual'));
-      setIsViewModalOpen(false);
-    } finally {
-      setIsViewModalLoading(false);
-    }
-  };
-
-  const handleEdit = (individual: Individual) => {
-    setSelectedIndividual(individual);
-    setModalMode('edit');
-    setIsModalOpen(true);
+  const handlePageChange = (page: number) => {
+    setFilters({ ...filters, page });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleAdd = () => {
     setSelectedIndividual(null);
     setModalMode('create');
-    setIsModalOpen(true);
+    setIsAddModalOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm(t('confirmDeleteIndividual'))) {
-      try {
-        await deleteIndividual(id);
-        toast.success(t('individualDeletedSuccessfully'));
-        refreshIndividuals();
-      } catch (error) {
-        toast.error(t('failedToDeleteIndividual'));
-      }
-    }
+  const handleEdit = (individual: Individual) => {
+    setSelectedIndividual(individual);
+    setModalMode('edit');
+    setIsAddModalOpen(true);
   };
 
-  const handleCreateDistribution = () => {
-    if (selectedForDistribution.length === 0) {
-      toast.error(t('pleaseSelectIndividuals'));
-      return;
-    }
-    
-    // Get the full individual objects for the selected IDs
-    const selectedIndividuals = individuals.filter(individual => 
-      selectedForDistribution.includes(individual.id)
-    );
-    
-    navigate('/distributions/create', { 
-      state: { selectedIndividuals }
-    });
+  const handleView = (individual: Individual) => {
+    setSelectedIndividual(individual);
+    setIsViewModalOpen(true);
   };
 
-  // Function to get individual data ready for edit modal
-  const prepareIndividualForEdit = async (individual: Individual) => {
-    try {
-      // Get the complete individual data with all details
-      const completeIndividual = await getIndividual(individual.id);
-      
-      if (completeIndividual) {
-        // Get the individual's hashtags
-        const { data: hashtagsData } = await supabase
-          .from('individual_hashtags')
-          .select('hashtag:hashtags(name)')
-          .eq('individual_id', individual.id);
-          
-        // Extract hashtag names with proper typing
-        interface HashtagResponse {
-          hashtag: { name: string } | null;
-        }
-        
-        const hashtags = hashtagsData 
-          ? (hashtagsData as unknown as HashtagResponse[]).map(h => h.hashtag?.name).filter(Boolean) 
-          : [];
-        
-        // Prepare assistance details in the correct format for the form
-        const assistanceDetails = completeIndividual.assistance_details || [];
-        
-        // Define the assistance type interface
-        interface AssistanceDetail {
-          assistance_type: string;
-          details: any;
-        }
-        
-        const formattedIndividual = {
-          ...completeIndividual,
-          hashtags,
-          // Map assistance details to their respective form fields with proper typing
-          medical_help: assistanceDetails.find((a: AssistanceDetail) => a.assistance_type === 'medical_help')?.details || null,
-          food_assistance: assistanceDetails.find((a: AssistanceDetail) => a.assistance_type === 'food_assistance')?.details || null,
-          marriage_assistance: assistanceDetails.find((a: AssistanceDetail) => a.assistance_type === 'marriage_assistance')?.details || null,
-          debt_assistance: assistanceDetails.find((a: AssistanceDetail) => a.assistance_type === 'debt_assistance')?.details || null,
-          education_assistance: assistanceDetails.find((a: AssistanceDetail) => a.assistance_type === 'education_assistance')?.details || null,
-          shelter_assistance: assistanceDetails.find((a: AssistanceDetail) => a.assistance_type === 'shelter_assistance')?.details || null,
-        };
-        
-        setSelectedIndividual(formattedIndividual);
-        setModalMode('edit');
-        setIsModalOpen(true);
-      }
-    } catch (error) {
-      console.error('Error preparing individual for edit:', error);
-      toast.error(t('couldNotLoadIndividualData'));
-    }
+  const closeAddModal = () => {
+    setIsAddModalOpen(false);
+    setSelectedIndividual(null);
   };
 
-  const handleEditIndividual = (individual: Individual) => {
-    prepareIndividualForEdit(individual);
-  };
-
-  const handleDeleteIndividual = async (id: string) => {
-    if (window.confirm(t('confirmDeleteIndividual'))) {
-      try {
-        await deleteIndividual(id);
-        refreshIndividuals();
-        toast.success(t('individualDeletedSuccessfully'));
-      } catch (error) {
-        console.error('Error deleting individual:', error);
-        toast.error(t('failedToDeleteIndividual'));
-      }
-    }
+  const closeViewModal = () => {
+    setIsViewModalOpen(false);
+    setSelectedIndividual(null);
   };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">{t('individuals')}</h1>
-        <div className="flex space-x-4">
-          <Button
-            onClick={handleCreateDistribution}
-            icon={Package}
-          >
-            {t('createDistribution')}
-          </Button>
-          <Button
-            onClick={handleAdd}
-            icon={Plus}
-          >
-            {user?.role === 'admin' ? t('addIndividual') : t('submitIndividualRequest')}
-          </Button>
-        </div>
+        <Button
+          onClick={handleAdd}
+          icon={Plus}
+        >
+          {t('addIndividual')}
+        </Button>
       </div>
 
-      <IndividualsFilter 
-        filters={filters} 
-        onFilterChange={setFilters} 
-      />
-      
+      <IndividualsFilter filters={filters} onFilterChange={setFilters} />
+
       {isLoading ? (
         <div className="flex justify-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
         </div>
       ) : (
-        <IndividualsList 
-          individuals={individuals} 
-          onEdit={handleEditIndividual}
-          onDelete={handleDeleteIndividual}
-          onView={handleView}
-          userRole={user?.role}
-          selectedForDistribution={selectedForDistribution}
-          setSelectedForDistribution={setSelectedForDistribution}
-        />
+        <>
+          <IndividualsList
+            individuals={individuals}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onView={handleView}
+            userRole={user?.role}
+            selectedForDistribution={selectedForDistribution}
+            setSelectedForDistribution={setSelectedForDistribution}
+          />
+          {totalCount > 0 && (
+            <Pagination
+              currentPage={filters.page}
+              totalPages={Math.ceil(totalCount / filters.perPage)}
+              totalItems={totalCount}
+              itemsPerPage={filters.perPage}
+              onPageChange={handlePageChange}
+            />
+          )}
+        </>
       )}
 
       <AddIndividualModal
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setSelectedIndividual(null);
-        }}
+        isOpen={isAddModalOpen}
+        onClose={closeAddModal}
         onSubmit={handleSubmit}
         isLoading={isSubmitting}
-        families={families}
         individual={selectedIndividual || undefined}
         mode={modalMode}
         userRole={user?.role}
@@ -293,12 +125,9 @@ export function Individuals() {
       {selectedIndividual && (
         <ViewIndividualModal
           isOpen={isViewModalOpen}
-          onClose={() => {
-            setIsViewModalOpen(false);
-            setSelectedIndividual(null);
-          }}
+          onClose={closeViewModal}
           individual={selectedIndividual}
-          isLoading={isViewModalLoading}
+          isLoading={false}
         />
       )}
     </div>

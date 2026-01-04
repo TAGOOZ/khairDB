@@ -1,16 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { Child } from '../types';
-
-export class ChildError extends Error {
-  constructor(
-    public code: string,
-    message: string,
-    public details?: unknown
-  ) {
-    super(message);
-    this.name = 'ChildError';
-  }
-}
+import { ServiceError } from '../utils/errors';
 
 export async function addChild(parentId: string, data: Omit<Child, 'id' | 'created_by' | 'created_at' | 'updated_at'>) {
   try {
@@ -27,13 +17,13 @@ export async function addChild(parentId: string, data: Omit<Child, 'id' | 'creat
     });
 
     if (error) {
-      throw new ChildError('creation-failed', error.message, error);
+      throw new ServiceError('creation-failed', error.message, error);
     }
 
     return result;
   } catch (error) {
-    if (error instanceof ChildError) throw error;
-    throw new ChildError('unexpected', 'An unexpected error occurred', error);
+    if (error instanceof ServiceError) throw error;
+    throw new ServiceError('unexpected', 'An unexpected error occurred', error);
   }
 }
 
@@ -45,11 +35,11 @@ export async function updateChild(childId: string, data: Partial<Child>) {
       .eq('id', childId);
 
     if (error) {
-      throw new ChildError('update-failed', error.message, error);
+      throw new ServiceError('update-failed', error.message, error);
     }
   } catch (error) {
-    if (error instanceof ChildError) throw error;
-    throw new ChildError('unexpected', 'An unexpected error occurred', error);
+    if (error instanceof ServiceError) throw error;
+    throw new ServiceError('unexpected', 'An unexpected error occurred', error);
   }
 }
 
@@ -63,11 +53,11 @@ export async function deleteChild(childId: string) {
       .single();
 
     if (fetchError) {
-      throw new ChildError('not-found', 'Child not found', fetchError);
+      throw new ServiceError('not-found', 'Child not found', fetchError);
     }
 
     if (!child) {
-      throw new ChildError('not-found', 'Child not found');
+      throw new ServiceError('not-found', 'Child not found');
     }
 
     // Delete the child
@@ -77,10 +67,10 @@ export async function deleteChild(childId: string) {
       .eq('id', childId);
 
     if (deleteError) {
-      throw new ChildError('deletion-failed', 'Failed to delete child', deleteError);
+      throw new ServiceError('deletion-failed', 'Failed to delete child', deleteError);
     }
   } catch (error) {
-    if (error instanceof ChildError) throw error;
-    throw new ChildError('unexpected', 'An unexpected error occurred while deleting the child', error);
+    if (error instanceof ServiceError) throw error;
+    throw new ServiceError('unexpected', 'An unexpected error occurred while deleting the child', error);
   }
 }

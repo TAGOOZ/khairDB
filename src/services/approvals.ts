@@ -1,16 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { IndividualRequest, ApprovalLog } from '../types';
-
-export class ApprovalError extends Error {
-  constructor(
-    public code: string,
-    message: string,
-    public details?: unknown
-  ) {
-    super(message);
-    this.name = 'ApprovalError';
-  }
-}
+import { ServiceError } from '../utils/errors';
 
 export async function submitIndividualRequest(data: Omit<IndividualRequest, 'id' | 'status' | 'submitted_by' | 'submitted_at' | 'reviewed_by' | 'reviewed_at' | 'admin_comment'>): Promise<IndividualRequest> {
   try {
@@ -26,7 +16,7 @@ export async function submitIndividualRequest(data: Omit<IndividualRequest, 'id'
     if (error) throw error;
     return request;
   } catch (error) {
-    throw new ApprovalError('submission-failed', 'Failed to submit request', error);
+    throw new ServiceError('submission-failed', 'Failed to submit request', error);
   }
 }
 
@@ -42,7 +32,7 @@ export async function getPendingRequests(): Promise<IndividualRequest[]> {
     if (error) throw error;
     return data || [];
   } catch (error) {
-    throw new ApprovalError('fetch-failed', 'Failed to fetch pending requests', error);
+    throw new ServiceError('fetch-failed', 'Failed to fetch pending requests', error);
   }
 }
 
@@ -58,7 +48,7 @@ export async function approveRequest(requestId: string, comment?: string): Promi
 
     if (error) throw error;
   } catch (error) {
-    throw new ApprovalError('approval-failed', 'Failed to approve request', error);
+    throw new ServiceError('approval-failed', 'Failed to approve request', error);
   }
 }
 
@@ -72,7 +62,7 @@ export async function rejectRequest(requestId: string, comment: string): Promise
 
     if (error) throw error;
   } catch (error) {
-    throw new ApprovalError('rejection-failed', 'Failed to reject request', error);
+    throw new ServiceError('rejection-failed', 'Failed to reject request', error);
   }
 }
 
@@ -86,6 +76,6 @@ export async function getApprovalLogs(): Promise<ApprovalLog[]> {
     if (error) throw error;
     return data || [];
   } catch (error) {
-    throw new ApprovalError('fetch-logs-failed', 'Failed to fetch approval logs', error);
+    throw new ServiceError('fetch-logs-failed', 'Failed to fetch approval logs', error);
   }
 }

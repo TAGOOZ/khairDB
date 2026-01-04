@@ -1,5 +1,6 @@
 import { jest, describe, beforeEach, it, expect } from '@jest/globals';
-import { createIndividual, IndividualError } from '../individuals';
+import { createIndividual } from '../individuals';
+import { ServiceError } from '../../utils/errors';
 import { IndividualFormData } from '../../schemas/individualSchema';
 import { supabase } from '../../lib/supabase';
 
@@ -12,39 +13,67 @@ jest.mock('../../lib/supabase', () => ({
     from: jest.fn().mockReturnThis(),
     select: jest.fn().mockReturnThis(),
     insert: jest.fn().mockReturnThis(),
+    update: jest.fn().mockReturnThis(),
     delete: jest.fn().mockReturnThis(),
     eq: jest.fn().mockReturnThis(),
     maybeSingle: jest.fn(),
-    single: jest.fn()
+    single: jest.fn(),
+    rpc: jest.fn()
   }
+}));
+
+// Mock API calls
+jest.mock('../../api/googleDrive', () => ({
+  createIndividualFolderAPI: jest.fn().mockResolvedValue({
+    folderId: 'folder-id',
+    folderUrl: 'http://folder.url'
+  })
+}));
+
+// Mock activity logs
+jest.mock('../activityLogs', () => ({
+  logActivity: jest.fn().mockResolvedValue(undefined)
 }));
 
 describe('Individual Service', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Mock authenticated user
     (supabase.auth.getUser as jest.Mock).mockResolvedValue({
       data: { user: { id: 'test-user-id' } },
       error: null
     });
-    
-    // Mock database operations to return success
+
+    // Mock database operations
     (supabase.from as jest.Mock).mockReturnValue({
       select: jest.fn().mockReturnThis(),
       insert: jest.fn().mockReturnThis(),
+      update: jest.fn().mockReturnThis(),
       delete: jest.fn().mockReturnThis(),
       eq: jest.fn().mockReturnThis(),
       maybeSingle: jest.fn().mockResolvedValue({ data: null, error: null }),
-      single: jest.fn().mockResolvedValue({ 
-        data: { id: 'new-individual-id' }, 
-        error: null 
+      single: jest.fn().mockResolvedValue({
+        data: { id: 'new-individual-id' },
+        error: null
       })
+    });
+
+    // Mock RPC
+    (supabase.rpc as jest.Mock).mockResolvedValue({
+      data: {
+        id: 'new-individual-id',
+        first_name: 'John',
+        last_name: 'Doe',
+        id_number: '12345678901234',
+        district: 'Test District'
+      },
+      error: null
     });
   });
 
   describe('createIndividual', () => {
-    it('should create an individual with all types of assistance details', async () => {
+    it('should create an individual using RPC transaction', async () => {
       // Create test data with all assistance types
       const testIndividualData: IndividualFormData = {
         first_name: 'John',
@@ -100,128 +129,44 @@ describe('Individual Service', () => {
       };
 
       // Execute the function
-      const individualId = await createIndividual(testIndividualData);
+      const individualRecord = await createIndividual(testIndividualData);
 
       // Check authentication was verified
       expect(supabase.auth.getUser).toHaveBeenCalled();
 
-      // Check if it checked for existing individual with same ID
+      // Check if it checked for existing individual with same ID (still done via standard Select)
       expect(supabase.from).toHaveBeenCalledWith('individuals');
       expect(supabase.from('individuals').select().eq('id_number', '12345678901234').maybeSingle)
         .toHaveBeenCalled();
 
-      // Verify individual creation
-      const createIndividualCall = jest.spyOn(supabase.from('individuals'), 'insert');
-      expect(createIndividualCall).toHaveBeenCalledWith([
-        expect.objectContaining({
+      // Verify RPC call
+      expect(supabase.rpc).toHaveBeenCalledWith('create_individual_transaction', expect.objectContaining({
+        p_individual_data: expect.objectContaining({
           first_name: 'John',
           last_name: 'Doe',
-          id_number: '12345678901234',
-          gender: 'male',
-          employment_status: 'no_salary',
-          created_by: 'test-user-id'
-        })
-      ]);
+          id_number: '12345678901234'
+        }),
+        p_created_by: 'test-user-id',
+        // Check assistance details array presence
+        p_assistance_details: expect.arrayContaining([
+          expect.objectContaining({ assistance_type: 'medical_help' }),
+          expect.objectContaining({ assistance_type: 'food_assistance' }),
+          expect.objectContaining({ assistance_type: 'marriage_assistance' }),
+          expect.objectContaining({ assistance_type: 'debt_assistance' }),
+          expect.objectContaining({ assistance_type: 'education_assistance' }),
+          expect.objectContaining({ assistance_type: 'shelter_assistance' })
+        ])
+      }));
 
-      // Verify assistance details were added
-      const assistanceDetailsCalls = jest.spyOn(supabase.from('assistance_details'), 'insert');
-      
-      // Check medical assistance was inserted
-      expect(assistanceDetailsCalls).toHaveBeenCalledWith([
-        expect.objectContaining({
-          individual_id: 'new-individual-id',
-          assistance_type: 'medical_help',
-          details: testIndividualData.medical_help
-        })
-      ]);
-      
-      // Check food assistance was inserted
-      expect(assistanceDetailsCalls).toHaveBeenCalledWith([
-        expect.objectContaining({
-          individual_id: 'new-individual-id',
-          assistance_type: 'food_assistance',
-          details: testIndividualData.food_assistance
-        })
-      ]);
-      
-      // Check marriage assistance was inserted
-      expect(assistanceDetailsCalls).toHaveBeenCalledWith([
-        expect.objectContaining({
-          individual_id: 'new-individual-id',
-          assistance_type: 'marriage_assistance',
-          details: testIndividualData.marriage_assistance
-        })
-      ]);
-      
-      // Check debt assistance was inserted
-      expect(assistanceDetailsCalls).toHaveBeenCalledWith([
-        expect.objectContaining({
-          individual_id: 'new-individual-id',
-          assistance_type: 'debt_assistance',
-          details: expect.objectContaining({
-            needs_debt_assistance: true,
-            debt_amount: 5000,
-            hospital_bills: true
-          })
-        })
-      ]);
-      
-      // Check education assistance was inserted
-      expect(assistanceDetailsCalls).toHaveBeenCalledWith([
-        expect.objectContaining({
-          individual_id: 'new-individual-id',
-          assistance_type: 'education_assistance',
-          details: testIndividualData.education_assistance
-        })
-      ]);
-      
-      // Check shelter assistance was inserted
-      expect(assistanceDetailsCalls).toHaveBeenCalledWith([
-        expect.objectContaining({
-          individual_id: 'new-individual-id',
-          assistance_type: 'shelter_assistance',
-          details: testIndividualData.shelter_assistance
-        })
-      ]);
-
-      // Verify the function returns the new individual ID
-      expect(individualId).toBe('new-individual-id');
+      // Verify function returns the record
+      expect(individualRecord.id).toBe('new-individual-id');
     });
 
-    it('should handle errors when creating an individual', async () => {
-      // Mock the supabase.from(...) call to be more specific for the first check
-      // Reset the mock first
-      (supabase.from as jest.Mock).mockReset();
-      
-      // Set up the mock to return different behaviors based on the parameters
-      (supabase.from as jest.Mock).mockImplementation((table) => {
-        if (table === 'individuals') {
-          return {
-            select: jest.fn().mockReturnThis(),
-            insert: jest.fn().mockReturnThis(),
-            delete: jest.fn().mockReturnThis(),
-            eq: jest.fn().mockReturnThis(),
-            maybeSingle: jest.fn().mockResolvedValue({ 
-              data: null, 
-              error: new Error('Database error') 
-            }),
-            single: jest.fn().mockResolvedValue({ 
-              data: { id: 'new-individual-id' }, 
-              error: null 
-            })
-          };
-        }
-        return {
-          select: jest.fn().mockReturnThis(),
-          insert: jest.fn().mockReturnThis(),
-          delete: jest.fn().mockReturnThis(),
-          eq: jest.fn().mockReturnThis(),
-          maybeSingle: jest.fn().mockResolvedValue({ data: null, error: null }),
-          single: jest.fn().mockResolvedValue({ 
-            data: null, 
-            error: null 
-          })
-        };
+    it('should handle RPC errors', async () => {
+      // Mock RPC failure
+      (supabase.rpc as jest.Mock).mockResolvedValue({
+        data: null,
+        error: { message: 'RPC Transaction Failed', code: 'P0001' }
       });
 
       const testIndividualData: IndividualFormData = {
@@ -236,28 +181,17 @@ describe('Individual Service', () => {
         list_status: 'whitelist',
         needs: [],
         additional_members: [],
-        children: [],
-        debt_assistance: {
-          needs_debt_assistance: false,
-          debt_amount: 0,
-          household_appliances: false,
-          hospital_bills: false,
-          education_fees: false,
-          business_debt: false,
-          other_debt: false
-        }
+        children: []
       };
 
       // Execute the function and expect it to throw an error
       await expect(createIndividual(testIndividualData))
         .rejects
-        .toThrow(IndividualError);
+        .toThrow(ServiceError);
 
-      // Verify error handling with a separate setup
       const error = await createIndividual(testIndividualData).catch(e => e);
-      expect(error).toBeInstanceOf(IndividualError);
-      expect(error.code).toBe('check-failed');
-      expect(error.message).toBe('Failed to check ID number');
+      expect(error).toBeInstanceOf(ServiceError);
+      expect(error.code).toBe('creation-failed');
     });
   });
 }); 

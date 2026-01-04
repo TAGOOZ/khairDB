@@ -84,6 +84,10 @@ export const translations = {
   whitelist: 'Whitelist',
   blacklist: 'Blacklist',
   waitinglist: 'Waitinglist',
+  selectGender: 'Select Gender',
+  selectMaritalStatus: 'Select Marital Status',
+  hashtags: 'Hashtags',
+  hashtagsHelp: 'Select relevant hashtags for this individual',
 
   // Assistance Types
   medicalHelp: 'Medical Help',
@@ -116,7 +120,7 @@ export const translations = {
   housingCondition: 'Housing Condition',
   numberOfRooms: 'Number of Rooms',
   householdAppliances: 'Household Appliances',
-  confirmDelete: 'Confirm Delete',
+
   successAdd: 'Successfully Added',
   successEdit: 'Successfully Edited',
   successDelete: 'Successfully Deleted',
@@ -141,6 +145,8 @@ export const translations = {
   pending: 'Pending',
   inProgress: 'In Progress',
   completed: 'Completed',
+  parents: 'Parents',
+  notes: 'Notes',
   children: 'Children',
   boy: 'Boy',
   girl: 'Girl',
@@ -149,7 +155,7 @@ export const translations = {
   primary: 'Primary',
   preparatory: 'Preparatory',
   secondary: 'Secondary',
-  
+
   // User Management
   users: 'Users',
   addUser: 'Add User',
@@ -187,7 +193,7 @@ export const translations = {
   nonReadyMeals: 'Non-ready meals',
 
   // Debt Types
-  householdAppliances: 'Household Appliances',
+
   hospitalBills: 'Hospital Bills',
   educationFees: 'Education Fees',
   businessDebt: 'Business Debt',
@@ -267,9 +273,7 @@ export const translations = {
   searchFamilies: 'Search Families',
   searchByFamilyName: 'Search by family name...',
   created: 'Created',
-  contactInformation: 'Contact Information',
-  parents: 'Parents',
-  children: 'Children',
+
   noContactInformation: 'No contact information available',
   noFamilyMembers: 'No family members added yet',
 
@@ -294,6 +298,8 @@ export const translations = {
   father: 'Father',
   motherInLaw: 'Mother In Law',
   fatherInLaw: 'Father In Law',
+  son: 'Son',
+  daughter: 'Daughter',
 
   // Additional fields
   none: 'None',
@@ -302,17 +308,18 @@ export const translations = {
   familyMembersTooltip: 'Add family members to this household',
   adults: 'Adults',
   noFamilyMembersYet: 'No family members added yet',
-  
+
   // Additional Members
   additionalFamilyMembers: 'Additional Family Members',
   additionalMember: 'Additional Member',
+  additionalMembers: 'Additional Members',
   unknownName: 'Unknown Name',
   yearsOld: 'years old',
   addedBy: 'Added By',
   yes: 'Yes',
   no: 'No',
   child: 'Child',
-  
+
   // Distribution Form (additional translations)
   distributionDetails: 'Distribution Details',
   distributionDate: 'Distribution Date',
@@ -323,7 +330,6 @@ export const translations = {
   distributionSummary: 'Distribution Summary',
   totalRecipients: 'Total Recipients',
   totalQuantity: 'Total Quantity',
-  valuePerUnit: 'Value per Unit',
   filters: 'Filters',
   searchIndividuals: 'Search individuals...',
   selectDistrict: 'Select District',
@@ -347,23 +353,18 @@ export const translations = {
   distributionCreatedSuccessfully: 'Distribution created successfully',
   failedToCreateDistribution: 'Failed to create distribution',
   back: 'Back',
-  searchIndividuals: 'Search individuals...',
-  searchFamilies: 'Search families...',
-  noMatchingIndividuals: 'No matching individuals found',
-  noMatchingFamilies: 'No matching families found',
-  selectDistrict: 'Select District',
-  filters: 'Filters',
-  
+
+
   // Aid types
   food: 'Food',
   clothing: 'Clothing',
   financial: 'Financial',
   medical: 'Medical',
-  
+
   // Toast notifications - Distribution
   distributionUpdatedSuccessfully: 'Distribution updated successfully',
   failedToUpdateDistribution: 'Failed to update distribution',
-  
+
   // Toast notifications - Individual
   individualRequestSubmitted: 'Individual request submitted for approval',
   individualCreatedSuccessfully: 'Individual successfully created',
@@ -381,7 +382,7 @@ export const translations = {
   failedToLoadIndividual: 'Failed to load individual details.',
   pleaseSelectIndividuals: 'Please select at least one individual to create a distribution.',
   couldNotLoadIndividualData: 'Could not load individual data for editing.',
-  
+
   // Toast notifications - User
   failedToFetchUsers: 'Failed to fetch users.',
   userDeletedSuccessfully: 'User deleted successfully!',
@@ -389,7 +390,7 @@ export const translations = {
   userCreatedSuccessfully: 'User created successfully!',
   userUpdatedSuccessfully: 'User updated successfully!',
   failedToSaveUser: 'Failed to save user.',
-  
+
   // Toast notifications - Family
   atLeastOneParentRequired: 'At least one parent is required',
   familyUpdatedSuccessfully: 'Family successfully updated',
@@ -408,4 +409,103 @@ export const translations = {
   individualsWithAssistance: 'individuals with',
   noNewIndividualsFoundWithAssistance: 'No new individuals found with',
   added: 'Added',
+
+  // Activity Logs
+  activityLogs: 'Activity Logs',
+  monitorUserActivity: 'Monitor user activity across the system',
+  refresh: 'Refresh',
+  allUsers: 'All Users',
+  allActions: 'All Actions',
+  allTypes: 'All Types',
+  from: 'From',
+  to: 'To',
+  clearAllFilters: 'Clear All Filters',
+  time: 'Time',
+  action: 'Action',
+  entity: 'Entity',
+  details: 'Details',
+  viewDetails: 'View Details',
+  noActivityLogsFound: 'No activity logs found',
+  showingEntries: 'Showing {from} to {to} of {total} entries',
+  page: 'Page',
+  of: 'of',
+  create: 'Create',
+  update: 'Update',
+  individual: 'Individual',
+  request: 'Request',
+  distribution: 'Distribution',
+
+  // Distribution
+  saveAsPlanned: 'Save as Planned',
+  distributeNow: 'Distribute Now',
+  distribute: 'Distribute',
+  calculationMethod: 'Calculation Method',
+  valuePerUnit: 'Value Per Unit',
+  addWalkin: 'Add Walk-in',
+  addWalkinRecipient: 'Add Walk-in Recipient',
+  enterName: 'Enter name',
+  quantity: 'Quantity',
+  selectFamilyMembers: 'Select Family Members',
+  howToAddFamily: 'How would you like to add this family?',
+  headOfHousehold: 'Head of Household (Only)',
+  headOnlyDesc: 'Add only the parents/guardians',
+  allMembers: 'All Family Members',
+  allMembersDesc: 'Add everyone (parents + children)',
+
+  // Form Progress
+  formProgress: 'Form Progress',
+  addNewIndividual: 'Add New Individual',
+  addNewIndividualDescription: 'Fill in the details to add a new individual to the system',
+
+  // Form Step Descriptions
+  basicPersonalDetails: 'Basic personal details',
+  addressAndContact: 'Address and contact information',
+  jobAndIncome: 'Job and income details',
+  supportTypes: 'Types of support needed',
+  dependentsAndRelatives: 'Dependents and relatives',
+  detailsOfRequirements: 'Details of requirements',
+
+  // Validation Errors
+  validationRequired: 'This field is required',
+  validationFirstNameRequired: 'First name is required',
+  validationLastNameRequired: 'Last name is required',
+  validationIdNumber14Digits: 'ID Number must be exactly 14 digits',
+  validationIdNumberOnlyNumbers: 'ID Number must contain only numbers',
+  validationDateOfBirthRequired: 'Date of birth is required',
+  validationSelectGender: 'Please select a gender',
+  validationSelectMaritalStatus: 'Please select marital status',
+  validationDistrictRequired: 'District is required',
+  validationSelectEmploymentStatus: 'Please select employment status',
+  validationSelectListStatus: 'Please select list status',
+  validationChildUnder18: 'Child must be under 18 years old',
+  validationNameRequired: 'Name is required',
+  validationRelationRequired: 'Relation is required',
+  validationInvalidPhoneFormat: 'Invalid phone number format',
+  validationFamilyRequiredForChildren: 'A family must be selected or created when adding children',
+
+  // Table Headers
+  role: 'Role',
+  primaryContact: 'Primary Contact',
+  projectsList: 'Projects List',
+  noProjectsFound: 'No projects found',
+  addNewProject: 'Add New Project',
+  newProjectName: 'New project name',
+  recommendedProjects: 'Recommended projects:',
+  noIndividualsInProject: 'No individuals in this project',
+  selectProjectToView: 'Select a project to see individuals',
+  userManagementTitle: 'User Management',
+  addNewUser: 'Add New User',
+  searchByNameOrEmail: 'Search by name or email...',
+  filterByRole: 'Filter by Role',
+  allRoles: 'All Roles',
+  administrators: 'Administrators',
+  regularUsers: 'Regular Users',
+  totalUsers: 'Total Users',
+  recentSevenDays: 'Recent (7 days)',
+  metrics: 'Metrics',
+  recentActivity: 'Recent Activity',
+  userDistribution: 'User Distribution',
+  adminPercentage: 'Admin Percentage',
+  totalActivityLogs: 'Total Activity Logs',
+  newUsersSevenDays: 'New Users (7 days)',
 };

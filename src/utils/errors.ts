@@ -37,5 +37,17 @@ export function getErrorMessage(error: unknown): string {
     return error.message;
   }
 
-  return 'An unexpected error occurred. Please try again.';
+  return 'An unknown error occurred';
+}
+
+export class ServiceError extends Error {
+  code: string;
+  details?: unknown;
+
+  constructor(code: string, message: string, details?: unknown) {
+    super(message);
+    this.name = 'ServiceError';
+    this.code = code;
+    this.details = details;
+  }
 }

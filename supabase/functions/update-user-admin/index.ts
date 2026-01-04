@@ -1,13 +1,29 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+const allowedOrigins = Deno.env.get('ALLOWED_ORIGINS')?.split(',') || [];
+
+const getCorsHeaders = (origin: string | null) => {
+  const allowedOrigin = origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0] || '';
+  return {
+    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  };
+};
+
+interface UserUpdateData {
+  updated_at: string;
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  role?: string;
 }
 
 serve(async (req) => {
+  const origin = req.headers.get('Origin');
+  const corsHeaders = getCorsHeaders(origin);
+
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -35,8 +51,14 @@ serve(async (req) => {
       )
     }
 
-    // Verify the user is authenticated - use service role to validate the token
-    const token = authHeader.replace('Bearer ', '')
+    // Verify the user is authenticated - validate Bearer token format
+    if (!authHeader.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid authorization header format' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+      )
+    }
+    const token = authHeader.substring(7) // Remove 'Bearer ' prefix safely
     const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
 
     if (authError || !user) {
@@ -85,7 +107,7 @@ serve(async (req) => {
     }
 
     // Update user profile in the public users table
-    const updateData: any = {
+    const updateData: UserUpdateData = {
       updated_at: new Date().toISOString(),
     }
 

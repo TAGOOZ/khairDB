@@ -13,9 +13,9 @@ import {
   updateUser,
   deleteUser,
   getUserMetrics,
-  getUserActivityLogs,
-  UserError
+  getUserActivityLogs
 } from '../../services/users';
+import { ServiceError } from '../../utils/errors';
 import { toast } from '../Individuals/Toast';
 import { formatDate } from '../../utils/formatters';
 
@@ -38,7 +38,8 @@ interface ActivityLog {
 }
 
 export function Users() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const isRTL = language === 'ar';
   const { user: currentUser } = useAuthStore();
   const [users, setUsers] = useState<User[]>([]);
   const [metrics, setMetrics] = useState<UserMetrics>({
@@ -115,7 +116,7 @@ export function Users() {
       setSelectedUser(null);
     } catch (error) {
       console.error('Error deleting user:', error);
-      if (error instanceof UserError) {
+      if (error instanceof ServiceError) {
         toast.error(error.message);
       } else {
         toast.error(t('failedToDeleteUser'));
@@ -148,7 +149,7 @@ export function Users() {
       setSelectedUser(null);
     } catch (error) {
       console.error('Error saving user:', error);
-      if (error instanceof UserError) {
+      if (error instanceof ServiceError) {
         toast.error(error.message);
       } else {
         toast.error(t('failedToSaveUser'));
@@ -159,22 +160,22 @@ export function Users() {
   };
 
   const filteredUsers = users.filter(user => {
-    const matchesSearch = 
+    const matchesSearch =
       user.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     const matchesRole = roleFilter === 'all' || user.role === roleFilter;
-    
+
     return matchesSearch && matchesRole;
   });
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t('userManagementTitle')}</h1>
         <Button onClick={handleAddUser} icon={Plus}>
-          Add New User
+          {t('addNewUser')}
         </Button>
       </div>
 
@@ -188,7 +189,7 @@ export function Users() {
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">Total Users</dt>
+                  <dt className="text-sm font-medium text-gray-500 truncate">{t('totalUsers')}</dt>
                   <dd className="text-2xl font-semibold text-gray-900">{metrics.totalUsers}</dd>
                 </dl>
               </div>
@@ -204,7 +205,7 @@ export function Users() {
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">Administrators</dt>
+                  <dt className="text-sm font-medium text-gray-500 truncate">{t('administrators')}</dt>
                   <dd className="text-2xl font-semibold text-gray-900">{metrics.adminUsers}</dd>
                 </dl>
               </div>
@@ -220,7 +221,7 @@ export function Users() {
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">Regular Users</dt>
+                  <dt className="text-sm font-medium text-gray-500 truncate">{t('regularUsers')}</dt>
                   <dd className="text-2xl font-semibold text-gray-900">{metrics.regularUsers}</dd>
                 </dl>
               </div>
@@ -236,7 +237,7 @@ export function Users() {
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">Recent (7 days)</dt>
+                  <dt className="text-sm font-medium text-gray-500 truncate">{t('recentSevenDays')}</dt>
                   <dd className="text-2xl font-semibold text-gray-900">{metrics.recentlyCreated}</dd>
                 </dl>
               </div>
@@ -250,33 +251,30 @@ export function Users() {
         <nav className="-mb-px flex space-x-8">
           <button
             onClick={() => setActiveTab('users')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'users'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'users'
+              ? 'border-blue-500 text-blue-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
           >
-            Users
+            {t('users')}
           </button>
           <button
             onClick={() => setActiveTab('logs')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'logs'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'logs'
+              ? 'border-blue-500 text-blue-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
           >
-            Activity Logs
+            {t('activityLogs')}
           </button>
           <button
             onClick={() => setActiveTab('metrics')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'metrics'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'metrics'
+              ? 'border-blue-500 text-blue-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
           >
-            Metrics
+            {t('metrics')}
           </button>
         </nav>
       </div>
@@ -287,20 +285,20 @@ export function Users() {
           <div className="bg-white p-4 rounded-lg shadow-sm space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
-                label="Search Users"
+                label={t('searchUsers')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search by name or email..."
+                placeholder={t('searchByNameOrEmail')}
                 icon={Search}
               />
               <Select
-                label="Filter by Role"
+                label={t('filterByRole')}
                 value={roleFilter}
                 onChange={(e) => setRoleFilter(e.target.value as 'all' | 'admin' | 'user')}
                 options={[
-                  { value: 'all', label: 'All Roles' },
-                  { value: 'admin', label: 'Administrators' },
-                  { value: 'user', label: 'Regular Users' },
+                  { value: 'all', label: t('allRoles') },
+                  { value: 'admin', label: t('administrators') },
+                  { value: 'user', label: t('regularUsers') },
                 ]}
               />
             </div>
@@ -315,20 +313,20 @@ export function Users() {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Name
+                    <th className={`px-6 py-3 text-${isRTL ? 'right' : 'left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
+                      {t('name')}
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Email
+                    <th className={`px-6 py-3 text-${isRTL ? 'right' : 'left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
+                      {t('email')}
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Role
+                    <th className={`px-6 py-3 text-${isRTL ? 'right' : 'left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
+                      {t('role')}
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Created At
+                    <th className={`px-6 py-3 text-${isRTL ? 'right' : 'left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
+                      {t('createdAt')}
                     </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
+                    <th className={`px-6 py-3 text-${isRTL ? 'left' : 'right'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
+                      {t('actions')}
                     </th>
                   </tr>
                 </thead>
@@ -360,7 +358,7 @@ export function Users() {
                             icon={Eye}
                             onClick={() => handleViewUser(user)}
                           >
-                            View
+                            {t('view')}
                           </Button>
                           <Button
                             variant="ghost"
@@ -368,7 +366,7 @@ export function Users() {
                             icon={Pencil}
                             onClick={() => handleEditUser(user)}
                           >
-                            Edit
+                            {t('edit')}
                           </Button>
                           {currentUser?.id !== user.id && (
                             <Button
@@ -378,7 +376,7 @@ export function Users() {
                               onClick={() => handleDeleteUser(user)}
                               className="text-red-600 hover:text-red-700"
                             >
-                              Delete
+                              {t('delete')}
                             </Button>
                           )}
                         </div>
@@ -396,7 +394,7 @@ export function Users() {
       {activeTab === 'logs' && (
         <div className="bg-white shadow-md rounded-lg overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900">Recent Activity</h3>
+            <h3 className="text-lg font-medium text-gray-900">{t('recentActivity')}</h3>
           </div>
           <div className="divide-y divide-gray-200">
             {activityLogs.map((log) => (
@@ -422,22 +420,22 @@ export function Users() {
       {activeTab === 'metrics' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-white p-6 rounded-lg shadow">
-            <h3 className="text-lg font-semibold mb-4">User Distribution</h3>
+            <h3 className="text-lg font-semibold mb-4">{t('userDistribution')}</h3>
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Total Users</span>
+                <span className="text-gray-600">{t('totalUsers')}</span>
                 <span className="font-medium">{metrics.totalUsers}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Administrators</span>
+                <span className="text-gray-600">{t('administrators')}</span>
                 <span className="font-medium text-blue-600">{metrics.adminUsers}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Regular Users</span>
+                <span className="text-gray-600">{t('regularUsers')}</span>
                 <span className="font-medium text-gray-600">{metrics.regularUsers}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Admin Percentage</span>
+                <span className="text-gray-600">{t('adminPercentage')}</span>
                 <span className="font-medium">
                   {metrics.totalUsers > 0 ? Math.round((metrics.adminUsers / metrics.totalUsers) * 100) : 0}%
                 </span>
@@ -446,14 +444,14 @@ export function Users() {
           </div>
 
           <div className="bg-white p-6 rounded-lg shadow">
-            <h3 className="text-lg font-semibold mb-4">Recent Activity</h3>
+            <h3 className="text-lg font-semibold mb-4">{t('recentActivity')}</h3>
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">New Users (7 days)</span>
+                <span className="text-gray-600">{t('newUsersSevenDays')}</span>
                 <span className="font-medium">{metrics.recentlyCreated}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Total Activity Logs</span>
+                <span className="text-gray-600">{t('totalActivityLogs')}</span>
                 <span className="font-medium">{activityLogs.length}</span>
               </div>
             </div>
@@ -466,26 +464,26 @@ export function Users() {
         <Modal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
-          title={modalMode === 'create' ? 'Add New User' : 'Edit User'}
+          title={modalMode === 'create' ? t('addNewUser') : t('editUser')}
         >
           <form onSubmit={(e) => {
             e.preventDefault();
             handleModalSubmit(new FormData(e.currentTarget));
           }} className="space-y-4">
             <Input
-              label="First Name"
+              label={t('firstName')}
               name="first_name"
               defaultValue={selectedUser?.first_name || ''}
               required
             />
             <Input
-              label="Last Name"
+              label={t('lastName')}
               name="last_name"
               defaultValue={selectedUser?.last_name || ''}
               required
             />
             <Input
-              label="Email"
+              label={t('email')}
               name="email"
               type="email"
               defaultValue={selectedUser?.email || ''}
@@ -493,20 +491,20 @@ export function Users() {
             />
             {modalMode === 'create' && (
               <Input
-                label="Password"
+                label={t('password')}
                 name="password"
                 type="password"
                 required
-                placeholder="Minimum 6 characters"
+                placeholder={t('password')}
               />
             )}
             <Select
-              label="Role"
+              label={t('role')}
               name="role"
               defaultValue={selectedUser?.role || 'user'}
               options={[
-                { value: 'user', label: 'Regular User' },
-                { value: 'admin', label: 'Administrator' },
+                { value: 'user', label: t('user') },
+                { value: 'admin', label: t('admin') },
               ]}
               required
             />
@@ -517,10 +515,10 @@ export function Users() {
                 onClick={() => setIsModalOpen(false)}
                 disabled={isSubmitting}
               >
-                Cancel
+                {t('cancel')}
               </Button>
               <Button type="submit" isLoading={isSubmitting}>
-                {modalMode === 'create' ? 'Create User' : 'Update User'}
+                {modalMode === 'create' ? t('addNewUser') : t('save')}
               </Button>
             </div>
           </form>

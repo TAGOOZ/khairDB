@@ -1,8 +1,9 @@
 import React from 'react';
-import { AssistanceType } from '../../types';
+import { AssistanceType, TranslationKey } from '../../types';
 import { SearchInput } from '../search/SearchInput';
 import { Select } from '../ui/Select';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useDistricts } from '../../hooks/useDistricts';
 
 interface NeedFilter {
   category: AssistanceType | '';
@@ -15,6 +16,8 @@ interface FiltersState {
   status?: 'green' | 'yellow' | 'red' | '';
   distributionStatus: 'all' | 'with' | 'without';
   listStatus: 'whitelist' | 'blacklist' | 'waitinglist' | '';
+  page: number;
+  perPage: number;
 }
 
 interface IndividualsFilterProps {
@@ -24,23 +27,7 @@ interface IndividualsFilterProps {
 
 export function IndividualsFilter({ filters, onFilterChange }: IndividualsFilterProps) {
   const { t } = useLanguage();
-
-  const districts = [
-    { value: 'الكنيسة', label: 'الكنيسة' },
-    { value: 'عمارة المعلمين', label: 'عمارة المعلمين' },
-    { value: 'المرور', label: 'المرور' },
-    { value: 'المنشية', label: 'المنشية' },
-    { value: 'الرشيدية', label: 'الرشيدية' },
-    { value: 'شارع الثورة', label: 'شارع الثورة' },
-    { value: 'الزهور', label: 'الزهور' },
-    { value: 'أبو خليل', label: 'أبو خليل' },
-    { value: 'الكوادي', label: 'الكوادي' },
-    { value: 'القطعة', label: 'القطعة' },
-    { value: 'كفر امليط', label: 'كفر امليط' },
-    { value: 'الشيخ زايد', label: 'الشيخ زايد' },
-    { value: 'السببل', label: 'السببل' },
-    { value: 'قري', label: 'قري' }
-  ];
+  const { districts, isLoading: loadingDistricts } = useDistricts();
 
   const assistanceCategories = [
     { value: '', label: t('allCategories') },
@@ -53,11 +40,12 @@ export function IndividualsFilter({ filters, onFilterChange }: IndividualsFilter
   ];
 
   const addNeedFilter = () => {
-    // Keep existing filters and add a new one
+    // Keep existing filters and add a new one, reset page
     const existingFilters = filters.needs.filter(need => need.category !== '');
     onFilterChange({
       ...filters,
-      needs: [...existingFilters, { category: '' }]
+      needs: [...existingFilters, { category: '' }],
+      page: 1
     });
   };
 
@@ -66,7 +54,7 @@ export function IndividualsFilter({ filters, onFilterChange }: IndividualsFilter
     newNeeds.splice(index, 1);
     // Only keep filters that have a selected category
     const validFilters = newNeeds.filter(need => need.category !== '');
-    onFilterChange({ ...filters, needs: validFilters });
+    onFilterChange({ ...filters, needs: validFilters, page: 1 });
   };
 
   const updateNeedFilter = (index: number, field: keyof NeedFilter, value: AssistanceType | '') => {
@@ -77,7 +65,19 @@ export function IndividualsFilter({ filters, onFilterChange }: IndividualsFilter
     };
     // Only keep filters that have a selected category
     const validFilters = newNeeds.filter(need => need.category !== '');
-    onFilterChange({ ...filters, needs: validFilters });
+    onFilterChange({ ...filters, needs: validFilters, page: 1 });
+  };
+
+  const handleSearchChange = (value: string) => {
+    onFilterChange({ ...filters, search: value, page: 1 });
+  };
+
+  const handleDistrictChange = (value: string) => {
+    onFilterChange({ ...filters, district: value, page: 1 });
+  };
+
+  const handleListStatusChange = (value: 'whitelist' | 'blacklist' | 'waitinglist' | '') => {
+    onFilterChange({ ...filters, listStatus: value, page: 1 });
   };
 
   return (
@@ -86,24 +86,31 @@ export function IndividualsFilter({ filters, onFilterChange }: IndividualsFilter
         <SearchInput
           label={t('search')}
           value={filters.search}
-          onChange={(e) => onFilterChange({ ...filters, search: e.target.value })}
+          onChange={(e) => handleSearchChange(e.target.value)}
           placeholder={t('searchPlaceholder')}
         />
 
-        <Select
-          label={t('district')}
-          value={filters.district}
-          onChange={(e) => onFilterChange({ ...filters, district: e.target.value })}
-          options={[
-            { value: '', label: t('allDistricts') },
-            ...districts
-          ]}
-        />
+        {loadingDistricts ? (
+          <div className="flex flex-col">
+            <label className="text-sm font-medium text-gray-700 mb-1">{t('district')}</label>
+            <div className="animate-pulse h-10 bg-gray-200 rounded-lg"></div>
+          </div>
+        ) : (
+          <Select
+            label={t('district')}
+            value={filters.district}
+            onChange={(e) => handleDistrictChange(e.target.value)}
+            options={[
+              { value: '', label: t('allDistricts') },
+              ...districts.map(d => ({ value: d.name, label: d.name }))
+            ]}
+          />
+        )}
 
         <Select
           label={t('listStatus')}
           value={filters.listStatus}
-          onChange={(e) => onFilterChange({ ...filters, listStatus: e.target.value as 'whitelist' | 'blacklist' | 'waitinglist' | '' })}
+          onChange={(e) => handleListStatusChange(e.target.value as any)}
           options={[
             { value: '', label: t('all') },
             { value: 'whitelist', label: t('whitelist') },

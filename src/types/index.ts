@@ -207,7 +207,23 @@ export type TranslationKey =
   | 'yellow'
   | 'red'
   | 'addChild'
-  | 'addFamilyMember';
+  | 'addFamilyMember'
+  | 'saveAsPlanned'
+  | 'distributeNow'
+  | 'calculationMethod'
+  | 'valuePerUnit'
+  | 'addWalkin'
+  | 'addWalkinRecipient'
+  | 'enterName'
+  | 'quantity'
+  | 'selectFamilyMembers'
+  | 'howToAddFamily'
+  | 'headOfHousehold'
+  | 'headOnlyDesc'
+  | 'allMembers'
+  | 'allMembersDesc'
+  | 'parents'
+  | 'notes';
 
 export type AssistanceTranslationKey =
   | 'medicalHelp'
@@ -255,7 +271,7 @@ export interface AssistanceDetails {
   id: string;
   individual_id: string;
   assistance_type: AssistanceType;
-  details: any; // Using any since each type has a different schema
+  details: Record<string, unknown>;
   created_at: string;
   updated_at: string;
 }
@@ -284,17 +300,24 @@ export interface Individual {
     first_name: string;
     last_name: string;
   };
-  needs: Need[];
   distributions: Distribution[];
   list_status: 'whitelist' | 'blacklist' | 'waitinglist';
   additional_members: AdditionalMember[];
   children: Child[];
-  assistance_details?: AssistanceDetails[]; // Added field for assistance details
+  assistance_details?: AssistanceDetails[]; // Assistance details (medical, food, etc.)
   id_card_image_url?: string | null; // URL for the ID card image
   id_card_image_path?: string | null; // Storage path for the ID card image
   hashtags?: string[]; // Added field for hashtags
   google_drive_folder_id?: string | null; // Google Drive folder ID
   google_drive_folder_url?: string | null; // Google Drive folder URL
+  family?: { // Family association from join
+    id: string;
+    name: string;
+    status: 'green' | 'yellow' | 'red';
+    phone: string | null;
+    address: string | null;
+    district: string | null;
+  } | null;
 }
 
 // Child types
@@ -325,7 +348,8 @@ export interface AdditionalMember {
   relation: string;
 }
 
-// Need types
+// Legacy Need types - kept for backwards compatibility but no longer used
+// The system now uses AssistanceDetails instead
 export type NeedCategory =
   | 'medical'
   | 'financial'
@@ -340,6 +364,7 @@ export type NeedCategory =
 export type NeedPriority = 'low' | 'medium' | 'high' | 'urgent';
 export type NeedStatus = 'pending' | 'in_progress' | 'completed';
 
+/** @deprecated Use AssistanceDetails instead */
 export interface Need {
   id: string;
   individual_id: string;
@@ -359,9 +384,10 @@ export interface Family {
   district: string | null;
   phone: string | null;
   address: string | null;
+  primary_contact_id: string | null;
   created_at: string;
   updated_at: string;
-  members: (Individual & { family_role: 'parent' | 'child' })[];
+  members: (Individual & { family_relation: 'wife' | 'husband' | 'sister' | 'brother' | 'mother' | 'father' | 'mother_in_law' | 'father_in_law' | 'son' | 'daughter' | 'other' })[];
 }
 
 // Distribution types
@@ -435,5 +461,20 @@ export interface ApprovalLog {
   admin_name: string | null;
   target_name: string | null;
   details: any;
+  created_at: string;
+}
+
+// Activity Log types (for monitoring user activity)
+export interface ActivityLog {
+  id: string;
+  user_id: string | null;
+  user_email: string | null;
+  user_name: string | null;
+  action: string;
+  entity_type: string;
+  entity_id: string | null;
+  entity_name: string | null;
+  details: Record<string, any> | null;
+  ip_address: string | null;
   created_at: string;
 }

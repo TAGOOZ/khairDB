@@ -61,11 +61,6 @@ export function Dashboard() {
       setBlacklistCount(blacklist || 0);
       setWaitinglistCount(waitinglist || 0);
       setChildrenCount(children || 0);
-
-      console.log('Whitelist Count:', whitelist);
-      console.log('Blacklist Count:', blacklist);
-      console.log('Waitinglist Count:', waitinglist);
-      console.log('Children Count:', children);
     } catch (error) {
       console.error('Error fetching counts:', error);
     } finally {

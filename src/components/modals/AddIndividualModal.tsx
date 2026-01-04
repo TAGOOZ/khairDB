@@ -2,7 +2,7 @@ import React from 'react';
 import { X } from 'lucide-react';
 import { IndividualForm } from '../forms/IndividualForm';
 import { IndividualFormData } from '../../schemas/individualSchema';
-import { Family, Individual } from '../../types';
+import { Individual } from '../../types';
 import { Button } from '../ui/Button';
 import { toast } from '../../pages/Individuals/Toast';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -12,31 +12,29 @@ interface AddIndividualModalProps {
   onClose: () => void;
   onSubmit: (data: IndividualFormData, individualId?: string) => Promise<void>;
   isLoading: boolean;
-  families: Family[];
   individual?: Individual;
   mode?: 'create' | 'edit';
   userRole?: 'admin' | 'user';
 }
 
-export function AddIndividualModal({ 
-  isOpen, 
-  onClose, 
-  onSubmit, 
+export function AddIndividualModal({
+  isOpen,
+  onClose,
+  onSubmit,
   isLoading,
-  families,
   individual,
   mode = 'create',
   userRole = 'user'
 }: AddIndividualModalProps) {
   const { t } = useLanguage();
-  
+
   if (!isOpen) return null;
 
-  const title = mode === 'create' 
+  const title = mode === 'create'
     ? userRole === 'admin' ? t('addNewIndividual') : t('submitIndividualRequest')
     : t('edit');
-    
-  const description = mode === 'create' 
+
+  const description = mode === 'create'
     ? userRole === 'admin'
       ? t('addNewIndividualDescription')
       : t('submitIndividualRequestDescription')
@@ -80,10 +78,9 @@ export function AddIndividualModal({
               </p>
 
               <div className="mt-6">
-                <IndividualForm 
-                  onSubmit={handleSubmit} 
+                <IndividualForm
+                  onSubmit={handleSubmit}
                   isLoading={isLoading}
-                  families={families}
                   initialData={individual}
                 />
               </div>

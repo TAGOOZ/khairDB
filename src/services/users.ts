@@ -1,33 +1,13 @@
 import { supabase } from '../lib/supabase';
 import { User } from '../types';
-
-export class UserError extends Error {
-  constructor(
-    public code: string,
-    message: string,
-    public details?: unknown
-  ) {
-    super(message);
-    this.name = 'UserError';
-  }
-}
+import { logActivity, getActivityLogs as fetchActivityLogs, GetActivityLogsOptions, GetActivityLogsResult } from './activityLogs';
+import { ServiceError } from '../utils/errors';
 
 interface UserMetrics {
   totalUsers: number;
   adminUsers: number;
   regularUsers: number;
   recentlyCreated: number;
-}
-
-interface ActivityLog {
-  id: string;
-  action: string;
-  user_id: string;
-  user_name: string;
-  target_user_id?: string;
-  target_user_name?: string;
-  details: string;
-  created_at: string;
 }
 
 /**
@@ -41,12 +21,12 @@ export async function getAllUsers(): Promise<User[]> {
       .order('created_at', { ascending: false });
 
     if (error) {
-      throw new UserError('fetch-failed', error.message, error);
+      throw new ServiceError('fetch-failed', error.message, error);
     }
     return data || [];
   } catch (error) {
-    if (error instanceof UserError) throw error;
-    throw new UserError('unexpected', 'An unexpected error occurred while fetching users.', error);
+    if (error instanceof ServiceError) throw error;
+    throw new ServiceError('unexpected', 'An unexpected error occurred while fetching users.', error);
   }
 }
 
@@ -74,28 +54,37 @@ export async function createUser(userData: {
     });
 
     if (error) {
-      throw new UserError('creation-failed', error.message, error);
+      throw new ServiceError('creation-failed', error.message, error);
     }
 
     if (!data || !data.user) {
-      throw new UserError('creation-failed', 'Failed to create user - no data returned');
+      throw new ServiceError('creation-failed', 'Failed to create user - no data returned');
     }
+
+    // Log the activity
+    await logActivity(
+      'create',
+      'user',
+      data.user.id,
+      `${userData.first_name} ${userData.last_name}`,
+      { email: userData.email, role: userData.role }
+    );
 
     return data.user;
   } catch (error) {
-    if (error instanceof UserError) throw error;
-    
+    if (error instanceof ServiceError) throw error;
+
     // Handle specific error cases
     if (error instanceof Error) {
       if (error.message.includes('email')) {
-        throw new UserError('email-exists', 'A user with this email already exists.');
+        throw new ServiceError('email-exists', 'A user with this email already exists.');
       }
       if (error.message.includes('password')) {
-        throw new UserError('weak-password', 'Password is too weak. Please use at least 6 characters.');
+        throw new ServiceError('weak-password', 'Password is too weak. Please use at least 6 characters.');
       }
     }
-    
-    throw new UserError('unexpected', 'An unexpected error occurred while creating the user.', error);
+
+    throw new ServiceError('unexpected', 'An unexpected error occurred while creating the user.', error);
   }
 }
 
@@ -104,6 +93,8 @@ export async function createUser(userData: {
  */
 export async function updateUser(userId: string, userData: Partial<User>): Promise<User> {
   try {
+    let resultUser: User;
+
     // For sensitive operations like role changes, use Edge Function
     if (userData.role) {
       const { data, error } = await supabase.functions.invoke('update-user-admin', {
@@ -114,10 +105,10 @@ export async function updateUser(userId: string, userData: Partial<User>): Promi
       });
 
       if (error) {
-        throw new UserError('update-failed', error.message, error);
+        throw new ServiceError('update-failed', error.message, error);
       }
 
-      return data.user;
+      resultUser = data.user;
     } else {
       // For non-sensitive updates, update directly
       const { data, error } = await supabase
@@ -132,14 +123,25 @@ export async function updateUser(userId: string, userData: Partial<User>): Promi
         .single();
 
       if (error) {
-        throw new UserError('update-failed', error.message, error);
+        throw new ServiceError('update-failed', error.message, error);
       }
 
-      return data;
+      resultUser = data;
     }
+
+    // Log the activity
+    await logActivity(
+      'update',
+      'user',
+      userId,
+      `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || 'User',
+      { updated_fields: Object.keys(userData) }
+    );
+
+    return resultUser;
   } catch (error) {
-    if (error instanceof UserError) throw error;
-    throw new UserError('unexpected', 'An unexpected error occurred while updating the user.', error);
+    if (error instanceof ServiceError) throw error;
+    throw new ServiceError('unexpected', 'An unexpected error occurred while updating the user.', error);
   }
 }
 
@@ -154,11 +156,20 @@ export async function deleteUser(userId: string): Promise<void> {
     });
 
     if (error) {
-      throw new UserError('deletion-failed', error.message, error);
+      throw new ServiceError('deletion-failed', error.message, error);
     }
+
+    // Log the activity
+    await logActivity(
+      'delete',
+      'user',
+      userId,
+      'User deleted',
+      { deleted_user_id: userId }
+    );
   } catch (error) {
-    if (error instanceof UserError) throw error;
-    throw new UserError('unexpected', 'An unexpected error occurred while deleting the user.', error);
+    if (error instanceof ServiceError) throw error;
+    throw new ServiceError('unexpected', 'An unexpected error occurred while deleting the user.', error);
   }
 }
 
@@ -172,17 +183,17 @@ export async function getUserMetrics(): Promise<UserMetrics> {
       .select('role, created_at');
 
     if (error) {
-      throw new UserError('metrics-failed', error.message, error);
+      throw new ServiceError('metrics-failed', error.message, error);
     }
 
     const totalUsers = users?.length || 0;
-    const adminUsers = users?.filter(u => u.role === 'admin').length || 0;
-    const regularUsers = users?.filter(u => u.role === 'user').length || 0;
-    
+    const adminUsers = users?.filter((u: { role: string }) => u.role === 'admin').length || 0;
+    const regularUsers = users?.filter((u: { role: string }) => u.role === 'user').length || 0;
+
     // Count users created in the last 7 days
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    const recentlyCreated = users?.filter(u => 
+    const recentlyCreated = users?.filter((u: { created_at: string }) =>
       new Date(u.created_at) > sevenDaysAgo
     ).length || 0;
 
@@ -193,46 +204,17 @@ export async function getUserMetrics(): Promise<UserMetrics> {
       recentlyCreated,
     };
   } catch (error) {
-    if (error instanceof UserError) throw error;
-    throw new UserError('unexpected', 'An unexpected error occurred while fetching metrics.', error);
+    if (error instanceof ServiceError) throw error;
+    throw new ServiceError('unexpected', 'An unexpected error occurred while fetching metrics.', error);
   }
 }
 
 /**
- * Gets user activity logs.
- * Note: This is a placeholder implementation. In a real app, you'd have a separate logs table.
+ * Gets user activity logs using the new activity_logs table.
+ * Supports filtering by user, action, entity type, and date range.
  */
-export async function getUserActivityLogs(): Promise<ActivityLog[]> {
-  try {
-    // This is a placeholder implementation
-    // In a real application, you would have a separate user_activity_logs table
-    // For now, we'll return mock data based on user creation dates
-    
-    const { data: users, error } = await supabase
-      .from('users')
-      .select('id, first_name, last_name, email, role, created_at')
-      .order('created_at', { ascending: false })
-      .limit(10);
-
-    if (error) {
-      throw new UserError('logs-failed', error.message, error);
-    }
-
-    // Convert user data to activity logs format
-    const logs: ActivityLog[] = users?.map((user, index) => ({
-      id: `log-${user.id}-${index}`,
-      action: 'User Created',
-      user_id: user.id,
-      user_name: 'System',
-      target_user_id: user.id,
-      target_user_name: `${user.first_name} ${user.last_name}`,
-      details: `New ${user.role} account created for ${user.email}`,
-      created_at: user.created_at,
-    })) || [];
-
-    return logs;
-  } catch (error) {
-    if (error instanceof UserError) throw error;
-    throw new UserError('unexpected', 'An unexpected error occurred while fetching activity logs.', error);
-  }
+export async function getUserActivityLogs(
+  options: GetActivityLogsOptions = {}
+): Promise<GetActivityLogsResult> {
+  return fetchActivityLogs(options);
 }

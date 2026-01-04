@@ -1,8 +1,8 @@
 import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  Users, 
+import {
+  LayoutDashboard,
+  Users,
   Home,
   Baby,
   HeartHandshake,
@@ -12,7 +12,8 @@ import {
   Menu,
   X,
   FolderKanban,
-  UserCog
+  UserCog,
+  Activity
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -33,7 +34,10 @@ export function Layout() {
     { name: t('distributions'), href: '/distributions', icon: Package },
     { name: t('reports'), href: '/reports', icon: BarChart3 },
     { name: t('projects'), href: '/projects', icon: FolderKanban },
-    ...(user?.role === 'admin' ? [{ name: t('userManagement'), href: '/users', icon: UserCog }] : []),
+    ...(user?.role === 'admin' ? [
+      { name: t('userManagement'), href: '/users', icon: UserCog },
+      { name: t('activityLogs'), href: '/logs', icon: Activity }
+    ] : []),
   ];
 
   const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { setupStorageBuckets, enableAnonymousUploads } from '../../setup/setupStorage';
 
 /**
@@ -18,29 +18,11 @@ export function StorageSetup() {
     setIsLoading(true);
     setSuccess(null);
     addLog('Starting storage setup...');
-    
+
     try {
-      // Override console.log to capture logs
-      const originalConsoleLog = console.log;
-      const originalConsoleError = console.error;
-      
-      console.log = (message: any, ...args: any[]) => {
-        originalConsoleLog(message, ...args);
-        addLog(typeof message === 'string' ? message : JSON.stringify(message));
-      };
-      
-      console.error = (message: any, ...args: any[]) => {
-        originalConsoleError(message, ...args);
-        addLog(`ERROR: ${typeof message === 'string' ? message : JSON.stringify(message)}`);
-      };
-      
       const result = await setupStorageBuckets();
       setSuccess(result);
-      
-      // Restore original console functions
-      console.log = originalConsoleLog;
-      console.error = originalConsoleError;
-      
+      addLog(result ? '✅ Storage setup completed' : '❌ Storage setup failed');
     } catch (error) {
       addLog(`Setup failed: ${error instanceof Error ? error.message : String(error)}`);
       setSuccess(false);
@@ -53,31 +35,12 @@ export function StorageSetup() {
     if (!confirm("Warning: This will allow anyone to upload files without authentication. Are you sure?")) {
       return;
     }
-    
+
     setIsLoading(true);
     addLog('Enabling anonymous uploads...');
-    
+
     try {
-      // Override console.log to capture logs
-      const originalConsoleLog = console.log;
-      const originalConsoleError = console.error;
-      
-      console.log = (message: any, ...args: any[]) => {
-        originalConsoleLog(message, ...args);
-        addLog(typeof message === 'string' ? message : JSON.stringify(message));
-      };
-      
-      console.error = (message: any, ...args: any[]) => {
-        originalConsoleError(message, ...args);
-        addLog(`ERROR: ${typeof message === 'string' ? message : JSON.stringify(message)}`);
-      };
-      
       const result = await enableAnonymousUploads();
-      
-      // Restore original console functions
-      console.log = originalConsoleLog;
-      console.error = originalConsoleError;
-      
       addLog(result ? '✅ Anonymous uploads enabled' : '❌ Failed to enable anonymous uploads');
     } catch (error) {
       addLog(`Error: ${error instanceof Error ? error.message : String(error)}`);
@@ -89,7 +52,7 @@ export function StorageSetup() {
   return (
     <div className="p-6 max-w-4xl mx-auto bg-white rounded-lg shadow-md">
       <h2 className="text-2xl font-bold mb-4">Storage Setup for Production</h2>
-      
+
       <div className="p-4 border-l-4 border-blue-500 bg-blue-50 mb-4">
         <h3 className="font-medium text-blue-800">Administrator Access Required</h3>
         <p className="text-blue-700 text-sm">
@@ -97,7 +60,7 @@ export function StorageSetup() {
           You must have administrator privileges to use these functions.
         </p>
       </div>
-      
+
       <div className="flex space-x-4 mb-6">
         <button
           onClick={handleSetupStorage}
@@ -106,7 +69,7 @@ export function StorageSetup() {
         >
           {isLoading ? 'Setting up...' : 'Setup Storage for Production'}
         </button>
-        
+
         <button
           onClick={handleEnableAnonymous}
           disabled={isLoading}
@@ -115,7 +78,7 @@ export function StorageSetup() {
           Enable Anonymous Uploads
         </button>
       </div>
-      
+
       {success === true && (
         <div className="p-4 border-l-4 border-green-500 bg-green-50 mb-4">
           <p className="text-green-700">
@@ -123,7 +86,7 @@ export function StorageSetup() {
           </p>
         </div>
       )}
-      
+
       {success === false && (
         <div className="p-4 border-l-4 border-red-500 bg-red-50 mb-4">
           <p className="text-red-700">
@@ -131,7 +94,7 @@ export function StorageSetup() {
           </p>
         </div>
       )}
-      
+
       <div className="mt-6">
         <h3 className="font-semibold mb-2">Setup Logs</h3>
         <div className="bg-gray-900 text-gray-100 p-4 rounded-md overflow-auto max-h-64 font-mono text-sm">

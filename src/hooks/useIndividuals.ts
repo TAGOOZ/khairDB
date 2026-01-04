@@ -1,12 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Individual, AssistanceType } from '../types';
+import { Individual, AssistanceType, AssistanceDetails } from '../types';
 import { supabase } from '../lib/supabase';
-
-interface AssistanceDetails {
-  id: string;
-  assistance_type: AssistanceType;
-  details: Record<string, any>;
-}
 
 interface NeedFilter {
   category: AssistanceType | '';
@@ -19,23 +13,44 @@ interface FiltersState {
   status?: 'green' | 'yellow' | 'red' | '';
   distributionStatus: 'all' | 'with' | 'without';
   listStatus: 'whitelist' | 'blacklist' | 'waitinglist' | '';
+  page: number;
+  perPage: number;
 }
 
 export function useIndividuals() {
   const [individuals, setIndividuals] = useState<Individual[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [totalCount, setTotalCount] = useState(0);
   const [filters, setFilters] = useState<FiltersState>({
     search: '',
     district: '',
     needs: [],
     status: '',
     distributionStatus: 'all',
-    listStatus: ''
+    listStatus: '',
+    page: 1,
+    perPage: 50
   });
 
   const fetchIndividuals = useCallback(async () => {
     setIsLoading(true);
     try {
+      const activeNeedsCategories = filters.needs
+        .filter(need => need.category !== '')
+        .map(need => need.category);
+
+      const hasNeedFilter = activeNeedsCategories.length > 0;
+      // Use !inner if we need to filter by assistance details effectively
+      const assistanceDetailsJoin = hasNeedFilter
+        ? 'assistance_details!inner'
+        : 'assistance_details';
+
+      // For distribution status 'with', we can verify existence with !inner join
+      // 'without' is more complex in simple PostgREST, we'll handle standard pagination mostly
+      const distributionRecipientsJoin = filters.distributionStatus === 'with'
+        ? 'distribution_recipients!inner'
+        : 'distribution_recipients';
+
       let query = supabase
         .from('individuals')
         .select(`
@@ -44,19 +59,18 @@ export function useIndividuals() {
             first_name,
             last_name
           ),
-          assistance_details (
+          family:families!individuals_family_id_fkey (
+            id,
+            name,
+            status,
+            phone,
+            address,
+            district
+          ),
+          ${assistanceDetailsJoin} (
             id,
             assistance_type,
             details,
-            created_at,
-            updated_at
-          ),
-          needs (
-            id,
-            category,
-            priority,
-            status,
-            description,
             created_at,
             updated_at
           ),
@@ -70,8 +84,20 @@ export function useIndividuals() {
             description,
             parent_id,
             family_id
+          ),
+          ${distributionRecipientsJoin} (
+            distributions (
+              id,
+              date,
+              aid_type,
+              description,
+              quantity,
+              value,
+              status,
+              created_at
+            )
           )
-        `)
+        `, { count: 'exact' })
         .order('created_at', { ascending: false });
 
       if (filters.search) {
@@ -96,65 +122,49 @@ export function useIndividuals() {
         query = query.eq('list_status', filters.listStatus);
       }
 
-      const { data: individualsData, error: individualsError } = await query;
+      if (hasNeedFilter) {
+        // This relies on the !inner join above to filter individuals who have any of these types
+        query = query.in('assistance_details.assistance_type', activeNeedsCategories);
+      }
+
+      // Pagination
+      const from = (filters.page - 1) * filters.perPage;
+      const to = from + filters.perPage - 1;
+      query = query.range(from, to);
+
+      const { data: individualsData, error: individualsError, count } = await query;
 
       if (individualsError) {
         console.error('Error fetching individuals:', individualsError);
         throw individualsError;
       }
 
+      setTotalCount(count || 0);
+
       let filteredData = individualsData || [];
 
-      // Only apply assistance details filtering if there are filters selected
-      if (filters.needs && filters.needs.length > 0 && filters.needs.some(need => need.category !== '')) {
-        // Get the active filter categories (non-empty ones)
-        const activeCategories = filters.needs
-          .filter(need => need.category !== '')
-          .map(need => need.category);
+      // Transform the data to map distribution_recipients to distributions
+      let finalData = filteredData.map(individual => {
+        // Extract distributions from distribution_recipients
+        // The type assertion is needed because Supabase types might imply a single object or array depending on the query
+        const rawRecipients = individual.distribution_recipients as unknown as { distributions: any }[] | null;
 
-        // Filter individuals who have ANY of the selected assistance types (OR logic)
-        filteredData = filteredData.filter(individual => {
-          return individual.assistance_details?.some((detail: AssistanceDetails) => 
-            activeCategories.includes(detail.assistance_type)
-          );
-        });
-      }
+        const distributions = rawRecipients
+          ? rawRecipients
+            .map(r => r.distributions)
+            .filter(d => d !== null)
+          : [];
 
-      // Ensure needs array is initialized
-      filteredData = filteredData.map(individual => ({
-        ...individual,
-        needs: individual.needs || [],
-        assistance_details: individual.assistance_details || [],
-        children: individual.children || []
-      }));
+        return {
+          ...individual,
+          assistance_details: individual.assistance_details || [],
+          children: individual.children || [],
+          distributions: distributions
+        };
+      });
 
-      // Fetch distributions for filtered individuals
-      const individualsWithDistributions = await Promise.all(
-        filteredData.map(async (individual) => {
-          const { data: distributions, error: distributionError } = await supabase
-            .from('distribution_recipients')
-            .select(`
-              distribution:distributions(*)
-            `)
-            .eq('individual_id', individual.id);
-
-          if (distributionError) {
-            console.error('Error fetching distributions for individual:', individual.id, distributionError);
-            return { ...individual, distributions: [] };
-          }
-
-          return {
-            ...individual,
-            distributions: distributions ? distributions.map(d => d.distribution) : []
-          };
-        })
-      );
-
-      // Apply distribution status filter
-      let finalData = individualsWithDistributions;
-      if (filters.distributionStatus === 'with') {
-        finalData = finalData.filter(individual => individual.distributions.length > 0);
-      } else if (filters.distributionStatus === 'without') {
+      // Apply distribution status filter for 'without' (CLIENT-SIDE for now)
+      if (filters.distributionStatus === 'without') {
         finalData = finalData.filter(individual => individual.distributions.length === 0);
       }
 
@@ -188,6 +198,7 @@ export function useIndividuals() {
   return {
     individuals,
     isLoading,
+    totalCount,
     filters,
     setFilters,
     refreshIndividuals: fetchIndividuals,

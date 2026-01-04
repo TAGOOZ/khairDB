@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { FamilyFormData } from '../../../schemas/familySchema';
-import { createFamily, updateFamily, deleteFamily, FamilyError } from '../../../services/families';
+import { FamilyFormData, parentRelations } from '../../../schemas/familySchema';
+import { createFamily, updateFamily, deleteFamily } from '../../../services/families';
+import { ServiceError } from '../../../utils/errors';
 import { toast } from '../../Individuals/Toast';
 import { useLanguage } from '../../../contexts/LanguageContext';
 
@@ -15,9 +16,9 @@ export function useFamilyActions({ onSuccess }: UseFamilyActionsProps) {
   const handleSubmit = async (data: FamilyFormData, familyId?: string) => {
     try {
       setIsSubmitting(true);
-      
-      // Validate that there's at least one parent
-      const hasParent = data.members.some(member => member.role === 'parent');
+
+      // Validate that there's at least one parent relation
+      const hasParent = data.members.some(member => parentRelations.includes(member.relation));
       if (!hasParent) {
         toast.error(t('atLeastOneParentRequired'));
         return;
@@ -33,14 +34,14 @@ export function useFamilyActions({ onSuccess }: UseFamilyActionsProps) {
       onSuccess();
     } catch (error) {
       console.error('Error handling family:', error);
-      
-      if (error instanceof FamilyError) {
+ 
+      if (error instanceof ServiceError) {
         switch (error.code) {
           case 'duplicate-name':
             toast.error(t('familyNameExists'));
             break;
           case 'invalid-members':
-            toast.error(t('invalidFamilyMembers'));
+            toast.error(error.message || t('invalidFamilyMembers'));
             break;
           case 'parent-fetch-failed':
             toast.error(t('failedToFetchParent'));
@@ -64,7 +65,7 @@ export function useFamilyActions({ onSuccess }: UseFamilyActionsProps) {
         onSuccess();
       } catch (error) {
         console.error('Error deleting family:', error);
-        if (error instanceof FamilyError) {
+        if (error instanceof ServiceError) {
           toast.error(error.message);
         } else {
           toast.error(t('failedToDeleteFamily'));

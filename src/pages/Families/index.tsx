@@ -3,26 +3,25 @@ import { Plus } from 'lucide-react';
 import { FamiliesList } from './components/FamiliesList';
 import { SearchFilters } from './components/SearchFilters';
 import { useFamilies } from '../../hooks/useFamilies';
-import { useIndividuals } from '../../hooks/useIndividuals';
 import { AddFamilyModal } from './components/AddFamilyModal';
 import { ViewFamilyModal } from './components/ViewFamilyModal';
 import { Button } from '../../components/ui/Button';
+import { Pagination } from '../../components/ui/Pagination';
 import { Family } from '../../types';
-import { FamilyFormData } from '../../schemas/familySchema';
 import { useFamilyActions } from './hooks/useFamilyActions';
 import { useLanguage } from '../../contexts/LanguageContext';
 
 export function Families() {
   const { t } = useLanguage();
-  const { 
-    families, 
-    isLoading, 
-    filters, 
+  const {
+    families,
+    isLoading,
+    totalCount,
+    filters,
     setFilters,
     refreshFamilies
   } = useFamilies();
 
-  const { individuals } = useIndividuals();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedFamily, setSelectedFamily] = useState<Family | null>(null);
@@ -35,6 +34,11 @@ export function Families() {
       refreshFamilies();
     }
   });
+
+  const handlePageChange = (page: number) => {
+    setFilters({ ...filters, page });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const handleAdd = () => {
     setSelectedFamily(null);
@@ -76,18 +80,29 @@ export function Families() {
       </div>
 
       <SearchFilters filters={filters} onFilterChange={setFilters} />
-      
+
       {isLoading ? (
         <div className="flex justify-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
         </div>
       ) : (
-        <FamiliesList 
-          families={families}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onView={handleView}
-        />
+        <>
+          <FamiliesList
+            families={families}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onView={handleView}
+          />
+          {totalCount > 0 && (
+            <Pagination
+              currentPage={filters.page}
+              totalPages={Math.ceil(totalCount / filters.perPage)}
+              totalItems={totalCount}
+              itemsPerPage={filters.perPage}
+              onPageChange={handlePageChange}
+            />
+          )}
+        </>
       )}
 
       <AddFamilyModal
@@ -95,7 +110,6 @@ export function Families() {
         onClose={closeAddModal}
         onSubmit={handleSubmit}
         isLoading={isSubmitting}
-        individuals={individuals}
         family={selectedFamily || undefined}
         mode={modalMode}
       />

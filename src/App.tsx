@@ -16,6 +16,7 @@ import { useAuthStore } from './store/authStore';
 import { TestMCPUpload } from './components/tests/TestMCPUpload';
 import { SecurityAnalysis } from './pages/SecurityAnalysis';
 import { Users } from './pages/Users';
+import { Logs } from './pages/Logs';
 
 export default function App() {
   const { user, loading, initializeAuth } = useAuthStore();
@@ -33,7 +34,7 @@ export default function App() {
   }
 
   return (
-    <Router>
+    <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/test-upload" element={<TestMCPUpload />} />
@@ -49,6 +50,7 @@ export default function App() {
             <Route path="/reports" element={<Reports />} />
             <Route path="/projects" element={<Projects />} />
             <Route path="/users" element={<Users />} />
+            <Route path="/logs" element={<Logs />} />
           </Route>
         </Route>
         <Route path="*" element={<NotFound />} />

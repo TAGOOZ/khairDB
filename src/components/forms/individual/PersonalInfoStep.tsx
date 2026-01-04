@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import { Tooltip } from '../../ui/Tooltip';
 import { IndividualFormData } from '../../../schemas/individualSchema';
-import { availableHashtags } from '../../../schemas/individualSchema';
 import { X } from 'lucide-react';
 import { getHashtagCounts, Hashtag } from '../../../services/hashtags';
 
@@ -11,20 +10,20 @@ export function PersonalInfoStep() {
   const { t } = useLanguage();
   const { register, formState: { errors }, setValue, watch } = useFormContext<IndividualFormData>();
   const [availableTags, setAvailableTags] = useState<Hashtag[]>([]);
-  
+
   // Load all hashtags from the system
   useEffect(() => {
     const loadHashtags = async () => {
       const tags = await getHashtagCounts();
       setAvailableTags(tags);
     };
-    
+
     loadHashtags();
   }, []);
-  
+
   // Track selected hashtags
   const selectedHashtags = watch('hashtags') || [];
-  
+
   // Add a hashtag to selection
   const addHashtag = (hashtag: string) => {
     if (!selectedHashtags.includes(hashtag)) {
@@ -32,7 +31,7 @@ export function PersonalInfoStep() {
       setValue('hashtags', newHashtags);
     }
   };
-  
+
   // Remove a hashtag from selection
   const removeHashtag = (hashtag: string) => {
     const newHashtags = selectedHashtags.filter(tag => tag !== hashtag);
@@ -50,9 +49,8 @@ export function PersonalInfoStep() {
           type="text"
           {...register('first_name')}
           aria-invalid={errors.first_name ? 'true' : 'false'}
-          className={`w-full p-2 border rounded-md ${
-            errors.first_name ? 'border-red-500' : 'border-gray-300'
-          }`}
+          className={`w-full p-2 border rounded-md ${errors.first_name ? 'border-red-500' : 'border-gray-300'
+            }`}
         />
         {errors.first_name && (
           <p className="mt-1 text-sm text-red-500" role="alert">
@@ -70,9 +68,8 @@ export function PersonalInfoStep() {
           type="text"
           {...register('last_name')}
           aria-invalid={errors.last_name ? 'true' : 'false'}
-          className={`w-full p-2 border rounded-md ${
-            errors.last_name ? 'border-red-500' : 'border-gray-300'
-          }`}
+          className={`w-full p-2 border rounded-md ${errors.last_name ? 'border-red-500' : 'border-gray-300'
+            }`}
         />
         {errors.last_name && (
           <p className="mt-1 text-sm text-red-500" role="alert">
@@ -89,11 +86,11 @@ export function PersonalInfoStep() {
         <input
           id="id_number"
           type="text"
+          dir="ltr"
           {...register('id_number')}
           aria-invalid={errors.id_number ? 'true' : 'false'}
-          className={`w-full p-2 border rounded-md ${
-            errors.id_number ? 'border-red-500' : 'border-gray-300'
-          }`}
+          className={`w-full p-2 border rounded-md ${errors.id_number ? 'border-red-500' : 'border-gray-300'
+            }`}
           placeholder="14 digits"
           inputMode="numeric"
           maxLength={14}
@@ -116,9 +113,8 @@ export function PersonalInfoStep() {
           type="date"
           {...register('date_of_birth')}
           aria-invalid={errors.date_of_birth ? 'true' : 'false'}
-          className={`w-full p-2 border rounded-md ${
-            errors.date_of_birth ? 'border-red-500' : 'border-gray-300'
-          }`}
+          className={`w-full p-2 border rounded-md ${errors.date_of_birth ? 'border-red-500' : 'border-gray-300'
+            }`}
           max={new Date().toISOString().split('T')[0]}
         />
         {errors.date_of_birth && (
@@ -136,9 +132,8 @@ export function PersonalInfoStep() {
           id="gender"
           {...register('gender')}
           aria-invalid={errors.gender ? 'true' : 'false'}
-          className={`w-full p-2 border rounded-md ${
-            errors.gender ? 'border-red-500' : 'border-gray-300'
-          }`}
+          className={`w-full p-2 border rounded-md ${errors.gender ? 'border-red-500' : 'border-gray-300'
+            }`}
         >
           <option value="">{t('selectGender')}</option>
           <option value="male">{t('male')}</option>
@@ -159,9 +154,8 @@ export function PersonalInfoStep() {
           id="marital_status"
           {...register('marital_status')}
           aria-invalid={errors.marital_status ? 'true' : 'false'}
-          className={`w-full p-2 border rounded-md ${
-            errors.marital_status ? 'border-red-500' : 'border-gray-300'
-          }`}
+          className={`w-full p-2 border rounded-md ${errors.marital_status ? 'border-red-500' : 'border-gray-300'
+            }`}
         >
           <option value="">{t('selectMaritalStatus')}</option>
           <option value="single">{t('single')}</option>
@@ -181,7 +175,7 @@ export function PersonalInfoStep() {
           {t('hashtags')}
           <Tooltip content={t('hashtagsHelp')} position="right" />
         </label>
-        
+
         <div className="space-y-2">
           {/* Selected hashtags */}
           <div className="flex flex-wrap gap-2">
@@ -201,7 +195,7 @@ export function PersonalInfoStep() {
               </span>
             ))}
           </div>
-          
+
           {/* Available hashtags */}
           <div className="flex flex-wrap gap-2">
             {availableTags.map((tag) => (

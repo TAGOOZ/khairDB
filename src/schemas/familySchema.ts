@@ -1,9 +1,29 @@
 import { z } from 'zod';
 
+// Relation options matching the Individual form's additional_members
+export const relationOptions = [
+  'wife',
+  'husband',
+  'sister',
+  'brother',
+  'mother',
+  'father',
+  'mother_in_law',
+  'father_in_law',
+  'son',
+  'daughter',
+  'other'
+] as const;
+
+export type RelationType = typeof relationOptions[number];
+
+// Relations that count as "parent/head of household"
+export const parentRelations: RelationType[] = ['wife', 'husband', 'mother', 'father'];
+
 export const familyMemberSchema = z.object({
   id: z.string().uuid('Invalid member ID'),
-  role: z.enum(['parent', 'child'], {
-    required_error: 'Member role is required',
+  relation: z.enum(relationOptions, {
+    required_error: 'Member relation is required',
   }),
 });
 
@@ -14,12 +34,13 @@ export const familySchema = z.object({
   members: z.array(familyMemberSchema)
     .min(1, 'At least one member is required')
     .refine(
-      members => members.some(member => member.role === 'parent'),
-      'At least one parent is required'
+      members => members.some(member => parentRelations.includes(member.relation)),
+      'At least one parent (husband, wife, mother, or father) is required'
     ),
   status: z.enum(['green', 'yellow', 'red'], {
     required_error: 'Family status is required',
   }),
+  primary_contact_id: z.string().nullable().optional(),
   district: z.string().nullable(),
   phone: z.string()
     .nullable()

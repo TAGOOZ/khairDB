@@ -1,13 +1,23 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-}
+const allowedOrigins = Deno.env.get('ALLOWED_ORIGINS')?.split(',') || [];
+
+const getCorsHeaders = (origin: string | null) => {
+  const allowedOrigin = origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0] || '';
+  return {
+    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  };
+};
+
+const VALID_ROLES = ['admin', 'user'] as const;
 
 serve(async (req) => {
+  const origin = req.headers.get('Origin');
+  const corsHeaders = getCorsHeaders(origin);
+
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -35,8 +45,14 @@ serve(async (req) => {
       )
     }
 
-    // Verify the user is authenticated - use service role to validate the token
-    const token = authHeader.replace('Bearer ', '')
+    // Verify the user is authenticated - validate Bearer token format
+    if (!authHeader.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid authorization header format' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+      )
+    }
+    const token = authHeader.substring(7) // Remove 'Bearer ' prefix safely
     const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
 
     if (authError || !user) {
@@ -65,6 +81,11 @@ serve(async (req) => {
     // Validate required fields
     if (!email || !password || !first_name || !last_name || !role) {
       throw new Error('Missing required fields')
+    }
+
+    // Validate role against whitelist
+    if (!VALID_ROLES.includes(role)) {
+      throw new Error(`Invalid role. Must be one of: ${VALID_ROLES.join(', ')}`)
     }
 
     // Create the user in Supabase Auth

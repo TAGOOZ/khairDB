@@ -1,5 +1,6 @@
 import { jest, describe, beforeEach, it, expect } from '@jest/globals';
-import { deleteChild, ChildError } from '../children';
+import { deleteChild } from '../children';
+import { ServiceError } from '../../utils/errors';
 import { supabase } from '../../lib/supabase';
 
 // Mock supabase client
@@ -36,7 +37,7 @@ describe('Children Service', () => {
       expect(supabase.from).toHaveBeenCalledWith('children');
     });
 
-    it('should throw ChildError when deletion fails', async () => {
+    it('should throw ServiceError when deletion fails', async () => {
       const childId = 'test-child-id';
       const mockError = new Error('Database error');
       
@@ -52,7 +53,7 @@ describe('Children Service', () => {
       // Execute the function and expect it to throw
       await expect(deleteChild(childId))
         .rejects
-        .toThrow(ChildError);
+        .toThrow(ServiceError);
     });
 
     it('should handle unexpected errors', async () => {
@@ -66,7 +67,7 @@ describe('Children Service', () => {
       // Execute the function and expect it to throw
       await expect(deleteChild(childId))
         .rejects
-        .toThrow(ChildError);
+        .toThrow(ServiceError);
     });
   });
 });

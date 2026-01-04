@@ -1,27 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useForm, useFieldArray, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { individualSchema, IndividualFormData } from '../../schemas/individualSchema';
-import { Individual, Family } from '../../types';
+import { createIndividualSchema, IndividualFormData } from '../../schemas/individualSchema';
+import { Individual } from '../../types';
 import { Button } from '../ui/Button';
-import { Plus, Trash2, HelpCircle, ArrowLeft, ArrowRight, Check } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { Tooltip } from '../ui/Tooltip';
 import '../../styles/animations.css';
 
-// Form step components (to be imported)
+// Form step components
 import { PersonalInfoStep } from './individual/PersonalInfoStep';
 import { ContactInfoStep } from './individual/ContactInfoStep';
 import { EmploymentStep } from './individual/EmploymentStep';
 import { AssistanceStep } from './individual/AssistanceStep';
 import { FamilyMembersStep } from './individual/FamilyMembersStep';
-import { NeedsStep } from './individual/NeedsStep';
 import { ReviewSubmitStep } from './individual/ReviewSubmitStep';
 
 interface IndividualFormProps {
   onSubmit: (data: IndividualFormData) => Promise<void>;
   isLoading: boolean;
-  families: Family[];
   initialData?: Individual;
 }
 
@@ -32,22 +29,20 @@ type FormStepId =
   | 'employment'
   | 'assistance'
   | 'family'
-  | 'needs'
   | 'review';
 
 interface FormStep {
   id: FormStepId;
   label: string;
   description: string;
-  component: React.ComponentType<{ 
-    families?: Family[]; 
-    handleAddMember?: (data: any) => void; 
-    removeMember?: (index: number) => void; 
+  component: React.ComponentType<{
+    handleAddMember?: (data: any) => void;
+    removeMember?: (index: number) => void;
     removeChild?: (index: number) => void;
   }>;
 }
 
-export function IndividualForm({ onSubmit, isLoading, families, initialData }: IndividualFormProps) {
+export function IndividualForm({ onSubmit, isLoading, initialData }: IndividualFormProps) {
   const { t, language } = useLanguage();
   const isRTL = language === 'ar';
   const [activeStep, setActiveStep] = useState<FormStepId>('personal');
@@ -86,25 +81,22 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
       component: FamilyMembersStep
     },
     {
-      id: 'needs',
-      label: t('specificNeeds'),
-      description: t('detailsOfRequirements'),
-      component: NeedsStep
-    },
-    {
       id: 'review',
       label: t('reviewAndSubmit'),
       description: t('finalCheckSubmit'),
       component: ReviewSubmitStep
     }
   ];
-  
+
   // Find active step index
   const activeStepIndex = formSteps.findIndex(step => step.id === activeStep);
-  
+
+  // Create translated schema
+  const translatedSchema = useMemo(() => createIndividualSchema(t as (key: string) => string), [t]);
+
   // Create form methods with improved default values
   const formMethods = useForm<IndividualFormData>({
-    resolver: zodResolver(individualSchema),
+    resolver: zodResolver(translatedSchema),
     defaultValues: initialData || {
       first_name: '',
       last_name: '',
@@ -120,7 +112,6 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
       job: '',
       employment_status: 'no_salary',
       salary: null,
-      needs: [],
       additional_members: [],
       children: [],
       hashtags: [],
@@ -166,42 +157,65 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
   });
 
   const { handleSubmit, reset, control, formState } = formMethods;
-  
+
   // Set up field arrays for dynamic fields
-  const { 
-    fields: memberFields, 
-    append: appendMember, 
-    remove: removeMember 
+  const {
+    append: appendMember,
+    remove: removeMember
   } = useFieldArray({
     control,
     name: 'additional_members'
   });
 
-  const { 
-    fields: childFields, 
-    append: appendChild, 
-    remove: removeChild 
+  const {
+    append: appendChild,
+    remove: removeChild
   } = useFieldArray({
     control,
     name: 'children'
   });
 
-  const { 
-    fields: needFields, 
-    append: appendNeed, 
-    remove: removeNeed 
-  } = useFieldArray({
-    control,
-    name: 'needs'
-  });
-
-  // Calculate form completion percentage
+  // Calculate form completion percentage based on valid required fields
   React.useEffect(() => {
-    const totalFields = Object.keys(formState.dirtyFields).length;
-    const requiredFields = 8; // Minimum required fields
-    const progress = Math.min(100, Math.round((totalFields / requiredFields) * 100));
-    setFormProgress(progress);
-  }, [formState.dirtyFields]);
+    const calculateProgress = async () => {
+      // Required fields for meaningful progress tracking
+      const requiredFieldsByStep: Record<FormStepId, (keyof IndividualFormData)[]> = {
+        personal: ['first_name', 'last_name', 'id_number', 'date_of_birth', 'gender', 'marital_status'],
+        contact: ['district'],
+        employment: ['employment_status'],
+        assistance: [],
+        family: [],
+        review: []
+      };
+
+      let validFields = 0;
+      let totalRequired = 0;
+
+      for (const [_step, fields] of Object.entries(requiredFieldsByStep)) {
+        for (const field of fields) {
+          totalRequired++;
+          const value = formMethods.getValues(field);
+          const hasError = formState.errors[field];
+
+          // Field is valid if it has a value and no error
+          if (value && !hasError) {
+            validFields++;
+          }
+        }
+      }
+
+      // Also factor in step completion
+      const completedSteps = activeStepIndex;
+      const stepBonus = (completedSteps / formSteps.length) * 20; // Up to 20% bonus for step progress
+
+      const fieldProgress = totalRequired > 0 ? (validFields / totalRequired) * 80 : 0;
+      const progress = Math.min(100, Math.round(fieldProgress + stepBonus));
+
+      setFormProgress(progress);
+    };
+
+    calculateProgress();
+  }, [formState.errors, formState.dirtyFields, activeStepIndex, formMethods, formSteps.length]);
 
   // Handle member addition logic
   const handleAddMember = (memberData: any) => {
@@ -231,12 +245,27 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
     }
   };
 
+  // Define fields for each step to validate
+  const stepFields: Record<FormStepId, (keyof IndividualFormData)[]> = {
+    personal: ['first_name', 'last_name', 'id_number', 'date_of_birth', 'gender', 'marital_status', 'hashtags', 'description'],
+    contact: ['phone', 'address', 'district'],
+    employment: ['job', 'employment_status', 'salary'],
+    assistance: ['medical_help', 'food_assistance', 'marriage_assistance', 'debt_assistance', 'education_assistance', 'shelter_assistance'],
+    family: ['family_id', 'new_family_name', 'children', 'additional_members'],
+    review: []
+  };
+
   // Navigate between steps
-  const goToNextStep = () => {
-    const currentIndex = formSteps.findIndex(step => step.id === activeStep);
-    if (currentIndex < formSteps.length - 1) {
-      setActiveStep(formSteps[currentIndex + 1].id);
-      window.scrollTo(0, 0);
+  const goToNextStep = async () => {
+    const fieldsToValidate = stepFields[activeStep];
+    const isStepValid = await formMethods.trigger(fieldsToValidate);
+
+    if (isStepValid) {
+      const currentIndex = formSteps.findIndex(step => step.id === activeStep);
+      if (currentIndex < formSteps.length - 1) {
+        setActiveStep(formSteps[currentIndex + 1].id);
+        window.scrollTo(0, 0);
+      }
     }
   };
 
@@ -258,7 +287,7 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
     console.log('Form data at submit:', data); // DEBUG LOG
     try {
       window.scrollTo(0, 0);
-      
+
       // Filter out duplicate children by first and last name
       const uniqueChildren = (data.children || []).filter((child, index, self) =>
         index === self.findIndex(c => c.first_name === child.first_name && c.last_name === child.last_name)
@@ -319,7 +348,6 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
           phone_number: member.phone_number,
           relation: member.relation
         })) || [],
-        needs: data.needs || [],
         hashtags: data.hashtags || [],
         medical_help: hasNonEmptyValues(data.medical_help, 'medical_help') ? data.medical_help : undefined,
         food_assistance: hasNonEmptyValues(data.food_assistance, 'food_assistance') ? data.food_assistance : undefined,
@@ -328,10 +356,10 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
         education_assistance: hasNonEmptyValues(data.education_assistance, 'education_assistance') ? data.education_assistance : undefined,
         shelter_assistance: hasNonEmptyValues(data.shelter_assistance, 'shelter_assistance') ? data.shelter_assistance : undefined
       };
-      
+
       console.log('Formatted data being sent to backend:', formattedData);
       console.log('Additional members:', formattedData.additional_members);
-      
+
       await onSubmit(formattedData);
       reset();
       setActiveStep('personal');
@@ -342,6 +370,36 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
 
   // Get current step component
   const ActiveStepComponent = formSteps[activeStepIndex].component;
+
+  // Handle form submission errors
+  const onInvalid = (errors: any) => {
+    // Find the first field with an error
+    const firstErrorField = Object.keys(errors)[0];
+
+    // Find which step this field belongs to
+    let errorStep: FormStepId | undefined;
+    for (const [step, fields] of Object.entries(stepFields)) {
+      if (fields.includes(firstErrorField as keyof IndividualFormData)) {
+        errorStep = step as FormStepId;
+        break;
+      }
+    }
+
+    if (errorStep) {
+      setActiveStep(errorStep);
+      window.scrollTo(0, 0);
+    }
+  };
+
+  const handleSkipToReview = async () => {
+    const isValid = await formMethods.trigger();
+    if (isValid) {
+      goToStep('review');
+    } else {
+      // triggers validation and highlights errors, then we navigate to first error
+      onInvalid(formMethods.formState.errors);
+    }
+  };
 
   return (
     <FormProvider {...formMethods}>
@@ -357,8 +415,8 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
             </span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2.5">
-            <div 
-              className="bg-blue-600 h-2.5 rounded-full" 
+            <div
+              className="bg-blue-600 h-2.5 rounded-full"
               style={{ width: `${formProgress}%` }}
             ></div>
           </div>
@@ -369,7 +427,17 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
           {formSteps.map((step, index) => (
             <button
               key={step.id}
-              onClick={() => goToStep(step.id)}
+              onClick={async () => {
+                // Validate current step before allowing forward navigation via top bar
+                // Only if trying to go forward
+                if (index > activeStepIndex) {
+                  const fieldsToValidate = stepFields[activeStep];
+                  const isStepValid = await formMethods.trigger(fieldsToValidate);
+                  if (isStepValid) goToStep(step.id);
+                } else {
+                  goToStep(step.id);
+                }
+              }}
               disabled={index > activeStepIndex + 1}
               className={`
                 py-2 px-4 rounded-full text-sm font-medium flex items-center
@@ -404,8 +472,7 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
         {/* Form step content */}
         <form id="individualForm" className="space-y-6">
           <div className="bg-white p-6 rounded-lg shadow">
-            <ActiveStepComponent 
-              families={families}
+            <ActiveStepComponent
               handleAddMember={handleAddMember}
               removeMember={removeMember}
               removeChild={removeChild}
@@ -431,7 +498,7 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => goToStep('review')}
+                onClick={handleSkipToReview}
                 className="mr-auto"
               >
                 {t('skipToReview')}
@@ -449,10 +516,10 @@ export function IndividualForm({ onSubmit, isLoading, families, initialData }: I
               </Button>
             ) : (
               <Button
-                type="button" 
+                type="button"
                 variant="primary"
                 isLoading={isLoading}
-                onClick={handleSubmit(handleFormSubmit)}
+                onClick={handleSubmit(handleFormSubmit, onInvalid)}
               >
                 {t('saveIndividual')}
               </Button>

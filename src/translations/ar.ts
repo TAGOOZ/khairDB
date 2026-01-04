@@ -30,17 +30,17 @@ export const translations = {
   noMatchingFamilies: 'لم يتم العثور على عائلات متطابقة',
   selectDistrict: 'اختر المنطقة',
   filters: 'المرشحات',
-  
+
   // Aid types
   food: 'طعام',
   clothing: 'ملابس',
   financial: 'مالية',
   medical: 'طبية',
-  
+
   // Toast notifications - Distribution
   distributionUpdatedSuccessfully: 'تم تحديث التوزيع بنجاح',
   failedToUpdateDistribution: 'فشل في تحديث التوزيع',
-  
+
   // Toast notifications - Individual
   individualRequestSubmitted: 'تم إرسال طلب الفرد للموافقة',
   individualCreatedSuccessfully: 'تم إنشاء الفرد بنجاح',
@@ -58,7 +58,7 @@ export const translations = {
   failedToLoadIndividual: 'فشل في تحميل تفاصيل الفرد.',
   pleaseSelectIndividuals: 'يرجى اختيار فرد واحد على الأقل لإنشاء توزيع.',
   couldNotLoadIndividualData: 'لا يمكن تحميل بيانات الفرد للتحرير.',
-  
+
   // Toast notifications - User
   failedToFetchUsers: 'فشل في جلب المستخدمين.',
   userDeletedSuccessfully: 'تم حذف المستخدم بنجاح!',
@@ -66,7 +66,7 @@ export const translations = {
   userCreatedSuccessfully: 'تم إنشاء المستخدم بنجاح!',
   userUpdatedSuccessfully: 'تم تحديث المستخدم بنجاح!',
   failedToSaveUser: 'فشل في حفظ المستخدم.',
-  
+
   // Toast notifications - Family  
   atLeastOneParentRequired: 'مطلوب والد واحد على الأقل',
   familyUpdatedSuccessfully: 'تم تحديث العائلة بنجاح',
@@ -78,11 +78,11 @@ export const translations = {
   confirmDeleteFamily: 'هل أنت متأكد أنك تريد حذف هذه العائلة؟ سيتم إلغاء ربط جميع الأعضاء من هذه العائلة.',
   familyDeletedSuccessfully: 'تم حذف العائلة بنجاح',
   failedToDeleteFamily: 'فشل في حذف العائلة. يرجى المحاولة مرة أخرى.',
-  
+
   // Continued translations
-  
+
   // Aid types
-  failedToLoadFamilyMembers: 'فشل في تحميل أفراد العائلة',
+
   actions: 'الإجراءات',
   close: 'إغلاق',
   remove: 'حذف',
@@ -124,11 +124,12 @@ export const translations = {
   name: 'الاسم',
   created: 'تاريخ الإنشاء',
   contactInfo: 'معلومات الاتصال',
+  members: 'الأعضاء',
 
   // Form Labels
   firstName: 'الاسم الأول',
   lastName: 'اسم العائلة',
-  name: 'الاسم',
+
   idNumber: 'رقم الهوية',
   dateOfBirth: 'تاريخ الميلاد',
   gender: 'الجنس',
@@ -152,6 +153,10 @@ export const translations = {
   whitelist: 'القائمة البيضاء',
   blacklist: 'القائمة السوداء',
   waitinglist: 'قائمة الانتظار',
+  selectGender: 'اختر الجنس',
+  selectMaritalStatus: 'اختر الحالة الاجتماعية',
+  hashtags: 'الوسوم',
+  hashtagsHelp: 'اختر الوسوم ذات الصلة لهذا الشخص',
 
   // Common
   yearsOld: 'سنة',
@@ -169,6 +174,8 @@ export const translations = {
   inactive: 'غير نشط',
   failed: 'فشل',
   cancelled: 'ملغي',
+  parents: 'الوالدين',
+  notes: 'الملاحظات',
   children: 'الأطفال',
   boy: 'ولد',
   girl: 'بنت',
@@ -283,7 +290,7 @@ export const translations = {
   unhealthy: 'غير صحي',
 
   // Messages
-  confirmDelete: 'هل أنت متأكد أنك تريد الحذف؟',
+
   successAdd: 'تمت الإضافة بنجاح',
   successEdit: 'تم التعديل بنجاح',
   successDelete: 'تم الحذف بنجاح',
@@ -306,6 +313,26 @@ export const translations = {
   currentLanguage: 'العربية',
 
   // Distribution
+  distributionDetails: 'تفاصيل التوزيع',
+  distributionDate: 'تاريخ التوزيع',
+  aidType: 'نوع المساعدة',
+  selectAidType: 'اختر نوع المساعدة',
+  totalValue: 'إجمالي القيمة',
+  describeDistribution: 'وصف التوزيع...',
+  distributionSummary: 'ملخص التوزيع',
+  totalRecipients: 'إجمالي المستفدين',
+  totalQuantity: 'إجمالي الكمية',
+  valuePerUnit: 'القيمة لكل وحدة',
+  recipients: 'المستفيدون',
+  recipientsDeletedSuccessfully: 'تم حذف المستفيدين بنجاح',
+  distributionCreatedSuccessfully: 'تم إنشاء التوزيع بنجاح',
+  failedToCreateDistribution: 'فشل في إنشاء التوزيع',
+  addedIndividualsFromDistrict: 'تم إضافة {count} أفراد من المنطقة {district}',
+  noNewIndividualsFound: 'لم يتم العثور على أفراد جدد في المنطقة {district}',
+  individualsWithAssistance: 'أفراد لديهم مساعدة',
+  noNewIndividualsFoundWithAssistance: 'لم يتم العثور على أفراد جدد بالمساعدة المطلوبة',
+  added: 'تمت إضافة',
+
   distributionHistory: 'سجل التوزيع',
   totalDistributions: 'إجمالي التوزيعات',
   totalValueReceived: 'إجمالي القيمة المستلمة',
@@ -352,14 +379,7 @@ export const translations = {
 
   // Family Page
   familyName: 'اسم الأسرة',
-  contactInfo: 'معلومات الاتصال',
-  members: 'الأعضاء',
-  searchFamilies: 'البحث في العائلات',
-  searchByFamilyName: 'البحث باسم الأسرة...',
-  created: 'تاريخ الإنشاء',
-  contactInformation: 'معلومات الاتصال',
-  parents: 'الآباء',
-  children: 'الأطفال',
+
   noContactInformation: 'لا توجد معلومات اتصال متاحة',
   noFamilyMembers: 'لم يتم إضافة أعضاء الأسرة بعد',
 
@@ -384,6 +404,9 @@ export const translations = {
   father: 'أب',
   motherInLaw: 'حماة',
   fatherInLaw: 'حمو',
+  son: 'ابن',
+  daughter: 'ابنة',
+  other: 'أخرى',
 
   // Additional fields
   none: 'لا يوجد',
@@ -392,56 +415,110 @@ export const translations = {
   familyMembersTooltip: 'إضافة أفراد العائلة إلى هذه الأسرة',
   adults: 'البالغون',
   noFamilyMembersYet: 'لم يتم إضافة أعضاء الأسرة بعد',
-  
+
   // Additional Members
   additionalFamilyMembers: 'أفراد العائلة الإضافيون',
   additionalMember: 'عضو إضافي',
+  additionalMembers: 'أعضاء إضافيون',
   unknownName: 'اسم غير معروف',
   child: 'طفل',
-  
-  // Distribution Form (additional translations)
-  distributionDetails: 'تفاصيل التوزيع',
-  distributionDate: 'تاريخ التوزيع',
-  aidType: 'نوع المساعدة',
-  selectAidType: 'اختر نوع المساعدة',
-  totalValue: 'القيمة الإجمالية',
-  describeDistribution: 'صف توزيع المساعدة...',
-  distributionSummary: 'ملخص التوزيع',
-  totalRecipients: 'إجمالي المستفيدين',
-  totalQuantity: 'الكمية الإجمالية',
-  valuePerUnit: 'القيمة لكل وحدة',
-  filters: 'المرشحات',
-  searchIndividuals: 'البحث في الأفراد...',
-  selectDistrict: 'اختر المنطقة',
-  recipients: 'المستفيدون',
-  recipientsDeletedSuccessfully: 'تم حذف المستفيدين بنجاح',
-  noMatchingIndividuals: 'لم يتم العثور على أفراد مطابقين',
-  noMatchingFamilies: 'لم يتم العثور على عائلات مطابقة',
-  parent: 'والد',
+
+  // Activity Logs
+  activityLogs: 'سجل النشاط',
+  monitorUserActivity: 'مراقبة نشاط المستخدمين في النظام',
+  refresh: 'تحديث',
+  allUsers: 'كل المستخدمين',
+  allActions: 'كل الإجراءات',
+  allTypes: 'كل الأنواع',
+  from: 'من',
+  to: 'إلى',
+  clearAllFilters: 'مسح كل المرشحات',
+  time: 'الوقت',
+  action: 'الإجراء',
+  entity: 'الكيان',
+  details: 'التفاصيل',
+  viewDetails: 'عرض التفاصيل',
+  noActivityLogsFound: 'لم يتم العثور على سجلات نشاط',
+  showingEntries: 'عرض {from} إلى {to} من {total} سجل',
+  page: 'صفحة',
+  of: 'من',
+
+  individual: 'فرد',
+  request: 'طلب',
+  distribution: 'توزيع',
+
+  // Distribution
+  saveAsPlanned: 'حفظ كمسودة',
+  distributeNow: 'توزيع الآن',
+  distribute: 'توزيع',
+  calculationMethod: 'طريقة الحساب',
+  addWalkin: 'إضافة مستفيد خارجي',
+  addWalkinRecipient: 'إضافة مستفيد خارجي',
+  enterName: 'أدخل الاسم',
+  quantity: 'الكمية',
+  selectFamilyMembers: 'اختيار أفراد الأسرة',
+  howToAddFamily: 'كيف تود إضافة هذه الأسرة؟',
+  headOfHousehold: 'رب الأسرة (فقط)',
+  headOnlyDesc: 'إضافة الوالدين/الأوصياء فقط',
+  allMembers: 'جميع أفراد الأسرة',
+  allMembersDesc: 'إضافة الجميع (الوالدين والأطفال)',
+
+  // Form Progress
+  formProgress: 'تقدم النموذج',
+  addNewIndividual: 'إضافة فرد جديد',
+  addNewIndividualDescription: 'أدخل البيانات لإضافة فرد جديد إلى النظام',
+
+  // Form Step Descriptions
+  basicPersonalDetails: 'البيانات الشخصية الأساسية',
+  addressAndContact: 'العنوان ومعلومات الاتصال',
+  jobAndIncome: 'تفاصيل العمل والدخل',
+  supportTypes: 'أنواع الدعم المطلوب',
+  dependentsAndRelatives: 'المعالون والأقارب',
+  detailsOfRequirements: 'تفاصيل المتطلبات',
+
+  // Validation Errors
+  validationRequired: 'هذا الحقل مطلوب',
+  validationFirstNameRequired: 'الاسم الأول مطلوب',
+  validationLastNameRequired: 'اسم العائلة مطلوب',
+  validationIdNumber14Digits: 'رقم الهوية يجب أن يكون 14 رقم بالضبط',
+  validationIdNumberOnlyNumbers: 'رقم الهوية يجب أن يحتوي على أرقام فقط',
+  validationDateOfBirthRequired: 'تاريخ الميلاد مطلوب',
+  validationSelectGender: 'يرجى اختيار الجنس',
+  validationSelectMaritalStatus: 'يرجى اختيار الحالة الاجتماعية',
+  validationDistrictRequired: 'المنطقة مطلوبة',
+  validationSelectEmploymentStatus: 'يرجى اختيار حالة العمل',
+  validationSelectListStatus: 'يرجى اختيار حالة القائمة',
+  validationChildUnder18: 'يجب أن يكون عمر الطفل أقل من 18 سنة',
+  validationNameRequired: 'الاسم مطلوب',
+  validationRelationRequired: 'العلاقة مطلوبة',
+  validationInvalidPhoneFormat: 'صيغة رقم الهاتف غير صحيحة',
+  validationFamilyRequiredForChildren: 'يجب اختيار أو إنشاء عائلة عند إضافة أطفال',
+
+  // Table Headers
+  role: 'الدور',
+  primaryContact: 'جهة الاتصال الرئيسية',
+  projectsList: 'قائمة المشاريع',
+  noProjectsFound: 'لم يتم العثور على مشاريع',
+  addNewProject: 'إضافة مشروع جديد',
+  newProjectName: 'اسم المشروع الجديد',
+  recommendedProjects: 'المشاريع الموصى بها:',
+  noIndividualsInProject: 'لا يوجد أفراد في هذا المشروع',
+  selectProjectToView: 'اختر مشروع لعرض الأفراد',
+  userManagementTitle: 'إدارة المستخدمين',
+  addNewUser: 'إضافة مستخدم جديد',
+  searchByNameOrEmail: 'البحث بالاسم أو البريد الإلكتروني...',
+  filterByRole: 'فلتر حسب الدور',
+  allRoles: 'كل الأدوار',
+  administrators: 'المديرون',
+  regularUsers: 'المستخدمون العاديون',
+  totalUsers: 'إجمالي المستخدمين',
+  recentSevenDays: 'الأخيرة (7 أيام)',
+  metrics: 'القياسات',
+  recentActivity: 'النشاط الأخير',
+  userDistribution: 'توزيع المستخدمين',
+  adminPercentage: 'نسبة المديرين',
+  totalActivityLogs: 'إجمالي سجلات النشاط',
+  newUsersSevenDays: 'المستخدمون الجدد (7 أيام)',
+  parent: 'الوالد',
   family: 'العائلة',
-  age: 'العمر',
-  unknownAge: 'عمر غير معروف',
-  totalMembers: 'إجمالي الأعضاء',
-  additional: 'إضافي',
-  addedFamilyMembers: 'تم إضافة {count} من أفراد العائلة ({individuals} أفراد + {additional} إضافيين)',
-  allFamilyMembersSelected: 'تم اختيار جميع أفراد العائلة بالفعل',
-  failedToLoadFamilyMembers: 'فشل في تحميل أفراد العائلة',
-  addedIndividualsFromDistrict: 'تم إضافة {count} أفراد من المنطقة {district}',
-  noNewIndividualsFound: 'لم يتم العثور على أفراد جدد في المنطقة {district}',
-  distributionCreatedSuccessfully: 'تم إنشاء التوزيع بنجاح',
-  failedToCreateDistribution: 'فشل في إنشاء التوزيع',
-  back: 'رجوع',
-  
-  // Aid Types
-  food: 'طعام',
-  clothing: 'ملابس',
-  financial: 'مالي',
-  medical: 'طبي',
-  education: 'تعليم',
-  shelter: 'مأوى',
-  other: 'أخرى',
-  selectAssistanceType: 'اختر نوع المساعدة',
-  individualsWithAssistance: 'أفراد بمساعدة',
-  noNewIndividualsFoundWithAssistance: 'لم يتم العثور على أفراد جدد بمساعدة',
-  added: 'تم إضافة',
 };

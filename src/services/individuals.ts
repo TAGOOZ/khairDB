@@ -3,6 +3,8 @@ import { IndividualFormData } from '../schemas/individualSchema';
 import { addHashtagToAll } from './hashtags';
 import { createIndividualFolderAPI } from '../api/googleDrive';
 import { Child } from '../types';
+import { logActivity } from './activityLogs';
+import { ServiceError } from '../utils/errors';
 
 interface AssistanceDetail {
   individual_id: string;
@@ -221,7 +223,7 @@ class AssistanceDetailsHandler {
 
   /**
    * Updates assistance details for an individual
-   * @throws IndividualError if the update fails
+   * @throws ServiceError if the update fails
    */
   static async updateAssistanceDetails(
     supabase: any,
@@ -271,29 +273,11 @@ class AssistanceDetailsHandler {
       }
     } catch (error) {
       console.error('Error updating assistance details:', error);
-      throw new IndividualError(
+      throw new ServiceError(
         'assistance-update-failed',
         'Failed to update assistance details',
         error
       );
-    }
-  }
-}
-
-export class IndividualError extends Error {
-  code: string;
-  originalError?: any;
-
-  constructor(code: string, message: string, originalError?: any) {
-    super(message);
-    this.name = 'IndividualError';
-    this.code = code;
-    this.originalError = originalError;
-
-    // V8 engines (Node.js) provide captureStackTrace
-    const ErrorWithCapture = Error as any;
-    if (typeof ErrorWithCapture.captureStackTrace === 'function') {
-      ErrorWithCapture.captureStackTrace(this, this.constructor);
     }
   }
 }
@@ -310,12 +294,12 @@ export async function createIndividual(data: IndividualFormData) {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-      throw new IndividualError('auth-error', 'Authentication required', null);
+      throw new ServiceError('auth-error', 'Authentication required', null);
     }
 
     console.log('Authenticated user:', user.id);
 
-    // Check if ID number exists
+    // Check if ID number exists (Manual check for better UX error)
     const { data: existingIndividual, error: checkError } = await supabase
       .from('individuals')
       .select('id')
@@ -324,170 +308,75 @@ export async function createIndividual(data: IndividualFormData) {
 
     if (checkError) {
       console.error('Error checking existing individual:', checkError);
-      throw new IndividualError('check-failed', 'Failed to check ID number', checkError);
+      throw new ServiceError('check-failed', 'Failed to check ID number', checkError);
     }
 
     if (existingIndividual) {
-      throw new IndividualError('duplicate-id', 'An individual with this ID number already exists');
+      throw new ServiceError('duplicate-id', 'An individual with this ID number already exists');
     }
 
-    // Handle family creation or selection
-    let familyId = data.family_id;
-
-    if (!familyId && data.new_family_name) {
-      console.log('Creating new family:', data.new_family_name);
-
-      const { data: newFamily, error: familyError } = await supabase
-        .from('families')
-        .insert([{
-          name: data.new_family_name,
-          district: data.district,
-          phone: data.phone || '',
-          address: data.address || '',
-          status: 'green'
-        }])
-        .select();
-
-      if (familyError) {
-        console.error('Family creation error details:', familyError);
-        throw new IndividualError('family-creation-failed', 'Failed to create family: ' + familyError.message, familyError);
-      }
-
-      if (!newFamily || newFamily.length === 0) {
-        throw new IndividualError('family-creation-failed', 'Family was created but no data was returned', null);
-      }
-
-      familyId = newFamily[0].id;
-      console.log('Successfully created new family with ID:', familyId);
-    }
-
-    // Create individual record
-    const individualData = {
-      first_name: data.first_name,
-      last_name: data.last_name,
-      id_number: data.id_number,
-      date_of_birth: data.date_of_birth,
-      gender: data.gender,
-      marital_status: data.marital_status,
-      phone: data.phone || null,
-      address: data.address || null,
-      district: data.district,
-      description: data.description || null,
-      job: data.job || null,
-      employment_status: data.employment_status,
-      salary: data.salary || null,
-      list_status: data.list_status,
-      family_id: familyId,
-      additional_members: data.additional_members || [],
-      created_by: user.id
-    };
-
-    const { data: newIndividual, error } = await supabase
-      .from('individuals')
-      .insert([individualData])
-      .select()
-      .single();
-
-    if (error) {
-      // If individual creation fails and we created a new family, clean up
-      if (familyId && !data.family_id) {
-        await supabase.from('families').delete().eq('id', familyId);
-      }
-      throw new IndividualError('creation-failed', 'Failed to create individual', error);
-    }
-
-    if (!newIndividual) {
-      throw new IndividualError('creation-failed', 'Individual was created but no data was returned', null);
-    }
-
-    // Add hashtags to the individual if specified
-    if (data.hashtags && data.hashtags.length > 0) {
-      for (const hashtag of data.hashtags) {
-        await addHashtagToAll(hashtag, [newIndividual.id]);
-      }
-    }
-
-    // Add individual to family_members if family exists
-    if (familyId) {
-      const { error: memberError } = await supabase
-        .from('family_members')
-        .insert([{
-          family_id: familyId,
-          individual_id: newIndividual.id,
-          role: 'parent'
-        }]);
-
-      if (memberError) {
-        console.error('Error adding family member:', memberError);
-        // Clean up if adding parent to family_members fails
-        await supabase.from('individuals').delete().eq('id', newIndividual.id);
-        if (!data.family_id) {
-          await supabase.from('families').delete().eq('id', familyId);
-        }
-        throw new IndividualError('family-member-creation-failed', 'Failed to add individual as parent', memberError);
-      }
-    }
-
-    // Insert children if any
-    if (data.children && data.children.length > 0 && familyId) {
-      try {
-        const childPromises = data.children.map(async (child: { first_name: string; last_name: string; date_of_birth: string; gender: string; school_stage?: string; description?: string }) => {
-          const { data: newChild, error: childError } = await supabase
-            .from('children')
-            .insert([{
-              first_name: child.first_name,
-              last_name: child.last_name,
-              date_of_birth: child.date_of_birth,
-              gender: child.gender,
-              school_stage: child.school_stage,
-              description: child.description || null,
-              parent_id: newIndividual.id,
-              family_id: familyId
-            }])
-            .select()
-            .single();
-
-          if (childError) {
-            throw new IndividualError('child-creation-failed', 'Failed to create child', childError);
-          }
-
-          return newChild;
-        });
-
-        await Promise.all(childPromises);
-      } catch (error) {
-        console.error('Failed to create children:', error);
-        // Clean up on child creation failure
-        await supabase.from('individuals').delete().eq('id', newIndividual.id);
-        if (!data.family_id) {
-          await supabase.from('families').delete().eq('id', familyId);
-        }
-        throw error;
-      }
-    }
-
-    // Handle assistance details creation
+    // Prepare data for RPC
     const assistanceDetails = AssistanceDetailsHandler.normalizeAssistanceDetails(data);
-    if (assistanceDetails.length > 0) {
-      // Set the individual_id for each assistance detail
-      assistanceDetails.forEach(detail => detail.individual_id = newIndividual.id);
 
-      const { error: assistanceError } = await supabase
-        .from('assistance_details')
-        .insert(assistanceDetails);
+    // Prepare children with strict typing if needed, but JSONB handles it
+    const childrenData = data.children || [];
 
-      if (assistanceError) {
-        console.error('Error creating assistance details:', assistanceError);
-        throw new IndividualError('assistance-creation-failed', 'Failed to create assistance details', assistanceError);
+    // Call RPC transaction
+    const { data: individualRecord, error: rpcError } = await supabase
+      .rpc('create_individual_transaction', {
+        p_individual_data: {
+          first_name: data.first_name,
+          last_name: data.last_name,
+          id_number: data.id_number,
+          date_of_birth: data.date_of_birth,
+          gender: data.gender,
+          marital_status: data.marital_status,
+          phone: data.phone || null,
+          address: data.address || null,
+          district: data.district,
+          description: data.description || null,
+          job: data.job || null,
+          employment_status: data.employment_status,
+          salary: data.salary || null,
+          list_status: data.list_status,
+          additional_members: data.additional_members || []
+        },
+        p_family_id: data.family_id || null,
+        p_new_family_name: data.new_family_name || null,
+        p_district: data.district, // Used for new family
+        p_phone: data.phone || '', // Used for new family
+        p_address: data.address || '', // Used for new family
+        p_children: childrenData,
+        p_assistance_details: assistanceDetails.map(d => ({
+          assistance_type: d.assistance_type,
+          details: d.details
+        })),
+        p_created_by: user.id
+      });
+
+    if (rpcError) {
+      console.error('RPC Error creating individual:', rpcError);
+      throw new ServiceError('creation-failed', 'Failed to create individual transaction', rpcError);
+    }
+
+    // Add hashtags to the individual if specified (Post-transaction)
+    if (data.hashtags && data.hashtags.length > 0) {
+      try {
+        for (const hashtag of data.hashtags) {
+          await addHashtagToAll(hashtag, [individualRecord.id]);
+        }
+      } catch (hashtagError) {
+        console.error('Error adding hashtags:', hashtagError);
+        // Non-critical, continue
       }
     }
 
-    // Create Google Drive folder
+    // Create Google Drive folder (External API)
     try {
       const { folderId, folderUrl } = await createIndividualFolderAPI(
-        newIndividual.id,
-        newIndividual.first_name,
-        newIndividual.last_name
+        individualRecord.id,
+        individualRecord.first_name,
+        individualRecord.last_name
       );
 
       // Update individual with Google Drive info
@@ -497,7 +386,7 @@ export async function createIndividual(data: IndividualFormData) {
           google_drive_folder_id: folderId,
           google_drive_folder_url: folderUrl
         })
-        .eq('id', newIndividual.id);
+        .eq('id', individualRecord.id);
 
       if (updateError) {
         console.error('Error updating individual with Google Drive info:', updateError);
@@ -508,9 +397,19 @@ export async function createIndividual(data: IndividualFormData) {
       // Don't throw here, as the individual was created successfully
     }
 
-    return newIndividual;
+    // Log the activity
+    await logActivity(
+      'create',
+      'individual',
+      individualRecord.id,
+      `${individualRecord.first_name} ${individualRecord.last_name}`,
+      { id_number: individualRecord.id_number, district: individualRecord.district }
+    );
+
+    return individualRecord;
   } catch (error) {
     console.error('Individual creation failed:', error);
+    if (error instanceof ServiceError) throw error;
     throw error;
   }
 }
@@ -540,7 +439,7 @@ export async function updateIndividual(id: string, data: IndividualFormData) {
       .eq('id', id);
 
     if (updateError) {
-      throw new IndividualError('update-failed', 'Failed to update individual', updateError);
+      throw new ServiceError('update-failed', 'Failed to update individual', updateError);
     }
 
     // Update family membership if needed
@@ -581,7 +480,7 @@ export async function updateIndividual(id: string, data: IndividualFormData) {
 
         if (memberError) {
           console.error('Family member insert error details:', memberError);
-          throw new IndividualError('family-member-update-failed', 'Failed to update family membership', memberError);
+          throw new ServiceError('family-member-update-failed', 'Failed to update family membership', memberError);
         }
       }
     }
@@ -596,7 +495,7 @@ export async function updateIndividual(id: string, data: IndividualFormData) {
         .eq('parent_id', id);
 
       if (existingChildrenError) {
-        throw new IndividualError('fetch-failed', 'Failed to fetch existing children', existingChildrenError);
+        throw new ServiceError('fetch-failed', 'Failed to fetch existing children', existingChildrenError);
       }
 
       const existingIds = (existingChildren || []).map((c: { id: string }) => c.id);
@@ -621,7 +520,7 @@ export async function updateIndividual(id: string, data: IndividualFormData) {
           .eq('parent_id', id); // Extra safety check
 
         if (deleteChildrenError) {
-          throw new IndividualError('deletion-failed', 'Failed to delete children', deleteChildrenError);
+          throw new ServiceError('deletion-failed', 'Failed to delete children', deleteChildrenError);
         }
       }
 
@@ -637,7 +536,7 @@ export async function updateIndividual(id: string, data: IndividualFormData) {
             .single();
 
           if (checkError || !childExists) {
-            throw new IndividualError('invalid-child', `Child ${child.id} does not belong to this parent`, checkError);
+            throw new ServiceError('invalid-child', `Child ${child.id} does not belong to this parent`, checkError);
           }
 
           // Update existing child
@@ -658,7 +557,7 @@ export async function updateIndividual(id: string, data: IndividualFormData) {
             .eq('parent_id', id); // Extra safety check
 
           if (updateChildError) {
-            throw new IndividualError('update-failed', 'Failed to update child', updateChildError);
+            throw new ServiceError('update-failed', 'Failed to update child', updateChildError);
           }
         } else {
           // Insert new child (no ID or empty ID means it's new)
@@ -677,7 +576,7 @@ export async function updateIndividual(id: string, data: IndividualFormData) {
             }]);
 
           if (insertChildError) {
-            throw new IndividualError('creation-failed', 'Failed to create child', insertChildError);
+            throw new ServiceError('creation-failed', 'Failed to create child', insertChildError);
           }
         }
       }
@@ -690,7 +589,7 @@ export async function updateIndividual(id: string, data: IndividualFormData) {
         .eq('parent_id', id);
 
       if (deleteAllChildrenError) {
-        throw new IndividualError('deletion-failed', 'Failed to delete all children', deleteAllChildrenError);
+        throw new ServiceError('deletion-failed', 'Failed to delete all children', deleteAllChildrenError);
       }
     }
 
@@ -706,6 +605,15 @@ export async function updateIndividual(id: string, data: IndividualFormData) {
       await AssistanceDetailsHandler.updateAssistanceDetails(supabase, id, data);
     }
 
+    // Log the activity
+    await logActivity(
+      'update',
+      'individual',
+      id,
+      `${data.first_name} ${data.last_name}`,
+      { updated_fields: Object.keys(data).filter(k => data[k as keyof typeof data] !== undefined) }
+    );
+
     return id;
   } catch (error: any) {
     console.error('Error updating individual - DETAILED ERROR:', {
@@ -715,10 +623,10 @@ export async function updateIndividual(id: string, data: IndividualFormData) {
       details: error.details,
       stack: error.stack
     });
-    if (error instanceof IndividualError) {
+    if (error instanceof ServiceError) {
       throw error;
     }
-    throw new IndividualError('unexpected', 'An unexpected error occurred while updating the individual', error);
+    throw new ServiceError('unexpected', 'An unexpected error occurred while updating the individual', error);
   }
 }
 
@@ -727,7 +635,7 @@ export async function deleteIndividual(id: string) {
     // Start a transaction
     const { error: beginError } = await supabase.rpc('begin_transaction');
     if (beginError) {
-      throw new IndividualError('transaction-failed', 'Failed to start transaction', beginError);
+      throw new ServiceError('transaction-failed', 'Failed to start transaction', beginError);
     }
 
     try {
@@ -739,7 +647,7 @@ export async function deleteIndividual(id: string) {
         .single();
 
       if (individualError) {
-        throw new IndividualError('fetch-failed', 'Failed to fetch individual', individualError);
+        throw new ServiceError('fetch-failed', 'Failed to fetch individual', individualError);
       }
 
       if (individual?.family_id) {
@@ -750,7 +658,7 @@ export async function deleteIndividual(id: string) {
           .eq('role', 'parent');
 
         if (parentsError) {
-          throw new IndividualError('fetch-failed', 'Failed to fetch family parents', parentsError);
+          throw new ServiceError('fetch-failed', 'Failed to fetch family parents', parentsError);
         }
 
         if (familyParents && familyParents.length <= 1) {
@@ -764,7 +672,7 @@ export async function deleteIndividual(id: string) {
             .eq('family_id', individual.family_id);
 
           if (membersDeleteError) {
-            throw new IndividualError('deletion-failed', 'Failed to delete family members', membersDeleteError);
+            throw new ServiceError('deletion-failed', 'Failed to delete family members', membersDeleteError);
           }
 
           // Delete the family
@@ -774,7 +682,7 @@ export async function deleteIndividual(id: string) {
             .eq('id', individual.family_id);
 
           if (familyDeleteError) {
-            throw new IndividualError('deletion-failed', 'Failed to delete family', familyDeleteError);
+            throw new ServiceError('deletion-failed', 'Failed to delete family', familyDeleteError);
           }
         }
       }
@@ -786,7 +694,7 @@ export async function deleteIndividual(id: string) {
         .eq('individual_id', id);
 
       if (assistanceError) {
-        throw new IndividualError('deletion-failed', 'Failed to delete assistance details', assistanceError);
+        throw new ServiceError('deletion-failed', 'Failed to delete assistance details', assistanceError);
       }
 
       const { error: hashtagsError } = await supabase
@@ -795,7 +703,7 @@ export async function deleteIndividual(id: string) {
         .eq('individual_id', id);
 
       if (hashtagsError) {
-        throw new IndividualError('deletion-failed', 'Failed to delete hashtags', hashtagsError);
+        throw new ServiceError('deletion-failed', 'Failed to delete hashtags', hashtagsError);
       }
 
       const { error: membersError } = await supabase
@@ -804,7 +712,7 @@ export async function deleteIndividual(id: string) {
         .eq('individual_id', id);
 
       if (membersError) {
-        throw new IndividualError('deletion-failed', 'Failed to delete family membership', membersError);
+        throw new ServiceError('deletion-failed', 'Failed to delete family membership', membersError);
       }
 
       const { error: childrenError } = await supabase
@@ -813,7 +721,7 @@ export async function deleteIndividual(id: string) {
         .eq('parent_id', id);
 
       if (childrenError) {
-        throw new IndividualError('deletion-failed', 'Failed to delete children', childrenError);
+        throw new ServiceError('deletion-failed', 'Failed to delete children', childrenError);
       }
 
       // Finally delete the individual
@@ -823,14 +731,23 @@ export async function deleteIndividual(id: string) {
         .eq('id', id);
 
       if (error) {
-        throw new IndividualError('deletion-failed', 'Failed to delete individual', error);
+        throw new ServiceError('deletion-failed', 'Failed to delete individual', error);
       }
 
       // Commit the transaction
       const { error: commitError } = await supabase.rpc('commit_transaction');
       if (commitError) {
-        throw new IndividualError('transaction-failed', 'Failed to commit transaction', commitError);
+        throw new ServiceError('transaction-failed', 'Failed to commit transaction', commitError);
       }
+
+      // Log the activity
+      await logActivity(
+        'delete',
+        'individual',
+        id,
+        individual?.family_id ? `Individual (Family: ${individual.family_id})` : 'Individual',
+        { deleted_individual_id: id }
+      );
 
       return true;
     } catch (error) {
@@ -842,10 +759,10 @@ export async function deleteIndividual(id: string) {
       throw error;
     }
   } catch (error) {
-    if (error instanceof IndividualError) {
+    if (error instanceof ServiceError) {
       throw error;
     }
-    throw new IndividualError('unexpected', 'An unexpected error occurred while deleting the individual', error);
+    throw new ServiceError('unexpected', 'An unexpected error occurred while deleting the individual', error);
   }
 }
 
@@ -887,7 +804,7 @@ export async function getIndividual(id: string) {
 
     if (error) {
       console.error('Error in getIndividual initial query:', error);
-      throw new IndividualError('fetch-failed', 'Failed to fetch individual', error);
+      throw new ServiceError('fetch-failed', 'Failed to fetch individual', error);
     }
 
     if (!individual) {
@@ -1018,9 +935,9 @@ export async function getIndividual(id: string) {
     };
   } catch (error) {
     console.error('Error fetching individual:', error);
-    if (error instanceof IndividualError) {
+    if (error instanceof ServiceError) {
       throw error;
     }
-    throw new IndividualError('unexpected', 'An unexpected error occurred while fetching the individual', error);
+    throw new ServiceError('unexpected', 'An unexpected error occurred while fetching the individual', error);
   }
 }

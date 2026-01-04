@@ -6,7 +6,8 @@ import { Plus, Trash2, UserPlus } from 'lucide-react';
 import { Button } from '../../ui/Button';
 import { IndividualFormData } from '../../../schemas/individualSchema';
 import { ChildRemovalModal } from './ChildRemovalModal';
-import { deleteChild, ChildError } from '../../../services/children';
+import { deleteChild } from '../../../services/children';
+import { ServiceError } from '../../../utils/errors';
 import { toast } from '../../../pages/Individuals/Toast';
 import type { TranslationKey } from '../../../translations';
 
@@ -375,7 +376,7 @@ export function FamilyMembersStep({
         closeChildRemovalModal();
       } catch (error) {
         console.error('Failed to delete child:', error);
-        const errorMessage = error instanceof ChildError 
+        const errorMessage = error instanceof ServiceError 
           ? error.message 
           : t('error' as TranslationKey);
         

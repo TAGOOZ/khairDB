@@ -1,12 +1,29 @@
-import React, { useState, useCallback } from 'react';
-import { Individual } from '../../types';
+import React, { useCallback } from 'react';
+import { Individual, AssistanceType } from '../../types';
 import { formatDate } from '../../utils/formatters';
-import { NeedsBadge } from '../../components/NeedsBadge';
-import { Pencil, Trash2, Eye, Printer } from 'lucide-react';
+import { Pencil, Trash2, Eye, Printer, Stethoscope, UtensilsCrossed, Heart, Wallet, GraduationCap, Home } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { printIndividualsToCSV, downloadCSV } from '../../utils/print';
 import { useLanguage } from '../../contexts/LanguageContext';
 import type { TranslationKey } from '../../translations';
+
+const assistanceIcons: Record<AssistanceType, React.ComponentType<{ className?: string }>> = {
+  medical_help: Stethoscope,
+  food_assistance: UtensilsCrossed,
+  marriage_assistance: Heart,
+  debt_assistance: Wallet,
+  education_assistance: GraduationCap,
+  shelter_assistance: Home,
+};
+
+const assistanceColors: Record<AssistanceType, string> = {
+  medical_help: 'bg-red-100 text-red-800',
+  food_assistance: 'bg-green-100 text-green-800',
+  marriage_assistance: 'bg-pink-100 text-pink-800',
+  debt_assistance: 'bg-yellow-100 text-yellow-800',
+  education_assistance: 'bg-blue-100 text-blue-800',
+  shelter_assistance: 'bg-purple-100 text-purple-800',
+};
 
 interface IndividualsListProps {
   individuals: Individual[];
@@ -18,14 +35,14 @@ interface IndividualsListProps {
   setSelectedForDistribution: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
-export function IndividualsList({ 
-  individuals, 
-  onEdit, 
-  onDelete, 
-  onView, 
-  userRole, 
-  selectedForDistribution, 
-  setSelectedForDistribution 
+export function IndividualsList({
+  individuals,
+  onEdit,
+  onDelete,
+  onView,
+  userRole,
+  selectedForDistribution,
+  setSelectedForDistribution
 }: IndividualsListProps) {
   const { t, dir } = useLanguage();
 
@@ -69,8 +86,8 @@ export function IndividualsList({
             size="sm"
             onClick={handleSelectAll}
           >
-            {selectedForDistribution.length === individuals.length ? 
-              t('deselectAll' as TranslationKey) : 
+            {selectedForDistribution.length === individuals.length ?
+              t('deselectAll' as TranslationKey) :
               t('selectAll' as TranslationKey)
             }
           </Button>
@@ -131,8 +148,10 @@ export function IndividualsList({
                       <div className="text-sm font-medium text-gray-900">
                         {individual.first_name} {individual.last_name}
                         {individual.additional_members && individual.additional_members.length > 0 && (
-                          <span className="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
-                            +{individual.additional_members.length} {t('additionalMember' as TranslationKey)}
+                          <span className={`px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full ${dir === 'rtl' ? 'mr-2' : 'ml-2'}`}>
+                            +{individual.additional_members.length} {individual.additional_members.length > 1
+                              ? t('additionalMembers' as TranslationKey)
+                              : t('additionalMember' as TranslationKey)}
                           </span>
                         )}
                       </div>
@@ -163,9 +182,20 @@ export function IndividualsList({
                 </td>
                 <td className={`px-6 py-4 whitespace-nowrap text-${dir === 'rtl' ? 'right' : 'left'}`}>
                   <div className="flex flex-wrap gap-1 max-w-[200px]">
-                    {individual.needs.map((need) => (
-                      <NeedsBadge key={need.id} need={need} />
-                    ))}
+                    {individual.assistance_details?.map((detail) => {
+                      const Icon = assistanceIcons[detail.assistance_type];
+                      return (
+                        <span
+                          key={detail.id}
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${assistanceColors[detail.assistance_type]}`}
+                        >
+                          <Icon className="h-3 w-3" />
+                        </span>
+                      );
+                    })}
+                    {(!individual.assistance_details || individual.assistance_details.length === 0) && (
+                      <span className="text-gray-400 text-sm">-</span>
+                    )}
                   </div>
                 </td>
                 <td className={`px-6 py-4 whitespace-nowrap text-${dir === 'rtl' ? 'left' : 'right'} text-sm font-medium`}>

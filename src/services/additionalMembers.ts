@@ -1,16 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { AdditionalMember } from '../types';
-
-export class AdditionalMemberError extends Error {
-  constructor(
-    public code: string,
-    message: string,
-    public details?: unknown
-  ) {
-    super(message);
-    this.name = 'AdditionalMemberError';
-  }
-}
+import { ServiceError } from '../utils/errors';
 
 export async function addAdditionalMember(individualId: string, data: AdditionalMember) {
   try {
@@ -20,12 +10,12 @@ export async function addAdditionalMember(individualId: string, data: Additional
     });
 
     if (error) {
-      throw new AdditionalMemberError('creation-failed', error.message, error);
+      throw new ServiceError('creation-failed', error.message, error);
     }
 
     return result;
   } catch (error) {
-    if (error instanceof AdditionalMemberError) throw error;
-    throw new AdditionalMemberError('unexpected', 'An unexpected error occurred', error);
+    if (error instanceof ServiceError) throw error;
+    throw new ServiceError('unexpected', 'An unexpected error occurred', error);
   }
 }

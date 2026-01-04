@@ -1,16 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '../lib/supabase';
-
-export class StorageError extends Error {
-  constructor(
-    public code: string,
-    message: string,
-    public details?: unknown
-  ) {
-    super(message);
-    this.name = 'StorageError';
-  }
-}
+import { ServiceError } from '../utils/errors';
 
 // Client-side storage fallback (uses localStorage and base64)
 class LocalStorageFallback {
@@ -317,7 +307,7 @@ export async function uploadIdCardImage(
     }
     
     if (!data || !data.path) {
-      throw new StorageError('upload-failed', 'Failed to get file path from upload response', null);
+      throw new ServiceError('upload-failed', 'Failed to get file path from upload response', null);
     }
     
     // Get the public URL
@@ -326,7 +316,7 @@ export async function uploadIdCardImage(
       .getPublicUrl(fileName);
     
     if (!urlData?.publicUrl) {
-      throw new StorageError('url-generation-failed', 'Failed to generate public URL', null);
+      throw new ServiceError('url-generation-failed', 'Failed to generate public URL', null);
     }
     
     return {
@@ -390,7 +380,7 @@ export async function deleteFile(path: string): Promise<void> {
     
     // Check if the Supabase client is initialized
     if (!supabase || !supabase.storage) {
-      throw new StorageError('supabase-client-error', 'Supabase client or storage is not initialized', null);
+      throw new ServiceError('supabase-client-error', 'Supabase client or storage is not initialized', null);
     }
     
     // Use the Supabase client for file deletion
@@ -400,14 +390,14 @@ export async function deleteFile(path: string): Promise<void> {
     
     if (error) {
       console.error('Supabase storage delete error:', error);
-      throw new StorageError('delete-failed', `Failed to delete file: ${error.message}`, error);
+      throw new ServiceError('delete-failed', `Failed to delete file: ${error.message}`, error);
     }
     
     console.log(`File deleted successfully: ${path}`);
   } catch (error) {
     console.error('Error in deleteFile:', error);
-    if (error instanceof StorageError) throw error;
-    throw new StorageError('delete-failed', 'Failed to delete file', error);
+    if (error instanceof ServiceError) throw error;
+    throw new ServiceError('delete-failed', 'Failed to delete file', error);
   }
 }
 

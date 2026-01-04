@@ -1,9 +1,8 @@
 import React from 'react';
-import { X, Calendar, MapPin, Phone, Briefcase, DollarSign, User, CreditCard, Package, Heart, Pizza, Gift, Landmark, BookOpen, Home, FileText, ExternalLink } from 'lucide-react';
-import { Individual, AssistanceType, AssistanceTranslationKey, NeedStatus, TranslationKey, NeedPriority } from '../../types';
+import { X, Calendar, MapPin, Phone, Briefcase, DollarSign, User, Users, CreditCard, Package, Heart, Pizza, Gift, Landmark, BookOpen, Home, FileText, ExternalLink } from 'lucide-react';
+import { Individual, AssistanceType, AssistanceTranslationKey, TranslationKey } from '../../types';
 import { Button } from '../ui/Button';
 import { formatDate, formatCurrency, calculateAge } from '../../utils/formatters';
-import { NeedsBadge } from '../NeedsBadge';
 import { useLanguage } from '../../contexts/LanguageContext';
 
 interface ViewIndividualModalProps {
@@ -70,19 +69,6 @@ const getAssistanceTranslationKey = (type: AssistanceType): AssistanceTranslatio
     default:
       return 'medicalHelp'; // Fallback to a default key
   }
-};
-
-const getNeedStatusTranslationKey = (status: NeedStatus): TranslationKey => {
-  switch (status) {
-    case 'in_progress':
-      return 'inProgress';
-    default:
-      return status as TranslationKey;
-  }
-};
-
-const getNeedPriorityTranslationKey = (priority: NeedPriority): TranslationKey => {
-  return priority as TranslationKey;
 };
 
 export function ViewIndividualModal({ isOpen, onClose, individual, isLoading }: ViewIndividualModalProps) {
@@ -239,6 +225,45 @@ export function ViewIndividualModal({ isOpen, onClose, individual, isLoading }: 
                   )}
                 </div>
 
+                {/* Family Association */}
+                {individual.family && (
+                  <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                    <h4 className="font-medium text-gray-900 mb-3 flex items-center">
+                      <Users className={`w-5 h-5 ${dir === 'rtl' ? 'ml-2' : 'mr-2'} text-blue-600`} />
+                      {t('familyAssignment')}
+                    </h4>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium text-gray-900 text-lg">{individual.family.name}</span>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${individual.family.status === 'green' ? 'bg-green-100 text-green-800' :
+                          individual.family.status === 'yellow' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-red-100 text-red-800'
+                          }`}>
+                          {t(individual.family.status)}
+                        </span>
+                      </div>
+                      {individual.family.phone && (
+                        <div className="flex items-center text-gray-600">
+                          <Phone className={`w-4 h-4 ${dir === 'rtl' ? 'ml-2' : 'mr-2'}`} />
+                          <span>{individual.family.phone}</span>
+                        </div>
+                      )}
+                      {individual.family.district && (
+                        <div className="flex items-center text-gray-600">
+                          <MapPin className={`w-4 h-4 ${dir === 'rtl' ? 'ml-2' : 'mr-2'}`} />
+                          <span>{individual.family.district}</span>
+                        </div>
+                      )}
+                      {individual.family.address && (
+                        <div className="flex items-center text-gray-600">
+                          <Home className={`w-4 h-4 ${dir === 'rtl' ? 'ml-2' : 'mr-2'}`} />
+                          <span className="text-sm">{individual.family.address}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {/* Files Section */}
                 {individual.google_drive_folder_url && (
                   <div className="bg-gray-50 rounded-lg p-4">
@@ -302,7 +327,7 @@ export function ViewIndividualModal({ isOpen, onClose, individual, isLoading }: 
                                   {t('additionalMember')}
                                 </span>
                               </div>
-                              
+
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
                                 {member.relation && (
                                   <div className="flex items-center text-gray-600">
@@ -310,14 +335,14 @@ export function ViewIndividualModal({ isOpen, onClose, individual, isLoading }: 
                                     <span>{t(member.relation as TranslationKey) || member.relation}</span>
                                   </div>
                                 )}
-                                
+
                                 {member.gender && (
                                   <div className="flex items-center text-gray-600">
                                     <span className="font-medium mr-1">{t('gender')}:</span>
                                     <span>{t(member.gender as TranslationKey)}</span>
                                   </div>
                                 )}
-                                
+
                                 {member.date_of_birth && (
                                   <div className="flex items-center text-gray-600">
                                     <Calendar className="w-4 h-4 mr-1" />
@@ -328,7 +353,7 @@ export function ViewIndividualModal({ isOpen, onClose, individual, isLoading }: 
                                     </span>
                                   </div>
                                 )}
-                                
+
                                 {member.job_title && (
                                   <div className="flex items-center text-gray-600">
                                     <Briefcase className="w-4 h-4 mr-1" />
@@ -336,7 +361,7 @@ export function ViewIndividualModal({ isOpen, onClose, individual, isLoading }: 
                                     <span>{member.job_title}</span>
                                   </div>
                                 )}
-                                
+
                                 {member.phone_number && (
                                   <div className="flex items-center text-gray-600">
                                     <Phone className="w-4 h-4 mr-1" />
@@ -542,25 +567,7 @@ export function ViewIndividualModal({ isOpen, onClose, individual, isLoading }: 
                   </div>
                 )}
 
-                {/* Needs */}
-                {individual.needs && individual.needs.length > 0 && (
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h4 className="font-medium text-gray-900 mb-2">{t('needs')}</h4>
-                    <div className="space-y-2">
-                      {individual.needs.map((need) => (
-                        <div key={need.id} className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            <NeedsBadge need={need} />
-                            <span className="text-sm text-gray-700">{need.description}</span>
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            {t(getNeedPriorityTranslationKey(need.priority))} - {t(getNeedStatusTranslationKey(need.status))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+
 
                 {/* Hashtags */}
                 {individual.hashtags && individual.hashtags.length > 0 && (

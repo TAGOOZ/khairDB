@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { NeedCategory, NeedPriority, NeedStatus } from '../types';
 
 // Individual Schema
 export const individualSchema = z.object({
@@ -39,7 +38,7 @@ export const familySchema = z.object({
 export type FamilyMemberData = z.infer<typeof familyMemberSchema>;
 export type FamilyFormData = z.infer<typeof familySchema>;
 
-// Need Schema
+/** @deprecated Use assistance_details instead */
 export const needSchema = z.object({
   category: z.enum(['medical', 'financial', 'food', 'shelter', 'clothing', 'education', 'employment', 'transportation', 'other'] as const, {
     required_error: 'Please select a category',
@@ -51,6 +50,7 @@ export const needSchema = z.object({
   status: z.enum(['pending', 'in_progress', 'completed'] as const).default('pending'),
 });
 
+/** @deprecated Use assistance_details instead */
 export type NeedFormData = z.infer<typeof needSchema>;
 
 // Distribution Schema

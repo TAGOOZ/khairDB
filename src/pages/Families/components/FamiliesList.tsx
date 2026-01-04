@@ -13,29 +13,30 @@ interface FamiliesListProps {
 }
 
 export function FamiliesList({ families, onEdit, onDelete, onView }: FamiliesListProps) {
-  const { t, dir } = useLanguage();
-  
+  const { t, dir, language } = useLanguage();
+  const isRTL = language === 'ar';
+
   return (
     <div className="bg-white shadow-md rounded-lg overflow-hidden" dir={dir}>
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className={`px-6 py-3 text-${isRTL ? 'right' : 'left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
               {t('familyName')}
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className={`px-6 py-3 text-${isRTL ? 'right' : 'left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
               {t('contactInfo')}
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className={`px-6 py-3 text-${isRTL ? 'right' : 'left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
               {t('members')}
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className={`px-6 py-3 text-${isRTL ? 'right' : 'left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
               {t('status')}
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className={`px-6 py-3 text-${isRTL ? 'right' : 'left'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
               {t('created')}
             </th>
-            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <th className={`px-6 py-3 text-${isRTL ? 'left' : 'right'} text-xs font-medium text-gray-500 uppercase tracking-wider`}>
               {t('actions')}
             </th>
           </tr>
@@ -77,7 +78,7 @@ export function FamiliesList({ families, onEdit, onDelete, onView }: FamiliesLis
                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                   ${family.status === 'green' ? 'bg-green-100 text-green-800' :
                     family.status === 'yellow' ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-red-100 text-red-800'}`}>
+                      'bg-red-100 text-red-800'}`}>
                   {family.status}
                 </span>
               </td>

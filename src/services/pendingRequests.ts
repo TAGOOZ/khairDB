@@ -1,16 +1,7 @@
 import { supabase } from '../lib/supabase';
 import { IndividualFormData } from '../schemas/individualSchema';
-
-export class PendingRequestError extends Error {
-  constructor(
-    public code: string,
-    message: string,
-    public details?: unknown
-  ) {
-    super(message);
-    this.name = 'PendingRequestError';
-  }
-}
+import { logActivity } from './activityLogs';
+import { ServiceError } from '../utils/errors';
 
 export async function submitIndividualRequest(data: IndividualFormData) {
   try {
@@ -22,7 +13,7 @@ export async function submitIndividualRequest(data: IndividualFormData) {
       .single();
 
     if (existingIndividual) {
-      throw new PendingRequestError(
+      throw new ServiceError(
         'duplicate-id',
         'An individual with this ID number already exists'
       );
@@ -32,7 +23,7 @@ export async function submitIndividualRequest(data: IndividualFormData) {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user?.id) {
-      throw new PendingRequestError(
+      throw new ServiceError(
         'unauthorized',
         'You must be logged in to submit a request'
       );
@@ -50,7 +41,7 @@ export async function submitIndividualRequest(data: IndividualFormData) {
       .single();
 
     if (error) {
-      throw new PendingRequestError(
+      throw new ServiceError(
         'submission-failed',
         error.message || 'Failed to submit request',
         error
@@ -59,10 +50,10 @@ export async function submitIndividualRequest(data: IndividualFormData) {
 
     return result;
   } catch (error) {
-    if (error instanceof PendingRequestError) {
+    if (error instanceof ServiceError) {
       throw error;
     }
-    throw new PendingRequestError(
+    throw new ServiceError(
       'submission-failed',
       'Failed to submit request',
       error
@@ -75,7 +66,7 @@ export async function editRequest(requestId: string, data: IndividualFormData) {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user?.id) {
-      throw new PendingRequestError(
+      throw new ServiceError(
         'unauthorized',
         'You must be logged in to edit requests'
       );
@@ -88,7 +79,7 @@ export async function editRequest(requestId: string, data: IndividualFormData) {
       .single();
 
     if (fetchError) {
-      throw new PendingRequestError(
+      throw new ServiceError(
         'edit-failed',
         fetchError.message || 'Failed to fetch request for editing',
         fetchError
@@ -96,7 +87,7 @@ export async function editRequest(requestId: string, data: IndividualFormData) {
     }
 
     if (oldRequest.status === 'approved') {
-      throw new PendingRequestError(
+      throw new ServiceError(
         'edit-not-allowed',
         'Cannot edit a request that is approved'
       );
@@ -118,7 +109,7 @@ export async function editRequest(requestId: string, data: IndividualFormData) {
       .single();
 
     if (updateError) {
-      throw new PendingRequestError(
+      throw new ServiceError(
         'edit-failed',
         updateError.message || 'Failed to edit request',
         updateError
@@ -127,10 +118,10 @@ export async function editRequest(requestId: string, data: IndividualFormData) {
 
     return result;
   } catch (error) {
-    if (error instanceof PendingRequestError) {
+    if (error instanceof ServiceError) {
       throw error;
     }
-    throw new PendingRequestError(
+    throw new ServiceError(
       'edit-failed',
       'Failed to edit request',
       error
@@ -143,7 +134,7 @@ export async function approveRequest(id: string, comment?: string) {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user?.id) {
-      throw new PendingRequestError(
+      throw new ServiceError(
         'unauthorized',
         'You must be logged in to approve requests'
       );
@@ -156,7 +147,7 @@ export async function approveRequest(id: string, comment?: string) {
       .single();
 
     if (fetchError) {
-      throw new PendingRequestError(
+      throw new ServiceError(
         'approval-failed',
         fetchError.message || 'Failed to fetch request for approval',
         fetchError
@@ -186,7 +177,7 @@ export async function approveRequest(id: string, comment?: string) {
         .eq('id', id);
 
       if (updateError) {
-        throw new PendingRequestError(
+        throw new ServiceError(
           'approval-failed',
           updateError.message || 'Failed to update request status',
           updateError
@@ -199,7 +190,11 @@ export async function approveRequest(id: string, comment?: string) {
     // Start transaction for data integrity
     const { error: beginError } = await supabase.rpc('begin_transaction');
     if (beginError) {
-      console.warn('Transaction not available, proceeding without transaction:', beginError);
+      throw new ServiceError(
+        'transaction-failed',
+        'Failed to start transaction. Cannot proceed with approval to ensure data integrity.',
+        beginError
+      );
     }
 
     try {
@@ -220,7 +215,7 @@ export async function approveRequest(id: string, comment?: string) {
           .single();
 
         if (familyError) {
-          throw new PendingRequestError('approval-failed', 'Failed to create family', familyError);
+          throw new ServiceError('approval-failed', 'Failed to create family', familyError);
         }
 
         familyId = newFamily.id;
@@ -251,7 +246,7 @@ export async function approveRequest(id: string, comment?: string) {
         .single();
 
       if (individualError) {
-        throw new PendingRequestError('approval-failed', 'Failed to create individual', individualError);
+        throw new ServiceError('approval-failed', 'Failed to create individual', individualError);
       }
 
       // Update the request status immediately after creating the individual
@@ -272,7 +267,7 @@ export async function approveRequest(id: string, comment?: string) {
           .delete()
           .eq('id', newIndividual.id);
 
-        throw new PendingRequestError(
+        throw new ServiceError(
           'approval-failed',
           updateError.message || 'Failed to update request status',
           updateError
@@ -454,23 +449,36 @@ export async function approveRequest(id: string, comment?: string) {
       }
 
       // Commit transaction if it was started
-      await supabase.rpc('commit_transaction').catch(() => {
+      try {
+        await supabase.rpc('commit_transaction');
+      } catch {
         // Ignore commit errors if transaction wasn't started
-      });
+      }
+
+      // Log the activity
+      await logActivity(
+        'approve',
+        'request',
+        id,
+        `${individualData.first_name} ${individualData.last_name}`,
+        { request_type: fetchedRequest.type, individual_id: newIndividual.id }
+      );
 
     } catch (innerError) {
       // Rollback transaction on any error
-      await supabase.rpc('rollback_transaction').catch(() => {
+      try {
+        await supabase.rpc('rollback_transaction');
+      } catch {
         // Ignore rollback errors if transaction wasn't started
-      });
+      }
       throw innerError;
     }
 
   } catch (error) {
-    if (error instanceof PendingRequestError) {
+    if (error instanceof ServiceError) {
       throw error;
     }
-    throw new PendingRequestError(
+    throw new ServiceError(
       'approval-failed',
       'Failed to approve request',
       error
@@ -484,7 +492,7 @@ export async function rejectRequest(id: string, comment: string) {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user?.id) {
-      throw new PendingRequestError(
+      throw new ServiceError(
         'unauthorized',
         'You must be logged in to reject requests'
       );
@@ -497,17 +505,26 @@ export async function rejectRequest(id: string, comment: string) {
       });
 
     if (error) {
-      throw new PendingRequestError(
+      throw new ServiceError(
         'rejection-failed',
         error.message || 'Failed to reject request',
         error
       );
     }
+
+    // Log the activity
+    await logActivity(
+      'reject',
+      'request',
+      id,
+      'Request rejected',
+      { comment }
+    );
   } catch (error) {
-    if (error instanceof PendingRequestError) {
+    if (error instanceof ServiceError) {
       throw error;
     }
-    throw new PendingRequestError(
+    throw new ServiceError(
       'rejection-failed',
       'Failed to reject request',
       error
@@ -520,7 +537,7 @@ export async function deleteRequest(id: string) {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user?.id) {
-      throw new PendingRequestError(
+      throw new ServiceError(
         'unauthorized',
         'You must be logged in to delete requests'
       );
@@ -533,17 +550,17 @@ export async function deleteRequest(id: string) {
       .eq('submitted_by', user.id); // Only allow deleting own requests
 
     if (error) {
-      throw new PendingRequestError(
+      throw new ServiceError(
         'deletion-failed',
         error.message || 'Failed to delete request',
         error
       );
     }
   } catch (error) {
-    if (error instanceof PendingRequestError) {
+    if (error instanceof ServiceError) {
       throw error;
     }
-    throw new PendingRequestError(
+    throw new ServiceError(
       'deletion-failed',
       'Failed to delete request',
       error
