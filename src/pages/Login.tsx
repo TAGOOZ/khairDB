@@ -18,7 +18,7 @@ export function Login() {
   const handleSubmit = async (email: string, password: string) => {
     setError('');
     setIsLoading(true);
-    
+
     try {
       await signIn(email, password);
     } catch (err) {
@@ -50,14 +50,16 @@ export function Login() {
             error={error}
           />
 
-          <div className="mt-6 bg-blue-50 rounded-lg p-4">
-            <h3 className="text-sm font-medium text-blue-800 mb-2">Example Credentials</h3>
-            <div className="text-sm text-blue-700">
-              <p>Email: admin@example.com</p>
-              <p>Password: pass1234</p>
-              <p className="mt-1 text-xs text-blue-600">Role: {AUTH_CONFIG.exampleCredentials.role}</p>
+          {AUTH_CONFIG.exampleCredentials && (
+            <div className="mt-6 bg-blue-50 rounded-lg p-4">
+              <h3 className="text-sm font-medium text-blue-800 mb-2">Example Credentials</h3>
+              <div className="text-sm text-blue-700">
+                <p>Email: {AUTH_CONFIG.exampleCredentials.email}</p>
+                <p>Password: {AUTH_CONFIG.exampleCredentials.password}</p>
+                <p className="mt-1 text-xs text-blue-600">Role: {AUTH_CONFIG.exampleCredentials.role}</p>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
